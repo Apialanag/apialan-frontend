@@ -1,0 +1,7 @@
+/* src/components/SalonList.css */
+.salones-list-container {
+  /* En el layout de 3 columnas, este podría necesitar menos estilos.
+     Cuando lo usamos en la vista de selección única, el contenedor padre
+     se encargará de centrarlo y darle el layout. */
+  width: 100%;
+}

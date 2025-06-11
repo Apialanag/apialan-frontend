@@ -1,0 +1,71 @@
+/* src/components/Paso2_SeleccionFecha.css */
+.paso-container {
+  text-align: center;
+  background-color: var(--color-white);
+  padding: 30px;
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color-default);
+}
+.paso-container h2 {
+  font-size: 1.8em;
+  margin-bottom: 30px;
+}
+
+.calendario-wrapper {
+  /* *** CORRECCIÓN AQUÍ *** */
+  /* Usaremos flexbox para centrar perfectamente el calendario */
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.fecha-seleccionada-info {
+  margin-top: 20px;
+  font-size: 1.1em;
+  background-color: var(--color-indigo-50);
+  padding: 10px 15px;
+  border-radius: 8px;
+  display: inline-block;
+  border: 1px solid var(--color-indigo-100);
+}
+.navegacion-pasos {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color-default);
+}
+.boton-principal {
+  background-color: var(--color-indigo-600);
+  color: var(--color-white);
+  padding: 10px 25px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+.boton-principal:hover:not(:disabled) {
+  background-color: var(--color-indigo-700);
+}
+.boton-principal:disabled {
+  background-color: var(--color-gray-300);
+  cursor: not-allowed;
+}
+.boton-volver {
+  background-color: transparent;
+  color: var(--color-indigo-600);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  padding: 10px 0;
+  font-family: inherit;
+  font-size: 1em;
+}
+.boton-volver:hover {
+  text-decoration: underline;
+}
+

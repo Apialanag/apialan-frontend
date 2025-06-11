@@ -1,0 +1,102 @@
+/* src/components/Paso3_SeleccionHorario.css */
+
+.seleccion-horario-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas de igual ancho */
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.columna-horarios {
+    background-color: var(--color-gray-50);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-default);
+}
+
+.columna-horarios > p { /* Título "Hora de Inicio" / "Hora de Término" */
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.horarios-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Una columna de botones para apilarlos verticalmente */
+    gap: 10px;
+}
+
+.no-options-text {
+    color: var(--color-gray-600);
+    font-style: italic;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+}
+
+.resumen-horario {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: var(--color-indigo-50);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2em;
+    border: 1px solid var(--color-indigo-100);
+}
+.resumen-horario p {
+    margin: 5px 0;
+}
+.resumen-horario strong {
+    color: var(--color-indigo-600);
+    font-weight: 600;
+}
+
+/* Estilos para los botones de horario (ya definidos en App.css pero se pueden poner aquí para encapsular) */
+.boton-horario {
+    padding: 12px;
+    border: 1px solid var(--border-color-default);
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: var(--color-white);
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.boton-horario.disponible:hover {
+    background-color: var(--color-indigo-100);
+    border-color: var(--color-indigo-600);
+}
+
+.boton-horario.ocupado {
+    background-color: var(--color-red-100);
+    color: var(--color-red-500);
+    border-color: var(--color-red-100);
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.boton-horario.seleccionado {
+    background-color: var(--color-indigo-600);
+    color: var(--color-white);
+    border-color: var(--color-indigo-700);
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Estilos para el mensaje de error dentro de este componente */
+.mensaje-error {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  background-color: var(--color-red-100);
+  color: var(--color-red-500);
+  border: 1px solid var(--color-red-500);
+}

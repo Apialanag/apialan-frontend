@@ -1,0 +1,53 @@
+/* src/index.css */
+    
+/* Importamos la fuente Montserrat desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+/* Definimos las variables de color globales para toda la aplicación */
+:root {
+  /* Tipografía */
+  --font-family-main: 'Montserrat', sans-serif;
+
+  /* Paleta de Colores de Marca y UI */
+  --color-indigo-50: #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+  --color-purple-600: #9333ea;
+  --color-blue-600: #2563eb;
+  --color-green-500: #22c55e;
+  --color-red-100: #fee2e2;
+  --color-red-500: #ef4444;
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #f3f4f6;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-600: #4b5563;
+  --color-gray-800: #1f2937;
+  --color-white: #ffffff;
+
+  /* Sombras y Bordes */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-radius-xl: 0.75rem;
+  --border-color-default: var(--color-gray-300);
+}
+
+/* Estilos base para el body */
+body {
+  margin: 0;
+  font-family: var(--font-family-main);
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Aseguramos que el contenedor raíz no tenga restricciones */
+#root {
+  /* No se necesitan estilos de ancho o margen aquí */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0; /* Quitamos márgenes por defecto de los encabezados */
+}

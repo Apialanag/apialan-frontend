@@ -1,0 +1,112 @@
+/* src/components/Paso4_DatosYResumen.css */
+.datos-y-resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Por defecto (móvil): 1 sola columna */
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* Aplicar 2 columnas solo en pantallas más grandes (tablets y desktop) */
+@media (min-width: 768px) {
+  .datos-y-resumen-grid {
+    grid-template-columns: 2fr 1fr; /* Columna de formulario más ancha */
+  }
+}
+
+
+/* Estilos para el formulario en la columna izquierda */
+.formulario-datos-personales h3 {
+    margin-bottom: 8px;
+}
+.formulario-datos-personales p {
+    margin-bottom: 25px;
+    color: var(--color-gray-600);
+}
+.formulario-datos-personales .form-group {
+    margin-bottom: 20px;
+}
+.formulario-datos-personales input,
+.formulario-datos-personales textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color-default);
+    border-radius: 6px;
+    font-size: 1em;
+    font-family: inherit;
+    box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+}
+.formulario-datos-personales input:focus,
+.formulario-datos-personales textarea:focus {
+    outline: none;
+    border-color: var(--color-indigo-500);
+    box-shadow: 0 0 0 3px var(--color-indigo-100);
+}
+
+/* Estilos para el panel de resumen en la columna derecha */
+.panel-resumen {
+    background-color: var(--color-indigo-50);
+    padding: 20px;
+    border-radius: var(--border-radius-xl);
+    height: fit-content; /* Para que se ajuste a su contenido y no se estire */
+    border: 1px solid var(--color-indigo-100);
+}
+.panel-resumen h3 {
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--color-indigo-100);
+    padding-bottom: 10px;
+}
+.resumen-fila {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95em;
+    flex-wrap: wrap; /* Para que no se desborde en pantallas muy pequeñas */
+}
+.resumen-fila span {
+    color: var(--color-gray-600);
+}
+.resumen-fila strong {
+    color: var(--color-gray-800);
+    font-weight: 500;
+}
+.resumen-separador {
+    border: none;
+    border-top: 1px solid var(--color-indigo-100);
+    margin: 15px 0;
+}
+.resumen-total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 15px;
+    font-size: 1.2em;
+}
+.resumen-total span {
+    font-weight: 600;
+    color: var(--color-gray-800);
+}
+.resumen-total strong {
+    font-weight: 700;
+    color: var(--color-indigo-600);
+}
+.resumen-notas {
+    font-size: 0.75rem; /* text-xs */
+    color: var(--color-gray-500);
+    margin-top: 20px;
+    text-align: center;
+}
+.mensaje-reserva {
+    margin-top: 20px;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.mensaje-reserva.exito {
+    background-color: #d1fae5;
+    color: #0f5132;
+}
+.mensaje-reserva.error {
+    background-color: #f8d7da;
+    color: #842029;
+}

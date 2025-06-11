@@ -1,0 +1,108 @@
+/* src/components/CustomCalendar.css */
+.calendar-container {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-xl);
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color-default);
+  width: 100%;
+  max-width: 400px; /* Un ancho máximo para que no se estire demasiado */
+  margin: 0 auto;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.month-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.nav-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: var(--color-gray-600);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-button:hover {
+  background-color: var(--color-indigo-50);
+  color: var(--color-indigo-600);
+}
+
+.days-of-week-grid,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* La regla clave para las 7 columnas */
+  gap: 0.25rem;
+}
+
+.day-of-week {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  padding-bottom: 0.5rem;
+}
+
+.day-cell {
+  height: 2.5rem; /* h-10 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem; /* rounded-md */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.day-cell.empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+.day-cell:not(:disabled):hover {
+  background-color: var(--color-indigo-100);
+  color: var(--color-indigo-800);
+}
+
+.day-cell.today {
+  border: 1px solid var(--color-indigo-500);
+  font-weight: 700;
+}
+
+.day-cell.selected {
+  background-color: var(--color-indigo-600) !important;
+  color: var(--color-white) !important;
+  font-weight: 700;
+  border-color: var(--color-indigo-600) !important;
+}
+
+.day-cell.disabled {
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.day-cell.unavailable {
+  background-color: var(--color-red-100) !important;
+  color: var(--color-red-500) !important;
+  cursor: not-allowed;
+  font-weight: 400;
+}
+
