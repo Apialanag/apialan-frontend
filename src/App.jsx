@@ -1,6 +1,6 @@
 // src/App.jsx
-import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import './App.css';
 import BookingPage from './pages/BookingPage';
@@ -10,34 +10,47 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const { authToken, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // 1. Estado para controlar la 'key' del componente de reserva.
+  const [bookingKey, setBookingKey] = useState(0);
+
+  // 2. Función para reiniciar el proceso de reserva.
+  //    Incrementa la key, lo que fuerza a React a reinstanciar BookingPage.
+  const handleResetBooking = () => {
+    setBookingKey(prevKey => prevKey + 1);
+    navigate('/'); // Navega a la página de inicio.
+  };
 
   return (
     <div className="App">
       <header className="App-header">
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+        {/* 3. El logo ahora es un div interactivo que llama a la función de reinicio. */}
+        <div onClick={handleResetBooking} style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
           <h1>APIALAN AG</h1>
-        </Link>
+        </div>
         <nav>
           {authToken ? (
             <>
-              <Link to="/admin/dashboard" style={{ color: 'white', textDecoration: 'none', marginRight: '20px' }}>
+              <a href="/admin/dashboard" style={{ color: 'white', textDecoration: 'none', marginRight: '20px' }}>
                 Panel Admin
-              </Link>
+              </a>
               <button onClick={logout} className="boton-logout">
                 Cerrar Sesión
               </button>
             </>
           ) : (
-            <Link to="/admin/login" style={{ color: 'white', textDecoration: 'none' }}>
+            <a href="/admin/login" style={{ color: 'white', textDecoration: 'none' }}>
               Acceso Admin
-            </Link>
+            </a>
           )}
         </nav>
       </header>
 
       <main className="App-main">
         <Routes>
-          <Route path="/" element={<BookingPage />} />
+          {/* 4. Se pasa la 'key' al componente BookingPage. */}
+          <Route path="/" element={<BookingPage key={bookingKey} />} />
           <Route path="/admin/login" element={<LoginPage />} />
           <Route
             path="/admin/dashboard"
@@ -59,4 +72,3 @@ function App() {
 }
 
 export default App;
-
