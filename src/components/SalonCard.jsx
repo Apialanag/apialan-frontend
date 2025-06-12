@@ -1,57 +1,50 @@
 // src/components/SalonCard.jsx
 import React from 'react';
-import './SalonCard.css'; // Mantenemos el CSS base para la estructura
-
-// --- INICIO DE LA SOLUCIÓN ---
-// Esta función crea un componente oculto que contiene todas las clases dinámicas.
-// Esto fuerza a Tailwind CSS a incluir estos estilos en el archivo CSS final.
-const TailwindSafelist = () => (
-  <div className="hidden">
-    <div className="bg-[#050269] hover:bg-[#040156] bg-[#e0e0ff] text-[#050269]"></div>
-    <div className="bg-[#1a1783] hover:bg-[#131270] bg-[#e5e5ff] text-[#1a1783]"></div>
-    <div className="bg-[#2f2c9c] hover:bg-[#252289] bg-[#eaeaff] text-[#2f2c9c]"></div>
-  </div>
-);
-// --- FIN DE LA SOLUCIÓN ---
+import './SalonCard.css'; // Mantenemos el CSS para la estructura
 
 function SalonCard({ salon, onSelect, isSelected }) {
   
-  // Función para obtener los colores correctos según el nombre del espacio
+  // Esta función ahora devuelve los valores de color, no clases de Tailwind.
   const getEspacioColorStyles = (nombreEspacio) => {
     if (nombreEspacio.includes('Grande')) {
       return {
-        header: 'bg-[#050269]',
-        hover: 'hover:bg-[#040156]',
-        badge: 'bg-[#e0e0ff] text-[#050269]'
+        '--header-bg': '#050269',
+        '--header-hover-bg': '#040156',
+        '--badge-bg': '#e0e0ff',
+        '--badge-text': '#050269',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
-        header: 'bg-[#1a1783]',
-        hover: 'hover:bg-[#131270]',
-        badge: 'bg-[#e5e5ff] text-[#1a1783]'
+        '--header-bg': '#1a1783',
+        '--header-hover-bg': '#131270',
+        '--badge-bg': '#e5e5ff',
+        '--badge-text': '#1a1783',
       };
-    } else { // Por defecto, se asume que es la Sala Pequeña
+    } else { // Por defecto, para la Sala Pequeña
       return {
-        header: 'bg-[#2f2c9c]',
-        hover: 'hover:bg-[#252289]',
-        badge: 'bg-[#eaeaff] text-[#2f2c9c]'
+        '--header-bg': '#2f2c9c',
+        '--header-hover-bg': '#252289',
+        '--badge-bg': '#eaeaff',
+        '--badge-text': '#2f2c9c',
       };
     }
   };
 
-  const colorStyles = getEspacioColorStyles(salon.nombre);
+  const cssVariables = getEspacioColorStyles(salon.nombre);
 
   return (
+    // Aplicamos las variables CSS al contenedor principal de la tarjeta
     <div
       className={`salon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(salon)}
+      style={cssVariables}
     >
-      <div className={`card-header ${colorStyles.header}`}>
+      <div className="card-header"> {/* Ya no necesita clases de color dinámicas */}
         <h3 className="card-title">{salon.nombre}</h3>
       </div>
       <div className="card-body">
         <div className="card-info-row">
-          <span className={`info-badge ${colorStyles.badge}`}>
+          <span className="info-badge"> {/* Ya no necesita clases de color dinámicas */}
             Capacidad: {salon.capacidad} personas
           </span>
           <span className="price-tag">
@@ -67,7 +60,7 @@ function SalonCard({ salon, onSelect, isSelected }) {
           </div>
         </div>
         <div className="card-action">
-          <div className={`boton-reservar-card ${colorStyles.header} ${colorStyles.hover}`}>
+          <div className="boton-reservar-card"> {/* Ya no necesita clases de color dinámicas */}
             {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
           </div>
         </div>

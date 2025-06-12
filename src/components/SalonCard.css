@@ -2,9 +2,9 @@
 
 /* Contenedor principal de la tarjeta. Usamos salon-card como clase base. */
 .salon-card {
-    background-color: var(--color-white);
-    border-radius: var(--border-radius-xl); /* Bordes muy redondeados */
-    box-shadow: var(--shadow-lg); /* Sombra pronunciada */
+    background-color: white;
+    border-radius: 0.75rem; /* var(--border-radius-xl) */
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* var(--shadow-lg) */
     overflow: hidden; /* Para que el color del header respete los bordes */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     cursor: pointer;
@@ -15,46 +15,71 @@
     border: 2px solid transparent; /* Borde inicial para evitar saltos al seleccionar */
 }
 
-/* Efecto de zoom suave al pasar el cursor */
+/* --- CORRECCIÓN IMPORTANTE --- */
+/* Efecto de zoom suave, solo en la vista de selección inicial, como en tu archivo original. */
 .vista-seleccion-salon .salon-card:hover {
     transform: scale(1.05);
 }
 
-/* Estilo para la tarjeta seleccionada en la vista de 3 columnas */
-.vista-proceso-reserva .salon-card.selected {
-    border-color: var(--color-indigo-600);
-    box-shadow: 0 0 0 3px var(--color-indigo-100);
+/* Estilo para la tarjeta seleccionada. */
+.salon-card.selected {
+    border-color: #050269; /* Azul Corporativo Principal */
+    box-shadow: 0 0 0 3px #e0e0ff;
     cursor: default;
+    transform: scale(1); /* Desactivar cualquier efecto de zoom si está seleccionada */
 }
 
+/* --- NUEVOS ESTILOS CON VARIABLES CSS (Reemplazan .header-grande, etc.) --- */
 
-/* Cabecera de la tarjeta con altura fija y texto centrado */
 .card-header {
-    height: 8rem; /* Altura fija */
+    height: 8rem;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    color: white;
+    background-color: var(--header-bg); /* Usa la variable */
 }
 
-/* Colores de cabecera según el tipo de espacio */
-.header-grande { background-color: var(--color-indigo-600); }
-.header-mediana { background-color: var(--color-purple-600); }
-.header-pequena { background-color: var(--color-blue-600); }
-.header-default { background-color: var(--color-indigo-600); }
+.info-badge {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: var(--badge-bg); /* Usa la variable */
+    color: var(--badge-text); /* Usa la variable */
+}
 
+.boton-reservar-card {
+    background-color: var(--header-bg); /* Usa la variable para que coincida con la cabecera */
+    color: white;
+    display: inline-block;
+    text-align: center;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    border: none;
+    font-size: 1em;
+}
+
+/* Efecto hover del botón, solo en la vista inicial */
+.vista-seleccion-salon .salon-card:hover .boton-reservar-card {
+    background-color: var(--header-hover-bg); /* Usa la variable de hover */
+}
+
+
+/* --- Estilos estructurales que se mantienen de tu archivo original --- */
 .card-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-white);
 }
 
-/* Cuerpo de la tarjeta */
 .card-body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Esto es clave para que el botón se vaya al fondo */
+    flex-grow: 1;
 }
 
 .card-info-row {
@@ -64,60 +89,36 @@
     margin-bottom: 1rem;
 }
 
-/* "Badge" para la capacidad */
-.info-badge {
-    background-color: var(--color-indigo-100);
-    color: var(--color-indigo-800);
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-}
-
-/* Estilo para el precio */
 .price-tag {
     font-size: 1.125rem;
     font-weight: 700;
 }
 
-/* "Tags" individuales para cada comodidad */
+.comodidades-section {
+    margin-bottom: 1rem;
+}
+
+.comodidades-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
 .comodidades-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 0.5rem;
 }
 
 .comodidad-tag {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-800);
+    background-color: #f3f4f6; /* var(--color-gray-100) */
+    color: #1f2937; /* var(--color-gray-800) */
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
 }
 
-/* Contenedor del botón para empujarlo al fondo */
 .card-action {
-    margin-top: auto; /* Mantiene el botón en la parte inferior */
-    padding-top: 1rem; /* Añade un poco de espacio arriba del botón */
-    text-align: center; /* Centra el botón horizontalmente */
-}
-
-/* Botón "Reservar Ahora" */
-.boton-reservar-card {
-    background-color: var(--color-indigo-600);
-    color: var(--color-white);
-    /* Eliminamos width: 100%; para que el botón se ajuste a su contenido y padding */
-    display: inline-block; /* Permite que el text-align del padre lo centre */
+    margin-top: auto;
+    padding-top: 1rem;
     text-align: center;
-    padding: 0.75rem 2rem; /* Aumentamos el padding horizontal para que no se vea muy estrecho */
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-    border: none;
-    font-size: 1em;
-}
-
-.salon-card:hover .boton-reservar-card {
-    background-color: var(--color-indigo-700);
 }
