@@ -11,30 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   const { authToken, logout } = useAuth();
 
-  // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
-  // Esta variable contendrá la URL de la API que Vercel está usando, o un mensaje de error.
-  const apiUrlForDebug = import.meta.env.VITE_API_URL || "¡¡¡VARIABLE NO DEFINIDA!!!";
-  // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
-
   return (
     <div className="App">
-      {/* --- INICIO DEL BANNER DE DEPURACIÓN --- */}
-      {/* Este banner amarillo solo lo usaremos para encontrar el error. Luego lo podemos borrar. */}
-      <div style={{ 
-        backgroundColor: 'yellow', 
-        color: 'black', 
-        padding: '10px', 
-        textAlign: 'center', 
-        fontWeight: 'bold', 
-        position: 'sticky', 
-        top: 0, 
-        width: '100%', 
-        zIndex: 9999 
-      }}>
-        URL de API en uso (Debug): {apiUrlForDebug}
-      </div>
-      {/* --- FIN DEL BANNER DE DEPURACIÓN --- */}
-
       <header className="App-header">
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           <h1>APIALAN AG</h1>
@@ -61,13 +39,13 @@ function App() {
         <Routes>
           <Route path="/" element={<BookingPage />} />
           <Route path="/admin/login" element={<LoginPage />} />
-          <Route 
-            path="/admin/dashboard" 
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute>
                 <AdminDashboardPage />
               </ProtectedRoute>
-            } 
+            }
           />
         </Routes>
       </main>
@@ -81,3 +59,4 @@ function App() {
 }
 
 export default App;
+

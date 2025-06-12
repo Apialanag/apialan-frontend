@@ -1,6 +1,6 @@
+// src/components/Paso3_SeleccionHorario.jsx
 import React, { useState, useEffect } from 'react';
-// import axios from 'axios'; // Ya no se usa axios directamente
-import api from '../api'; // <-- IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
+import api from '../api';
 import './Paso3_SeleccionHorario.css';
 
 function Paso3_SeleccionHorario({
@@ -10,6 +10,10 @@ function Paso3_SeleccionHorario({
   setHoraInicio,
   horaTermino,
   setHoraTermino,
+  // --- CORRECCIÓN CLAVE: Añadir estos props para recibirlos del padre ---
+  costoCalculado,
+  duracionCalculada,
+  // -----------------------------------------------------------------
   nextStep,
   prevStep
 }) {
@@ -17,15 +21,9 @@ function Paso3_SeleccionHorario({
   const [cargandoHorarios, setCargandoHorarios] = useState(true);
   const [opcionesHoraTermino, setOpcionesHoraTermino] = useState([]);
   const [mensaje, setMensaje] = useState('');
-  
-  // Estos estados ahora reciben sus valores del componente padre, BookingPage,
-  // por lo que los eliminamos de aquí para tener una única fuente de verdad.
-  // const [costoCalculado, setCostoCalculado] = useState(0);
-  // const [duracionCalculada, setDuracionCalculada] = useState(0);
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
 
-  // Efecto para obtener la disponibilidad de horarios del día
   useEffect(() => {
     if (salonSeleccionado && fechaSeleccionada) {
       const fetchDisponibilidadDia = async () => {
@@ -33,14 +31,12 @@ function Paso3_SeleccionHorario({
         setHorariosDelDia([]);
         setMensaje('');
         try {
-          // --- LA CORRECCIÓN CLAVE ---
-          // Usamos nuestra instancia 'api' que ya sabe la URL correcta.
           const response = await api.get(`/reservas`, {
             params: { espacio_id: salonSeleccionado.id, fecha: formatearFechaParaAPI(fechaSeleccionada) }
           });
           const reservasExistentes = response.data;
           const horariosPosibles = Array.from({ length: 9 }, (_, i) => ({ hora: `${10 + i}:00`, disponible: true }));
-          
+
           reservasExistentes.forEach(reserva => {
             const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
             const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
@@ -61,7 +57,6 @@ function Paso3_SeleccionHorario({
     }
   }, [salonSeleccionado, fechaSeleccionada]);
 
-  // Efecto para generar opciones de hora de término
   useEffect(() => {
     if (horaInicio && horariosDelDia.length > 0) {
       const [hInicioNum] = horaInicio.split(':').map(Number);
@@ -83,15 +78,12 @@ function Paso3_SeleccionHorario({
       setOpcionesHoraTermino([]);
     }
   }, [horaInicio, horariosDelDia, horaTermino, setHoraTermino]);
-  
-  // El cálculo de costo y duración ahora se hace en el componente padre (BookingPage.jsx)
-  // por lo que el useEffect para calcularlos ya no es necesario aquí.
 
   const handleSeleccionarHoraInicio = (hora) => {
     setHoraInicio(hora);
     setHoraTermino('');
   };
-  
+
   return (
     <div className="paso-container">
       <h2>Paso 3: Seleccione un Horario</h2>
@@ -101,9 +93,9 @@ function Paso3_SeleccionHorario({
           {cargandoHorarios ? <p>Cargando...</p> : (
             <div className="horarios-container">
               {horariosDelDia.map(horario => (
-                <button 
-                  key={`inicio-${horario.hora}`} 
-                  onClick={() => handleSeleccionarHoraInicio(horario.hora)} 
+                <button
+                  key={`inicio-${horario.hora}`}
+                  onClick={() => handleSeleccionarHoraInicio(horario.hora)}
                   disabled={!horario.disponible}
                   className={`boton-horario ${!horario.disponible ? 'ocupado' : (horario.hora === horaInicio ? 'seleccionado' : 'disponible')}`}
                 >
@@ -118,8 +110,8 @@ function Paso3_SeleccionHorario({
           {horaInicio ? (
             <div className="horarios-container">
               {opcionesHoraTermino.length > 0 ? opcionesHoraTermino.map(opcion => (
-                <button 
-                  key={`termino-${opcion.hora}`} 
+                <button
+                  key={`termino-${opcion.hora}`}
                   onClick={() => setHoraTermino(opcion.hora)}
                   className={`boton-horario disponible ${opcion.hora === horaTermino ? 'seleccionado' : ''}`}
                 >
@@ -130,7 +122,7 @@ function Paso3_SeleccionHorario({
           ) : <p className="no-options-text">Selecciona una hora de inicio primero.</p>}
         </div>
       </div>
-      
+
       {horaTermino && (
         <div className="resumen-horario">
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
@@ -139,7 +131,7 @@ function Paso3_SeleccionHorario({
       )}
 
       {mensaje && <p className="mensaje-error">{mensaje}</p>}
-      
+
       <div className="navegacion-pasos">
         <button onClick={prevStep} className="boton-volver">← Volver</button>
         <button onClick={nextStep} disabled={!horaInicio || !horaTermino} className="boton-principal">Continuar →</button>
