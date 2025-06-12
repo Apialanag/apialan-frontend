@@ -1,4 +1,4 @@
-/* src/components/SalonCard.css (Versión Final Corregida) */
+/* src/components/SalonCard.css (Versión Final Definitiva) */
 
 /* =================================
    ESTRUCTURA GENERAL DE LA TARJETA
@@ -57,14 +57,14 @@
     color: var(--badge-text); /* Variable definida en el JSX */
 }
 
-/* Botón de reserva */
+/* Botón de reserva con acento de color */
 .boton-reservar-card {
     color: white;
-    background-color: var(--button-bg); /* Usa la variable del botón rojo */
+    background-color: var(--button-bg); /* Variable del botón rojo */
     display: inline-block;
     padding: 0.75rem 2rem;
     border-radius: 0.5rem;
-    font-weight: 500;
+    font-weight: 600; /* Un poco más de peso para destacar */
     transition: background-color 0.2s ease;
     border: none;
     font-size: 1em;
@@ -72,7 +72,7 @@
 
 /* Efecto hover del botón, solo en la vista inicial */
 .vista-seleccion-salon .salon-card:hover .boton-reservar-card {
-    background-color: var(--button-hover-bg); /* Usa la variable de hover del botón */
+    background-color: var(--button-hover-bg); /* Variable de hover del botón */
 }
 
 

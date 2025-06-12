@@ -4,40 +4,22 @@ import './SalonCard.css'; // Mantenemos el CSS para la estructura
 
 function SalonCard({ salon, onSelect, isSelected }) {
   
-  // --- PALETA DE DISEÑO PROFESIONAL: "Gradiente de Confianza y Calidez" ---
-  const getEspacioColorStyles = (nombreEspacio) => {
-    if (nombreEspacio.includes('Grande')) {
-      return {
-        '--header-bg': '#4f46e5',        // Azul Corporativo (Ancla de la Marca)
-        '--header-hover-bg': '#4338ca',   // Versión más oscura
-        '--badge-bg': '#e0e7ff',
-        '--badge-text': '#4338ca',
-      };
-    } else if (nombreEspacio.includes('Mediana')) {
-      return {
-        '--header-bg': '#0d9488',        // Verde Azulado (Teal) - Creatividad y Calma
-        '--header-hover-bg': '#0f766e',   // Versión más oscura
-        '--badge-bg': '#ccfbf1',
-        '--badge-text': '#0f766e',
-      };
-    } else { // Por defecto, para la Sala Pequeña
-      return {
-        '--header-bg': '#f59e0b',        // Ámbar/Dorado - Energía y Enfoque
-        '--header-hover-bg': '#d97706',   // Versión más oscura
-        '--badge-bg': '#fef3c7',
-        '--badge-text': '#d97706',
-      };
-    }
+  // --- PALETA DE DISEÑO UNIFICADA ---
+  // Define un único conjunto de colores para todas las tarjetas.
+  const colorStyles = {
+    '--header-bg': '#4f46e5',        // Azul Corporativo para TODAS las cabeceras
+    '--badge-bg': '#eef2ff',         // Un único color de badge para consistencia
+    '--badge-text': '#4338ca',
+    '--button-bg': '#B91C1C',       // Rojo Corporativo para el botón de ACCIÓN
+    '--button-hover-bg': '#991B1B', // Rojo más oscuro para el hover
   };
-
-  const cssVariables = getEspacioColorStyles(salon.nombre);
 
   return (
     // Aplicamos las variables CSS al contenedor principal de la tarjeta
     <div
       className={`salon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(salon)}
-      style={cssVariables}
+      style={colorStyles}
     >
       <div className="card-header">
         <h3 className="card-title">{salon.nombre}</h3>
