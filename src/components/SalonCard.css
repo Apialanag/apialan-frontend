@@ -1,29 +1,8 @@
-/* src/components/SalonCard.css */
+/* src/components/SalonCard.css (Versión Final Corregida) */
 
-/* [Se mantienen todos los estilos anteriores de .salon-card, .card-body, etc.] */
-/* ... */
-
-/* --- AJUSTE CLAVE EN EL BOTÓN --- */
-
-.boton-reservar-card {
-    background-color: var(--button-bg); /* Usa la nueva variable para el rojo */
-    color: white;
-    display: inline-block;
-    text-align: center;
-    padding: 0.75rem 2rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-    border: none;
-    font-size: 1em;
-}
-
-.salon-card:hover .boton-reservar-card {
-    background-color: var(--button-hover-bg); /* Usa la nueva variable de hover */
-}
-
-
-/* --- ESTILOS QUE YA TENÍAMOS Y SE MANTIENEN --- */
+/* =================================
+   ESTRUCTURA GENERAL DE LA TARJETA
+   ================================= */
 
 .salon-card {
     background-color: white;
@@ -39,17 +18,25 @@
     border: 2px solid transparent;
 }
 
+/* Efecto de zoom, solo en la vista inicial */
 .vista-seleccion-salon .salon-card:hover {
     transform: scale(1.05);
 }
 
+/* Estilo para la tarjeta seleccionada */
 .salon-card.selected {
-    border-color: #4f46e5;
+    border-color: #4f46e5; /* Azul corporativo para la selección */
     box-shadow: 0 0 0 3px #e0e7ff;
     cursor: default;
-    transform: scale(1);
+    transform: scale(1); /* Anula el efecto de zoom al estar seleccionada */
 }
 
+
+/* =================================
+   ELEMENTOS CON COLORES DINÁMICOS
+   ================================= */
+
+/* Cabecera de la tarjeta */
 .card-header {
     height: 8rem;
     display: flex;
@@ -57,17 +44,41 @@
     justify-content: center;
     padding: 1rem;
     color: white;
-    background-color: var(--header-bg);
+    background-color: var(--header-bg); /* Variable definida en el JSX */
 }
 
+/* Badge de capacidad */
 .info-badge {
     font-size: 0.875rem;
     font-weight: 500;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
-    background-color: var(--badge-bg);
-    color: var(--badge-text);
+    background-color: var(--badge-bg); /* Variable definida en el JSX */
+    color: var(--badge-text); /* Variable definida en el JSX */
 }
+
+/* Botón de reserva */
+.boton-reservar-card {
+    color: white;
+    background-color: var(--button-bg); /* Usa la variable del botón rojo */
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    border: none;
+    font-size: 1em;
+}
+
+/* Efecto hover del botón, solo en la vista inicial */
+.vista-seleccion-salon .salon-card:hover .boton-reservar-card {
+    background-color: var(--button-hover-bg); /* Usa la variable de hover del botón */
+}
+
+
+/* =================================
+   ESTILOS FIJOS RESTANTES
+   ================================= */
 
 .card-title {
     font-size: 1.5rem;
