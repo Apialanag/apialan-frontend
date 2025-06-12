@@ -5,14 +5,14 @@ import './SalonCard.css'; // Mantenemos el CSS para la estructura
 function SalonCard({ salon, onSelect, isSelected }) {
   
   // --- PALETA DE COLORES ACTUALIZADA ---
-  // Ahora con una progresión de oscuro a claro más distintiva.
+  // Se introduce un color de acento rojo para el salón principal.
   const getEspacioColorStyles = (nombreEspacio) => {
     if (nombreEspacio.includes('Grande')) {
       return {
-        '--header-bg': '#050269',        // Azul Corporativo Oscuro
-        '--header-hover-bg': '#040156',   // Versión más oscura
-        '--badge-bg': '#e0e0ff',
-        '--badge-text': '#050269',
+        '--header-bg': '#B91C1C',        // Rojo Corporativo (Red 700)
+        '--header-hover-bg': '#991B1B',   // Versión más oscura (Red 800)
+        '--badge-bg': '#FEE2E2',        // Fondo de badge rojo pálido
+        '--badge-text': '#991B1B',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
