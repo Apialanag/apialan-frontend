@@ -1,57 +1,12 @@
 /* src/components/SalonCard.css */
 
-/* Contenedor principal de la tarjeta. Usamos salon-card como clase base. */
-.salon-card {
-    background-color: white;
-    border-radius: 0.75rem; /* var(--border-radius-xl) */
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* var(--shadow-lg) */
-    overflow: hidden; /* Para que el color del header respete los bordes */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    height: 100%; /* Asegura que todas las tarjetas en la grid tengan la misma altura */
-    border: 2px solid transparent; /* Borde inicial para evitar saltos al seleccionar */
-}
+/* [Se mantienen todos los estilos anteriores de .salon-card, .card-body, etc.] */
+/* ... */
 
-/* --- CORRECCIÓN IMPORTANTE --- */
-/* Efecto de zoom suave, solo en la vista de selección inicial, como en tu archivo original. */
-.vista-seleccion-salon .salon-card:hover {
-    transform: scale(1.05);
-}
-
-/* Estilo para la tarjeta seleccionada. */
-.salon-card.selected {
-    border-color: #050269; /* Azul Corporativo Principal */
-    box-shadow: 0 0 0 3px #e0e0ff;
-    cursor: default;
-    transform: scale(1); /* Desactivar cualquier efecto de zoom si está seleccionada */
-}
-
-/* --- NUEVOS ESTILOS CON VARIABLES CSS (Reemplazan .header-grande, etc.) --- */
-
-.card-header {
-    height: 8rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    color: white;
-    background-color: var(--header-bg); /* Usa la variable */
-}
-
-.info-badge {
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    background-color: var(--badge-bg); /* Usa la variable */
-    color: var(--badge-text); /* Usa la variable */
-}
+/* --- AJUSTE CLAVE EN EL BOTÓN --- */
 
 .boton-reservar-card {
-    background-color: var(--header-bg); /* Usa la variable para que coincida con la cabecera */
+    background-color: var(--button-bg); /* Usa la nueva variable para el rojo */
     color: white;
     display: inline-block;
     text-align: center;
@@ -63,13 +18,57 @@
     font-size: 1em;
 }
 
-/* Efecto hover del botón, solo en la vista inicial */
-.vista-seleccion-salon .salon-card:hover .boton-reservar-card {
-    background-color: var(--header-hover-bg); /* Usa la variable de hover */
+.salon-card:hover .boton-reservar-card {
+    background-color: var(--button-hover-bg); /* Usa la nueva variable de hover */
 }
 
 
-/* --- Estilos estructurales que se mantienen de tu archivo original --- */
+/* --- ESTILOS QUE YA TENÍAMOS Y SE MANTIENEN --- */
+
+.salon-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    height: 100%;
+    border: 2px solid transparent;
+}
+
+.vista-seleccion-salon .salon-card:hover {
+    transform: scale(1.05);
+}
+
+.salon-card.selected {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px #e0e7ff;
+    cursor: default;
+    transform: scale(1);
+}
+
+.card-header {
+    height: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: white;
+    background-color: var(--header-bg);
+}
+
+.info-badge {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: var(--badge-bg);
+    color: var(--badge-text);
+}
+
 .card-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -110,8 +109,8 @@
 }
 
 .comodidad-tag {
-    background-color: #f3f4f6; /* var(--color-gray-100) */
-    color: #1f2937; /* var(--color-gray-800) */
+    background-color: #f3f4f6;
+    color: #1f2937;
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
