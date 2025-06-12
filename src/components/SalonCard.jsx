@@ -4,28 +4,29 @@ import './SalonCard.css'; // Mantenemos el CSS para la estructura
 
 function SalonCard({ salon, onSelect, isSelected }) {
   
-  // Esta función ahora devuelve los valores de color, no clases de Tailwind.
+  // --- PALETA DE COLORES ACTUALIZADA ---
+  // Ahora con una progresión de oscuro a claro más distintiva.
   const getEspacioColorStyles = (nombreEspacio) => {
     if (nombreEspacio.includes('Grande')) {
       return {
-        '--header-bg': '#050269',
-        '--header-hover-bg': '#040156',
+        '--header-bg': '#050269',        // Azul Corporativo Oscuro
+        '--header-hover-bg': '#040156',   // Versión más oscura
         '--badge-bg': '#e0e0ff',
         '--badge-text': '#050269',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
-        '--header-bg': '#1a1783',
-        '--header-hover-bg': '#131270',
-        '--badge-bg': '#e5e5ff',
-        '--badge-text': '#1a1783',
+        '--header-bg': '#3730a3',        // Azul Intermedio (Indigo 800)
+        '--header-hover-bg': '#312b92',   // Versión más oscura
+        '--badge-bg': '#eef2ff',
+        '--badge-text': '#3730a3',
       };
     } else { // Por defecto, para la Sala Pequeña
       return {
-        '--header-bg': '#2f2c9c',
-        '--header-hover-bg': '#252289',
-        '--badge-bg': '#eaeaff',
-        '--badge-text': '#2f2c9c',
+        '--header-bg': '#4f46e5',        // Azul Brillante (Indigo 600)
+        '--header-hover-bg': '#4338ca',   // Versión más oscura (Indigo 700)
+        '--badge-bg': '#e0e7ff',
+        '--badge-text': '#4f46e5',
       };
     }
   };
@@ -39,12 +40,12 @@ function SalonCard({ salon, onSelect, isSelected }) {
       onClick={() => onSelect(salon)}
       style={cssVariables}
     >
-      <div className="card-header"> {/* Ya no necesita clases de color dinámicas */}
+      <div className="card-header">
         <h3 className="card-title">{salon.nombre}</h3>
       </div>
       <div className="card-body">
         <div className="card-info-row">
-          <span className="info-badge"> {/* Ya no necesita clases de color dinámicas */}
+          <span className="info-badge">
             Capacidad: {salon.capacidad} personas
           </span>
           <span className="price-tag">
@@ -60,7 +61,7 @@ function SalonCard({ salon, onSelect, isSelected }) {
           </div>
         </div>
         <div className="card-action">
-          <div className="boton-reservar-card"> {/* Ya no necesita clases de color dinámicas */}
+          <div className="boton-reservar-card">
             {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
           </div>
         </div>
