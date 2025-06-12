@@ -1,25 +1,45 @@
 // src/App.jsx
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import { useAuth } from './context/AuthContext'; // Importar useAuth para saber si está logueado
+import { useAuth } from './context/AuthContext';
 import './App.css';
 import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import ProtectedRoute from './components/ProtectedRoute'; // Importar nuestro componente de ruta protegida
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const { authToken, logout } = useAuth(); // Obtener el token y la función de logout del contexto
+  const { authToken, logout } = useAuth();
+
+  // --- INICIO DEL CÓDIGO DE DEPURACIÓN ---
+  // Esta variable contendrá la URL de la API que Vercel está usando, o un mensaje de error.
+  const apiUrlForDebug = import.meta.env.VITE_API_URL || "¡¡¡VARIABLE NO DEFINIDA!!!";
+  // --- FIN DEL CÓDIGO DE DEPURACIÓN ---
 
   return (
-    // El BrowserRouter ya está en main.jsx, lo cual es correcto
     <div className="App">
+      {/* --- INICIO DEL BANNER DE DEPURACIÓN --- */}
+      {/* Este banner amarillo solo lo usaremos para encontrar el error. Luego lo podemos borrar. */}
+      <div style={{ 
+        backgroundColor: 'yellow', 
+        color: 'black', 
+        padding: '10px', 
+        textAlign: 'center', 
+        fontWeight: 'bold', 
+        position: 'sticky', 
+        top: 0, 
+        width: '100%', 
+        zIndex: 9999 
+      }}>
+        URL de API en uso (Debug): {apiUrlForDebug}
+      </div>
+      {/* --- FIN DEL BANNER DE DEPURACIÓN --- */}
+
       <header className="App-header">
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           <h1>APIALAN AG</h1>
         </Link>
         <nav>
-          {/* Mostramos un enlace u otro dependiendo de si el usuario está autenticado */}
           {authToken ? (
             <>
               <Link to="/admin/dashboard" style={{ color: 'white', textDecoration: 'none', marginRight: '20px' }}>
@@ -39,11 +59,8 @@ function App() {
 
       <main className="App-main">
         <Routes>
-          {/* Rutas Públicas */}
           <Route path="/" element={<BookingPage />} />
           <Route path="/admin/login" element={<LoginPage />} />
-          
-          {/* Ruta Protegida */}
           <Route 
             path="/admin/dashboard" 
             element={

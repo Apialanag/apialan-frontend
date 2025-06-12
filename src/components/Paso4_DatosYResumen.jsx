@@ -1,28 +1,24 @@
-// src/components/Paso4_DatosYResumen.jsx
 import React, { useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // Ya no se usa axios directamente.
+import api from '../api'; // <-- 1. IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen({
-  // Props con la información de la reserva, recibidas desde BookingPage.jsx
   salonSeleccionado,
   fechaSeleccionada,
   horaInicio,
   horaTermino,
-  duracionCalculada, // Recibido como prop
-  costoCalculado,    // Recibido como prop
+  duracionCalculada,
+  costoCalculado,
   onReservationSuccess,
   prevStep,
 }) {
-  // Estados locales solo para los campos de este formulario
   const [clienteNombre, setClienteNombre] = useState('');
   const [clienteEmail, setClienteEmail] = useState('');
   const [clienteTelefono, setClienteTelefono] = useState('');
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // La lógica para calcular costo y duración SE ELIMINA de aquí.
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
   
@@ -51,15 +47,17 @@ function Paso4_DatosYResumen({
     };
 
     try {
-      await axios.post('http://localhost:3000/api/reservas', datosReserva);
-      setMensajeReserva({ texto: '¡Reserva creada exitosamente! Gracias por preferirnos.', tipo: 'exito' });
+      // --- 2. LA CORRECCIÓN CLAVE ---
+      // Usamos 'api.post()' con solo la parte final de la ruta.
+      await api.post('/reservas', datosReserva); 
+      setMensajeReserva({ texto: '¡Solicitud de reserva enviada! Revisa tu correo para ver las instrucciones de pago.', tipo: 'exito' });
       
       setTimeout(() => {
         onReservationSuccess();
-      }, 3000);
+      }, 4000);
     } catch (error) {
       console.error("Error al crear reserva:", error.response || error);
-      setMensajeReserva({ texto: `Error: ${error.response?.data?.error || 'No se pudo procesar la reserva.'}`, tipo: 'error' });
+      setMensajeReserva({ texto: `Error: ${error.response?.data?.error || 'No se pudo procesar la solicitud.'}`, tipo: 'error' });
       setIsSubmitting(false);
     }
   };

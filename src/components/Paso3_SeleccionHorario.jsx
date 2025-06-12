@@ -1,6 +1,6 @@
-// src/components/Paso3_SeleccionHorario.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios'; // Ya no se usa axios directamente
+import api from '../api'; // <-- IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
 import './Paso3_SeleccionHorario.css';
 
 function Paso3_SeleccionHorario({
@@ -18,9 +18,10 @@ function Paso3_SeleccionHorario({
   const [opcionesHoraTermino, setOpcionesHoraTermino] = useState([]);
   const [mensaje, setMensaje] = useState('');
   
-  // Estados locales para el resumen de este paso
-  const [costoCalculado, setCostoCalculado] = useState(0);
-  const [duracionCalculada, setDuracionCalculada] = useState(0);
+  // Estos estados ahora reciben sus valores del componente padre, BookingPage,
+  // por lo que los eliminamos de aquí para tener una única fuente de verdad.
+  // const [costoCalculado, setCostoCalculado] = useState(0);
+  // const [duracionCalculada, setDuracionCalculada] = useState(0);
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
 
@@ -32,7 +33,9 @@ function Paso3_SeleccionHorario({
         setHorariosDelDia([]);
         setMensaje('');
         try {
-          const response = await axios.get(`http://localhost:3000/api/reservas`, {
+          // --- LA CORRECCIÓN CLAVE ---
+          // Usamos nuestra instancia 'api' que ya sabe la URL correcta.
+          const response = await api.get(`/reservas`, {
             params: { espacio_id: salonSeleccionado.id, fecha: formatearFechaParaAPI(fechaSeleccionada) }
           });
           const reservasExistentes = response.data;
@@ -80,25 +83,9 @@ function Paso3_SeleccionHorario({
       setOpcionesHoraTermino([]);
     }
   }, [horaInicio, horariosDelDia, horaTermino, setHoraTermino]);
-
-  // Efecto para calcular costo y duración
-  useEffect(() => {
-    if (salonSeleccionado && horaInicio && horaTermino) {
-      const hInicioNum = parseInt(horaInicio.split(':')[0]);
-      const hTerminoNum = parseInt(horaTermino.split(':')[0]);
-      if (hTerminoNum > hInicioNum) {
-        const duracion = hTerminoNum - hInicioNum;
-        setDuracionCalculada(duracion);
-        setCostoCalculado(duracion * parseFloat(salonSeleccionado.precio_por_hora));
-      } else {
-        setCostoCalculado(0);
-        setDuracionCalculada(0);
-      }
-    } else {
-      setCostoCalculado(0);
-      setDuracionCalculada(0);
-    }
-  }, [salonSeleccionado, horaInicio, horaTermino]);
+  
+  // El cálculo de costo y duración ahora se hace en el componente padre (BookingPage.jsx)
+  // por lo que el useEffect para calcularlos ya no es necesario aquí.
 
   const handleSeleccionarHoraInicio = (hora) => {
     setHoraInicio(hora);
@@ -147,7 +134,7 @@ function Paso3_SeleccionHorario({
       {horaTermino && (
         <div className="resumen-horario">
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
-          <p>Total Estimado: <strong>${costoCalculado.toLocaleString('es-CL')}</strong></p>
+          <p>Total Estimado: <strong>${(costoCalculado || 0).toLocaleString('es-CL')}</strong></p>
         </div>
       )}
 

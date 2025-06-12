@@ -1,8 +1,8 @@
-// src/components/Paso2_SeleccionFecha.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import CustomCalendar from './CustomCalendar'; // <-- Importa nuestro calendario
-import './Paso2_SeleccionFecha.css'; // <-- Importa sus propios estilos
+// import axios from 'axios'; // Ya no se usa axios directamente
+import api from '../api'; // <-- IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
+import CustomCalendar from './CustomCalendar';
+import './Paso2_SeleccionFecha.css';
 
 function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSeleccionada, nextStep, prevStep }) {
   const [disponibilidadMensual, setDisponibilidadMensual] = useState({});
@@ -16,7 +16,9 @@ function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSe
       const mesNum = mesCalendario.getMonth() + 1;
       const mesFormateado = `${anio}-${mesNum < 10 ? `0${mesNum}` : mesNum}`;
 
-      axios.get(`http://localhost:3000/api/reservas`, {
+      // --- LA CORRECCIÓN CLAVE ---
+      // Usamos 'api.get' y pasamos los parámetros. La URL base ya está configurada.
+      api.get(`/reservas`, {
         params: { espacio_id: salonSeleccionado.id, mes: mesFormateado }
       }).then(response => {
         const disponibilidadProcesada = {};

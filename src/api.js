@@ -1,17 +1,21 @@
-// src/api.js
 import axios from 'axios';
 
+// 1. Lee la variable de entorno que configuramos en Vercel.
+// Si no la encuentra (porque estamos en desarrollo local), usará la URL de localhost.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// 2. Crea una instancia de Axios con la URL base correcta.
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // URL base de tu backend
+  baseURL: API_URL,
 });
 
-// Interceptor de peticiones
+// 3. Configura un interceptor para añadir el token de autenticación
+// a todas las peticiones que lo necesiten de forma automática.
 api.interceptors.request.use(
   (config) => {
-    // Obtener el token del localStorage
-    const token = localStorage.getItem('token');
+    // Obtiene el token desde el localStorage.
+    const token = localStorage.getItem('authToken'); // Asegúrate de que el nombre 'authToken' sea consistente
     if (token) {
-      // Si el token existe, añadirlo al encabezado de Authorization
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
@@ -21,4 +25,5 @@ api.interceptors.request.use(
   }
 );
 
+// 4. Exporta la instancia para usarla en toda la aplicación.
 export default api;

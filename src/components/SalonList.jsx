@@ -1,8 +1,8 @@
-// src/components/SalonList.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import SalonCard from './SalonCard'; // Importa el componente de tarjeta corregido
-import './SalonList.css'; // Importa sus propios estilos (si los tienes)
+// import axios from 'axios'; // Ya no se usa axios directamente.
+import api from '../api'; // <-- 1. IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
+import SalonCard from './SalonCard';
+import './SalonList.css';
 
 function SalonList({ onSalonSelect }) {
   const [salones, setSalones] = useState([]);
@@ -13,12 +13,16 @@ function SalonList({ onSalonSelect }) {
     const fetchSalones = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:3000/api/espacios');
+        // --- 2. LA CORRECCIÓN CLAVE ---
+        // Usamos 'api.get()' con solo la parte final de la ruta.
+        const response = await api.get('/espacios');
         setSalones(response.data);
         setError(null);
       } catch (err) {
         console.error("Error al obtener los salones:", err);
-        setError("Error al cargar los salones. Asegúrate de que el backend esté corriendo y accesible.");
+        // Mensaje de error mejorado para depuración
+        const errorMessage = `Error al cargar los salones. No se pudo conectar a la API. (URL de destino: ${api.defaults.baseURL})`;
+        setError(errorMessage);
         setSalones([]);
       } finally {
         setLoading(false);
@@ -31,14 +35,13 @@ function SalonList({ onSalonSelect }) {
   if (error) return <p style={{ color: 'var(--color-red-500)' }}>{error}</p>;
 
   return (
-    // Este div utiliza la clase que definimos en App.css para el grid responsive
     <div className="salones-container-vista-unica">
       {salones.length > 0 ? (
         salones.map(salon => (
           <SalonCard 
             key={salon.id} 
             salon={salon}
-            onSelect={onSalonSelect} // Pasamos la función del padre al hijo
+            onSelect={onSalonSelect}
           />
         ))
       ) : (

@@ -1,4 +1,3 @@
-// src/components/EditReservationModal.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import './EditReservationModal.css';
@@ -30,7 +29,7 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
     };
 
     try {
-      // Usamos el endpoint PUT que ya tenemos en el backend
+      // Se usa el endpoint PUT con la instancia 'api' centralizada, lo cual es correcto.
       const response = await api.put(`/reservas/${reserva.id}`, updatedData);
       
       // Llamamos a la función onUpdate pasada desde el padre para actualizar la tabla
@@ -67,7 +66,7 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
             >
               <option value="pendiente">Pendiente</option>
               <option value="confirmada">Confirmada</option>
-              <option value="completada">Completada</option>
+              <option value="pagado">Pagado</option>
               <option value="cancelada_por_admin">Cancelada por Admin</option>
               <option value="cancelada_por_cliente">Cancelada por Cliente</option>
             </select>
@@ -99,6 +98,4 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
   );
 }
 
-// *** LÍNEA CLAVE FALTANTE ***
-// Aseguramos que el componente se pueda importar por defecto.
 export default EditReservationModal;

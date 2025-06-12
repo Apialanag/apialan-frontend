@@ -1,40 +1,54 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
-const AuthContext = createContext();
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../api';
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [authToken, setAuthToken] = useState(localStorage.getItem('token'));
+  // El estado ahora solo sirve para saber si el usuario está logueado o no en la app.
+  const [authToken, setAuthToken] = useState(localStorage.getItem('authToken'));
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ***** ESTE useEffect YA NO ES NECESARIO *****
+  // El interceptor en api.js se encargará de esto.
+  /*
+  useEffect(() => {
+    if (authToken) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    }
+  }, [authToken]);
+  */
 
   const login = async (email, password) => {
-    const response = await axios.post('http://localhost:3000/api/auth/login', {
-      email,
-      password,
-    });
-    const token = response.data.token;
-    localStorage.setItem('token', token); // Guardar token en el almacenamiento local
-    setAuthToken(token);
-    navigate('/admin/dashboard'); // Redirigir al dashboard después del login
+    const response = await api.post('/auth/login', { email, password });
+    
+    if (response.data.token) {
+      const { token } = response.data;
+      localStorage.setItem('authToken', token);
+      setAuthToken(token);
+      
+      const from = location.state?.from?.pathname || '/admin/dashboard';
+      navigate(from, { replace: true });
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     setAuthToken(null);
-    navigate('/admin/login'); // Redirigir a la página de login
+    // ***** ESTA LÍNEA YA NO ES NECESARIA *****
+    // No es necesario borrar la cabecera, ya que el interceptor no la añadirá si el token no existe.
+    // delete api.defaults.headers.common['Authorization'];
+    navigate('/admin/login');
   };
 
-  const value = {
-    authToken,
-    login,
-    logout,
-  };
+  const value = { authToken, login, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
 };
