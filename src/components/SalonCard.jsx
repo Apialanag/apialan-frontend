@@ -2,6 +2,18 @@
 import React from 'react';
 import './SalonCard.css'; // Mantenemos el CSS base para la estructura
 
+// --- INICIO DE LA SOLUCIÓN ---
+// Esta función crea un componente oculto que contiene todas las clases dinámicas.
+// Esto fuerza a Tailwind CSS a incluir estos estilos en el archivo CSS final.
+const TailwindSafelist = () => (
+  <div className="hidden">
+    <div className="bg-[#050269] hover:bg-[#040156] bg-[#e0e0ff] text-[#050269]"></div>
+    <div className="bg-[#1a1783] hover:bg-[#131270] bg-[#e5e5ff] text-[#1a1783]"></div>
+    <div className="bg-[#2f2c9c] hover:bg-[#252289] bg-[#eaeaff] text-[#2f2c9c]"></div>
+  </div>
+);
+// --- FIN DE LA SOLUCIÓN ---
+
 function SalonCard({ salon, onSelect, isSelected }) {
   
   // Función para obtener los colores correctos según el nombre del espacio
@@ -34,13 +46,11 @@ function SalonCard({ salon, onSelect, isSelected }) {
       className={`salon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(salon)}
     >
-      {/* La cabecera ahora usa los colores dinámicos */}
       <div className={`card-header ${colorStyles.header}`}>
         <h3 className="card-title">{salon.nombre}</h3>
       </div>
       <div className="card-body">
         <div className="card-info-row">
-          {/* El badge de capacidad también usa los colores dinámicos */}
           <span className={`info-badge ${colorStyles.badge}`}>
             Capacidad: {salon.capacidad} personas
           </span>
@@ -57,7 +67,6 @@ function SalonCard({ salon, onSelect, isSelected }) {
           </div>
         </div>
         <div className="card-action">
-          {/* El botón ahora coincide con el color de la cabecera */}
           <div className={`boton-reservar-card ${colorStyles.header} ${colorStyles.hover}`}>
             {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
           </div>
