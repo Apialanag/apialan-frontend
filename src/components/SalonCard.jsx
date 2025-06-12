@@ -5,28 +5,28 @@ import './SalonCard.css'; // Mantenemos el CSS para la estructura
 function SalonCard({ salon, onSelect, isSelected }) {
   
   // --- PALETA DE COLORES ACTUALIZADA ---
-  // Se introduce un color de acento rojo para el salón principal.
+  // El salón principal usa el color del header, los otros usan colores vivos.
   const getEspacioColorStyles = (nombreEspacio) => {
     if (nombreEspacio.includes('Grande')) {
       return {
-        '--header-bg': '#B91C1C',        // Rojo Corporativo (Red 700)
-        '--header-hover-bg': '#991B1B',   // Versión más oscura (Red 800)
-        '--badge-bg': '#FEE2E2',        // Fondo de badge rojo pálido
-        '--badge-text': '#991B1B',
+        '--header-bg': '#4f46e5',        // Azul Corporativo (como el header)
+        '--header-hover-bg': '#4338ca',   // Versión más oscura
+        '--badge-bg': '#e0e7ff',        // Fondo de badge azul pálido
+        '--badge-text': '#4338ca',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
-        '--header-bg': '#3730a3',        // Azul Intermedio (Indigo 800)
-        '--header-hover-bg': '#312b92',   // Versión más oscura
-        '--badge-bg': '#eef2ff',
-        '--badge-text': '#3730a3',
+        '--header-bg': '#B91C1C',        // Rojo Vibrante (Red 700)
+        '--header-hover-bg': '#991B1B',   // Versión más oscura
+        '--badge-bg': '#FEE2E2',        // Fondo de badge rojo pálido
+        '--badge-text': '#991B1B',
       };
     } else { // Por defecto, para la Sala Pequeña
       return {
-        '--header-bg': '#4f46e5',        // Azul Brillante (Indigo 600)
-        '--header-hover-bg': '#4338ca',   // Versión más oscura (Indigo 700)
-        '--badge-bg': '#e0e7ff',
-        '--badge-text': '#4f46e5',
+        '--header-bg': '#9333EA',        // Morado Vibrante (Purple 600)
+        '--header-hover-bg': '#7E22CE',   // Versión más oscura
+        '--badge-bg': '#F5F3FF',        // Fondo de badge morado pálido
+        '--badge-text': '#7E22CE',
       };
     }
   };
@@ -71,3 +71,4 @@ function SalonCard({ salon, onSelect, isSelected }) {
 }
 
 export default SalonCard;
+
