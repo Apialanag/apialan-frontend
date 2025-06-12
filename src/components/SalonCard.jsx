@@ -1,29 +1,47 @@
 // src/components/SalonCard.jsx
 import React from 'react';
-import './SalonCard.css'; // Asegúrate de que el archivo CSS está importado
+import './SalonCard.css'; // Mantenemos el CSS base para la estructura
 
 function SalonCard({ salon, onSelect, isSelected }) {
   
-  const getHeaderColorClass = () => {
-    if (salon.nombre.includes('Grande')) return 'header-grande';
-    if (salon.nombre.includes('Mediana')) return 'header-mediana';
-    if (salon.nombre.includes('Pequeña')) return 'header-pequena';
-    return 'header-default';
+  // Función para obtener los colores correctos según el nombre del espacio
+  const getEspacioColorStyles = (nombreEspacio) => {
+    if (nombreEspacio.includes('Grande')) {
+      return {
+        header: 'bg-[#050269]',
+        hover: 'hover:bg-[#040156]',
+        badge: 'bg-[#e0e0ff] text-[#050269]'
+      };
+    } else if (nombreEspacio.includes('Mediana')) {
+      return {
+        header: 'bg-[#1a1783]',
+        hover: 'hover:bg-[#131270]',
+        badge: 'bg-[#e5e5ff] text-[#1a1783]'
+      };
+    } else { // Por defecto, se asume que es la Sala Pequeña
+      return {
+        header: 'bg-[#2f2c9c]',
+        hover: 'hover:bg-[#252289]',
+        badge: 'bg-[#eaeaff] text-[#2f2c9c]'
+      };
+    }
   };
 
+  const colorStyles = getEspacioColorStyles(salon.nombre);
+
   return (
-    // Aplicamos la clase base 'salon-card' y la clase condicional 'selected'
-    // El onClick llama a la función 'onSelect' que recibe de su padre (App o SalonList)
-    <div 
+    <div
       className={`salon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(salon)}
     >
-      <div className={`card-header ${getHeaderColorClass()}`}>
+      {/* La cabecera ahora usa los colores dinámicos */}
+      <div className={`card-header ${colorStyles.header}`}>
         <h3 className="card-title">{salon.nombre}</h3>
       </div>
       <div className="card-body">
         <div className="card-info-row">
-          <span className="info-badge">
+          {/* El badge de capacidad también usa los colores dinámicos */}
+          <span className={`info-badge ${colorStyles.badge}`}>
             Capacidad: {salon.capacidad} personas
           </span>
           <span className="price-tag">
@@ -39,9 +57,10 @@ function SalonCard({ salon, onSelect, isSelected }) {
           </div>
         </div>
         <div className="card-action">
-            <div className="boton-reservar-card">
-              {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
-            </div>
+          {/* El botón ahora coincide con el color de la cabecera */}
+          <div className={`boton-reservar-card ${colorStyles.header} ${colorStyles.hover}`}>
+            {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
+          </div>
         </div>
       </div>
     </div>
