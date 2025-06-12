@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-// import axios from 'axios'; // Ya no se usa axios directamente.
-import api from '../api'; // <-- 1. IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
+import api from '../api';
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen({
@@ -43,12 +42,11 @@ function Paso4_DatosYResumen({
       fecha_reserva: formatearFechaParaAPI(fechaSeleccionada),
       hora_inicio: horaInicio,
       hora_termino: horaTermino,
+      costo_total: costoCalculado, // Asegurarse que el costo se envía
       notas_adicionales: notasAdicionales
     };
 
     try {
-      // --- 2. LA CORRECCIÓN CLAVE ---
-      // Usamos 'api.post()' con solo la parte final de la ruta.
       await api.post('/reservas', datosReserva); 
       setMensajeReserva({ texto: '¡Solicitud de reserva enviada! Revisa tu correo para ver las instrucciones de pago.', tipo: 'exito' });
       
@@ -94,7 +92,8 @@ function Paso4_DatosYResumen({
           <div className="resumen-fila"><span>Duración:</span><strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></div>
           <hr className="resumen-separador" />
           <div className="resumen-total"><span>Total:</span><strong>${(costoCalculado || 0).toLocaleString('es-CL')}</strong></div>
-          <p className="resumen-notas">El pago se realiza en el recinto. Esta solicitud quedará pendiente de confirmación.</p>
+          {/* --- TEXTO ACTUALIZADO --- */}
+          <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
         </div>
       </div>
       
