@@ -4,29 +4,28 @@ import './SalonCard.css'; // Mantenemos el CSS para la estructura
 
 function SalonCard({ salon, onSelect, isSelected }) {
   
-  // --- PALETA DE COLORES ACTUALIZADA ---
-  // El salón principal usa el color del header, los otros usan colores vivos.
+  // --- PALETA DE DISEÑO PROFESIONAL: "Gradiente de Confianza y Calidez" ---
   const getEspacioColorStyles = (nombreEspacio) => {
     if (nombreEspacio.includes('Grande')) {
       return {
-        '--header-bg': '#4f46e5',        // Azul Corporativo (como el header)
+        '--header-bg': '#4f46e5',        // Azul Corporativo (Ancla de la Marca)
         '--header-hover-bg': '#4338ca',   // Versión más oscura
-        '--badge-bg': '#e0e7ff',        // Fondo de badge azul pálido
+        '--badge-bg': '#e0e7ff',
         '--badge-text': '#4338ca',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
-        '--header-bg': '#B91C1C',        // Rojo Vibrante (Red 700)
-        '--header-hover-bg': '#991B1B',   // Versión más oscura
-        '--badge-bg': '#FEE2E2',        // Fondo de badge rojo pálido
-        '--badge-text': '#991B1B',
+        '--header-bg': '#0d9488',        // Verde Azulado (Teal) - Creatividad y Calma
+        '--header-hover-bg': '#0f766e',   // Versión más oscura
+        '--badge-bg': '#ccfbf1',
+        '--badge-text': '#0f766e',
       };
     } else { // Por defecto, para la Sala Pequeña
       return {
-        '--header-bg': '#9333EA',        // Morado Vibrante (Purple 600)
-        '--header-hover-bg': '#7E22CE',   // Versión más oscura
-        '--badge-bg': '#F5F3FF',        // Fondo de badge morado pálido
-        '--badge-text': '#7E22CE',
+        '--header-bg': '#f59e0b',        // Ámbar/Dorado - Energía y Enfoque
+        '--header-hover-bg': '#d97706',   // Versión más oscura
+        '--badge-bg': '#fef3c7',
+        '--badge-text': '#d97706',
       };
     }
   };
@@ -71,4 +70,3 @@ function SalonCard({ salon, onSelect, isSelected }) {
 }
 
 export default SalonCard;
-
