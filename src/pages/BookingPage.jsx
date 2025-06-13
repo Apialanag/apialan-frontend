@@ -1,6 +1,6 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
-import '../App.css'; // Usamos los estilos principales
+import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
 import Paso2_SeleccionFecha from '../components/Paso2_SeleccionFecha';
@@ -15,19 +15,36 @@ function BookingPage() {
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
   
+  // --- NUEVO ESTADO PARA IDENTIFICAR AL SOCIO ---
+  const [esSocio, setEsSocio] = useState(false);
+
   // Estados calculados, que viven en este componente padre
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  // useEffect para calcular costo y duración. Es la "única fuente de verdad".
+  // Función para obtener el precio correcto según el tipo de cliente y salón
+  const getPrecioPorHora = (salon, esSocio) => {
+    if (!salon) return 0;
+    
+    if (esSocio) {
+      if (salon.nombre.includes('Grande')) return 5000;
+      if (salon.nombre.includes('Mediana')) return 4000;
+      if (salon.nombre.includes('Pequeña')) return 3000;
+    }
+    return parseFloat(salon.precio_por_hora);
+  };
+
+  // useEffect para calcular costo y duración. Ahora considera si es socio.
   useEffect(() => {
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
+        const precioHora = getPrecioPorHora(salonSeleccionado, esSocio);
+
         setDuracionCalculada(duracion);
-        setCostoCalculado(duracion * parseFloat(salonSeleccionado.precio_por_hora));
+        setCostoCalculado(duracion * precioHora);
       } else {
         setDuracionCalculada(0);
         setCostoCalculado(0);
@@ -36,7 +53,7 @@ function BookingPage() {
       setDuracionCalculada(0);
       setCostoCalculado(0);
     }
-  }, [salonSeleccionado, horaInicio, horaTermino]);
+  }, [salonSeleccionado, horaInicio, horaTermino, esSocio]);
 
   const nextStep = () => { if (currentStep < totalSteps) setCurrentStep(currentStep + 1); };
   const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
@@ -67,9 +84,23 @@ function BookingPage() {
       case 1:
         return (
           <div className="vista-seleccion-salon">
+            {/* --- NUEVO SELECTOR DE TIPO DE CLIENTE --- */}
+            <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+              <label htmlFor="user-type-selector" style={{ marginRight: '10px', fontSize: '1.1em' }}>Tipo de Reserva:</label>
+              <select 
+                id="user-type-selector"
+                value={esSocio ? 'socio' : 'publico'}
+                onChange={(e) => setEsSocio(e.target.value === 'socio')}
+                style={{ padding: '8px 12px', fontSize: '1em', borderRadius: '8px', border: '1px solid #ccc' }}
+              >
+                <option value="publico">Público General</option>
+                <option value="socio">Socio/a Apialan AG</option>
+              </select>
+            </div>
             <h2>Paso 1: Seleccione un Espacio</h2>
             <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
-            <SalonList onSalonSelect={handleSelectSalon} />
+            {/* Pasamos el estado 'esSocio' al componente de la lista */}
+            <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />
           </div>
         );
       case 2:
@@ -104,16 +135,16 @@ function BookingPage() {
             fechaSeleccionada={fechaSeleccionada}
             horaInicio={horaInicio}
             horaTermino={horaTermino}
-            // *** CORRECCIÓN CLAVE: Pasamos los valores calculados como props ***
             costoCalculado={costoCalculado}
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}
+            esSocio={esSocio} // Pasamos el estado para mostrar un aviso
           />
         );
       default:
         setCurrentStep(1);
-        return <SalonList onSalonSelect={handleSelectSalon} />;
+        return <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />;
     }
   };
 
@@ -126,4 +157,3 @@ function BookingPage() {
 }
 
 export default BookingPage;
-

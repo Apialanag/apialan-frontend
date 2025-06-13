@@ -2,12 +2,11 @@
 import React from 'react';
 import './SalonCard.css'; // Mantenemos el CSS para la estructura
 
-function SalonCard({ salon, onSelect, isSelected }) {
+// Se añade la prop "esSocio" para recibirla desde BookingPage.jsx
+function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   
-  // --- PALETA FINAL: "Jerarquía Monocromática con Ancla Corporativa" ---
+  // Se mantiene tu paleta de colores final aprobada
   const getEspacioColorStyles = (nombreEspacio) => {
-    
-    // --- Colores base que se usarán en todos los botones y badges ---
     const corporateColors = {
       '--button-bg': '#4f46e5',
       '--button-hover-bg': '#4338ca',
@@ -17,23 +16,35 @@ function SalonCard({ salon, onSelect, isSelected }) {
 
     if (nombreEspacio.includes('Grande')) {
       return {
-        ...corporateColors, // Usa los colores corporativos base
-        '--header-bg': '#3730a3', // Azul oscuro y premium
+        ...corporateColors,
+        '--header-bg': '#3730a3',
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
-        ...corporateColors, // Usa los colores corporativos base
-        '--header-bg': '#2563EB', // Azul celeste / vivo
+        ...corporateColors,
+        '--header-bg': '#2563EB',
       };
-    } else { // Por defecto, para la Sala Pequeña
+    } else {
       return {
-        ...corporateColors, // Usa los colores corporativos base
-        '--header-bg': '#60A5FA', // Azul más claro y accesible
+        ...corporateColors,
+        '--header-bg': '#60A5FA',
       };
     }
   };
 
   const cssVariables = getEspacioColorStyles(salon.nombre);
+
+  // --- NUEVA LÓGICA PARA OBTENER EL PRECIO DE SOCIO ---
+  const getPrecioSocio = (salon) => {
+    if (salon.nombre.includes('Grande')) return 5000;
+    if (salon.nombre.includes('Mediana')) return 4000;
+    if (salon.nombre.includes('Pequeña')) return 3000;
+    return salon.precio_por_hora;
+  };
+  
+  const precioSocio = getPrecioSocio(salon);
+  const precioNormalFormateado = new Intl.NumberFormat('es-CL').format(salon.precio_por_hora);
+  const precioSocioFormateado = new Intl.NumberFormat('es-CL').format(precioSocio);
 
   return (
     // Aplicamos las variables CSS al contenedor principal de la tarjeta
@@ -50,9 +61,25 @@ function SalonCard({ salon, onSelect, isSelected }) {
           <span className="info-badge">
             Capacidad: {salon.capacidad} personas
           </span>
-          <span className="price-tag">
-            ${new Intl.NumberFormat('es-CL').format(salon.precio_por_hora)}/hr
-          </span>
+          
+          {/* --- NUEVA VISUALIZACIÓN DE PRECIOS DINÁMICOS --- */}
+          <div style={{ textAlign: 'right' }}>
+            {esSocio && (
+              <span className="price-tag" style={{ color: '#16a34a', display: 'block' }}>
+                ${precioSocioFormateado}/hr
+              </span>
+            )}
+            <span 
+              className="price-tag" 
+              style={{ 
+                textDecoration: esSocio ? 'line-through' : 'none', 
+                color: esSocio ? '#9ca3af' : 'inherit', // Gris para el precio tachado
+                fontSize: esSocio ? '0.9em' : '1.125em'
+              }}
+            >
+              ${precioNormalFormateado}/hr
+            </span>
+          </div>
         </div>
         <div className="comodidades-section">
           <h4 className="comodidades-title">Comodidades:</h4>
@@ -73,4 +100,3 @@ function SalonCard({ salon, onSelect, isSelected }) {
 }
 
 export default SalonCard;
-
