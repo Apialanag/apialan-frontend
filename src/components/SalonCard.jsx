@@ -1,8 +1,7 @@
 // src/components/SalonCard.jsx
 import React from 'react';
-import './SalonCard.css'; // Mantenemos el CSS para la estructura
+import './SalonCard.css';
 
-// Se añade la prop "esSocio" para recibirla desde BookingPage.jsx
 function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   
   // Se mantiene tu paleta de colores final aprobada
@@ -15,20 +14,11 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
     };
 
     if (nombreEspacio.includes('Grande')) {
-      return {
-        ...corporateColors,
-        '--header-bg': '#3730a3', // Azul oscuro y premium
-      };
+      return { ...corporateColors, '--header-bg': '#3730a3' };
     } else if (nombreEspacio.includes('Mediana')) {
-      return {
-        ...corporateColors,
-        '--header-bg': '#2563EB', // Azul celeste / vivo
-      };
-    } else { // Por defecto, para la Sala Pequeña
-      return {
-        ...corporateColors,
-        '--header-bg': '#60A5FA', // Azul más claro y accesible
-      };
+      return { ...corporateColors, '--header-bg': '#2563EB' };
+    } else {
+      return { ...corporateColors, '--header-bg': '#60A5FA' };
     }
   };
 
@@ -47,7 +37,6 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   const precioSocioFormateado = new Intl.NumberFormat('es-CL').format(precioSocio);
 
   return (
-    // Aplicamos las variables CSS al contenedor principal de la tarjeta
     <div
       className={`salon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onSelect(salon)}
@@ -61,11 +50,10 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
           <span className="info-badge">
             Capacidad: {salon.capacidad} personas
           </span>
-          
-          {/* Visualización de precios dinámicos actualizada */}
           <div style={{ textAlign: 'right' }}>
             {esSocio && (
-              <span className="price-tag" style={{ color: '#16a34a', display: 'block' }}>
+              // --- CAMBIO DE COLOR: de verde a rojo ---
+              <span className="price-tag" style={{ color: '#DC2626', display: 'block' }}>
                 ${precioSocioFormateado}/hr
               </span>
             )}
@@ -73,8 +61,8 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
               className="price-tag" 
               style={{ 
                 textDecoration: esSocio ? 'line-through' : 'none',
-                textDecorationColor: esSocio ? '#ef4444' : 'inherit', // Línea roja
-                color: esSocio ? '#9ca3af' : 'inherit', // Gris para el precio tachado
+                textDecorationColor: esSocio ? '#ef4444' : 'inherit',
+                color: esSocio ? '#9ca3af' : 'inherit',
                 fontSize: esSocio ? '0.9em' : '1.125em'
               }}
             >
