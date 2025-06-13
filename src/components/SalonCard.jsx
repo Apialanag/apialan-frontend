@@ -1,10 +1,10 @@
+
 // src/components/SalonCard.jsx
 import React from 'react';
 import './SalonCard.css';
 
 function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   
-  // Se mantiene tu paleta de colores final aprobada
   const getEspacioColorStyles = (nombreEspacio) => {
     const corporateColors = {
       '--button-bg': '#4f46e5',
@@ -24,7 +24,6 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
 
   const cssVariables = getEspacioColorStyles(salon.nombre);
 
-  // Lógica para obtener el precio de socio
   const getPrecioSocio = (salon) => {
     if (salon.nombre.includes('Grande')) return 5000;
     if (salon.nombre.includes('Mediana')) return 4000;
@@ -52,7 +51,6 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
           </span>
           <div style={{ textAlign: 'right' }}>
             {esSocio && (
-              // --- CAMBIO DE COLOR: de verde a rojo ---
               <span className="price-tag" style={{ color: '#DC2626', display: 'block' }}>
                 ${precioSocioFormateado}/hr
               </span>

@@ -6,7 +6,6 @@ import IndicadorPasos from '../components/IndicadorPasos';
 import Paso2_SeleccionFecha from '../components/Paso2_SeleccionFecha';
 import Paso3_SeleccionHorario from '../components/Paso3_SeleccionHorario';
 import Paso4_DatosYResumen from '../components/Paso4_DatosYResumen';
-// 1. Importamos el nuevo modal que creamos
 import SocioValidationModal from '../components/SocioValidationModal'; 
 
 function BookingPage() {
@@ -17,7 +16,6 @@ function BookingPage() {
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
   
-  // --- Estados para el nuevo flujo ---
   const [esSocioValidado, setEsSocioValidado] = useState(false);
   const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +23,6 @@ function BookingPage() {
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  // Tu lógica de precios no cambia, pero ahora usa 'esSocioValidado'
   const getPrecioPorHora = (salon, esSocio) => {
     if (!salon) return 0;
     if (esSocio) {
@@ -55,13 +52,11 @@ function BookingPage() {
     }
   }, [salonSeleccionado, horaInicio, horaTermino, esSocioValidado]);
   
-  // Función que se llamará desde el modal cuando la validación sea exitosa
   const handleValidationSuccess = (socioData) => {
-    setNombreSocio(socioData.nombre_completo); // Guardamos el nombre del socio
+    setNombreSocio(socioData.nombre_completo);
     setEsSocioValidado(true);
   };
   
-  // Las demás funciones de navegación y éxito se mantienen igual
   const nextStep = () => { if (currentStep < totalSteps) setCurrentStep(currentStep + 1); };
   const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
   const goToStep = (step) => { if (step < currentStep) setCurrentStep(step); };
@@ -93,18 +88,28 @@ function BookingPage() {
       case 1:
         return (
           <div className="vista-seleccion-salon">
-            {/* --- INICIO DE LA NUEVA INTERFAZ DE VALIDACIÓN --- */}
-            {esSocioValidado ? (
-              <div className="welcome-socio-banner">
-                ¡Bienvenido/a, {nombreSocio}! Tienes precios preferenciales.
+            {/* --- INICIO DE LA NUEVA INTERFAZ DE TÍTULO --- */}
+            <div className="title-container">
+              <h2>Paso 1: Seleccione un Espacio</h2>
+              <div className="socio-validation-container">
+                {esSocioValidado ? (
+                  <div className="welcome-socio-banner-small">
+                    ✓ Socio Verificado
+                  </div>
+                ) : (
+                  <button onClick={() => setIsModalOpen(true)} className="socio-validate-button">
+                    ¿Eres Socio/a?
+                  </button>
+                )}
               </div>
-            ) : (
-              <p className="socio-link">
-                ¿Eres socio/a? <button onClick={() => setIsModalOpen(true)}>Valida tu RUT aquí para acceder a tus beneficios.</button>
+            </div>
+
+            {esSocioValidado && (
+              <p className="welcome-socio-message">
+                ¡Bienvenido/a, {nombreSocio}! Ya puedes ver tus precios preferenciales.
               </p>
             )}
-
-            <h2 style={{ marginTop: esSocioValidado ? '1rem' : '0' }}>Paso 1: Seleccione un Espacio</h2>
+            
             <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
             <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />
           </div>
@@ -145,7 +150,6 @@ function BookingPage() {
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}
-            // Importante: le pasamos el estado de validación
             esSocio={esSocioValidado}
           />
         );
@@ -157,7 +161,6 @@ function BookingPage() {
 
   return (
     <>
-      {/* El modal se renderiza aquí si isModalOpen es true */}
       {isModalOpen && (
         <SocioValidationModal 
           onClose={() => setIsModalOpen(false)} 

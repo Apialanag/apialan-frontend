@@ -13,10 +13,8 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .App-header h1 { font-size: 1.8em; font-weight: 700; }
-.App-header .header-subtitle { font-size: 1.1em; font-weight: 300; }
 
 .App-main {
-  /* Este contenedor tendrá un ancho máximo y se centrará */
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 20px;
@@ -41,19 +39,24 @@
 /* --- Vista 1: Selección de Salón --- */
 .vista-seleccion-salon {
   min-height: calc(100vh - 300px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
 }
-.vista-seleccion-salon h2 { font-size: 2.5em; font-weight: 700; }
-.vista-seleccion-salon > p { font-size: 1.2em; color: var(--color-gray-600); margin-bottom: 50px; }
+
+.vista-seleccion-salon h2 {
+  font-size: 2.5em;
+  font-weight: 700;
+}
+
+.vista-seleccion-salon > p {
+  font-size: 1.2em;
+  color: var(--color-gray-600);
+}
 
 /* Grid responsivo para las tarjetas */
 .salones-container-vista-unica {
   display: grid;
   gap: 2rem;
   grid-template-columns: repeat(1, minmax(0, 1fr)); /* Móvil */
+  margin-top: 2rem;
 }
 @media (min-width: 768px) { /* Tablets */
   .salones-container-vista-unica {
@@ -66,25 +69,7 @@
   }
 }
 
-/* --- VISTA DE RESERVA (PASOS 2, 3, 4) --- */
-
-.booking-container {
-  display: grid;
-  grid-template-columns: 1fr; /* Por defecto (móvil): 1 sola columna */
-  gap: 30px;
-  text-align: left;
-}
-
-/* Aplicar 3 columnas solo en pantallas grandes (Desktop) */
-@media (min-width: 1024px) {
-  .booking-container {
-    grid-template-columns: 2fr 3fr 2fr;
-  }
-}
-
-.column h2 { font-size: 1.6em; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 25px; }
-
-/* --- Contenedor de Pasos --- */
+/* --- Contenedor general de cada paso --- */
 .paso-container {
   background-color: var(--color-white);
   padding: 30px;
@@ -98,6 +83,7 @@
   text-align: center;
 }
 
+/* --- Botones --- */
 .navegacion-pasos {
   display: flex;
   justify-content: space-between;
@@ -139,6 +125,7 @@
 .boton-volver:hover {
   text-decoration: underline;
 }
+
 .boton-logout {
   background-color: transparent;
   color: var(--color-white);
@@ -150,8 +137,68 @@
   font-size: 0.9em;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 .boton-logout:hover {
   background-color: var(--color-white);
   color: var(--color-indigo-600);
+}
+
+/* =================================
+   Estilos para Validación de Socio
+   ================================= */
+
+/* Contenedor principal del título para centrarlo */
+.title-container {
+  position: relative;
+  text-align: center;
+  margin-bottom: 0.5rem; /* Menos margen inferior para el título */
+}
+
+/* El subtítulo ahora tendrá un margen superior */
+.vista-seleccion-salon > p {
+  text-align: center;
+  margin-bottom: 1rem; /* Reducido para acercarlo a las tarjetas */
+}
+
+/* Contenedor del botón de validación, posicionado a la derecha */
+.socio-validation-container {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.socio-validate-button {
+  background-color: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap; /* Evita que el texto se parta */
+}
+
+.socio-validate-button:hover {
+  background-color: #e0e7ff;
+  border-color: #a5b4fc;
+}
+
+/* Banner de bienvenida pequeño para cuando el socio ya está verificado */
+.welcome-socio-banner-small {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Mensaje de bienvenida que aparece debajo del título */
+.welcome-socio-message {
+  text-align: center;
+  color: #065f46;
+  font-weight: 500;
+  margin-top: 1rem;
+  margin-bottom: 0;
 }
