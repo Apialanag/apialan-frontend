@@ -6,6 +6,8 @@ import IndicadorPasos from '../components/IndicadorPasos';
 import Paso2_SeleccionFecha from '../components/Paso2_SeleccionFecha';
 import Paso3_SeleccionHorario from '../components/Paso3_SeleccionHorario';
 import Paso4_DatosYResumen from '../components/Paso4_DatosYResumen';
+// 1. Importamos el nuevo modal que creamos
+import SocioValidationModal from '../components/SocioValidationModal'; 
 
 function BookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,11 +16,16 @@ function BookingPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
-  const [esSocio, setEsSocio] = useState(false);
+  
+  // --- Estados para el nuevo flujo ---
+  const [esSocioValidado, setEsSocioValidado] = useState(false);
+  const [nombreSocio, setNombreSocio] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  // Tu lógica de cálculo de precios y manejo de estado se mantiene intacta
+  // Tu lógica de precios no cambia, pero ahora usa 'esSocioValidado'
   const getPrecioPorHora = (salon, esSocio) => {
     if (!salon) return 0;
     if (esSocio) {
@@ -35,7 +42,7 @@ function BookingPage() {
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
-        const precioHora = getPrecioPorHora(salonSeleccionado, esSocio);
+        const precioHora = getPrecioPorHora(salonSeleccionado, esSocioValidado);
         setDuracionCalculada(duracion);
         setCostoCalculado(duracion * precioHora);
       } else {
@@ -46,8 +53,15 @@ function BookingPage() {
       setDuracionCalculada(0);
       setCostoCalculado(0);
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, esSocio]);
-
+  }, [salonSeleccionado, horaInicio, horaTermino, esSocioValidado]);
+  
+  // Función que se llamará desde el modal cuando la validación sea exitosa
+  const handleValidationSuccess = (socioData) => {
+    setNombreSocio(socioData.nombre_completo); // Guardamos el nombre del socio
+    setEsSocioValidado(true);
+  };
+  
+  // Las demás funciones de navegación y éxito se mantienen igual
   const nextStep = () => { if (currentStep < totalSteps) setCurrentStep(currentStep + 1); };
   const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
   const goToStep = (step) => { if (step < currentStep) setCurrentStep(step); };
@@ -70,6 +84,8 @@ function BookingPage() {
     setHoraInicio('');
     setHoraTermino('');
     setCurrentStep(1);
+    setEsSocioValidado(false);
+    setNombreSocio('');
   };
   
   const renderStep = () => {
@@ -77,30 +93,20 @@ function BookingPage() {
       case 1:
         return (
           <div className="vista-seleccion-salon">
-            {/* --- INICIO DE LA SECCIÓN CORREGIDA --- */}
-            {/* Se usa un layout de 3 columnas con flexbox para centrar el título */}
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>{/* Espaciador izquierdo */}</div>
-              <div style={{ flex: 'none', textAlign: 'center' }}>
-                <h2>Paso 1: Seleccione un Espacio</h2>
+            {/* --- INICIO DE LA NUEVA INTERFAZ DE VALIDACIÓN --- */}
+            {esSocioValidado ? (
+              <div className="welcome-socio-banner">
+                ¡Bienvenido/a, {nombreSocio}! Tienes precios preferenciales.
               </div>
-              <div style={{ flex: 1, textAlign: 'right' }}>
-                <label htmlFor="user-type-selector" style={{ marginRight: '10px', fontSize: '1em', color: '#4b5563' }}>Tipo de Reserva:</label>
-                <select 
-                  id="user-type-selector"
-                  value={esSocio ? 'socio' : 'publico'}
-                  onChange={(e) => setEsSocio(e.target.value === 'socio')}
-                  style={{ padding: '8px 12px', fontSize: '1em', borderRadius: '8px', border: '1px solid #ccc' }}
-                >
-                  <option value="publico">Público General</option>
-                  <option value="socio">Socio/a Apialan AG</option>
-                </select>
-              </div>
-            </div>
-            {/* --- FIN DE LA SECCIÓN CORREGIDA --- */}
+            ) : (
+              <p className="socio-link">
+                ¿Eres socio/a? <button onClick={() => setIsModalOpen(true)}>Valida tu RUT aquí para acceder a tus beneficios.</button>
+              </p>
+            )}
 
+            <h2 style={{ marginTop: esSocioValidado ? '1rem' : '0' }}>Paso 1: Seleccione un Espacio</h2>
             <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
-            <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />
+            <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />
           </div>
         );
       case 2:
@@ -139,17 +145,25 @@ function BookingPage() {
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}
-            esSocio={esSocio}
+            // Importante: le pasamos el estado de validación
+            esSocio={esSocioValidado}
           />
         );
       default:
         setCurrentStep(1);
-        return <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />;
+        return <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />;
     }
   };
 
   return (
     <>
+      {/* El modal se renderiza aquí si isModalOpen es true */}
+      {isModalOpen && (
+        <SocioValidationModal 
+          onClose={() => setIsModalOpen(false)} 
+          onValidationSuccess={handleValidationSuccess} 
+        />
+      )}
       {currentStep > 1 && <IndicadorPasos currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />}
       {renderStep()}
     </>
