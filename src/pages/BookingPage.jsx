@@ -18,7 +18,7 @@ function BookingPage() {
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  // Toda tu lógica de cálculo de precios y manejo de estado se mantiene intacta
+  // Tu lógica de cálculo de precios y manejo de estado se mantiene intacta
   const getPrecioPorHora = (salon, esSocio) => {
     if (!salon) return 0;
     if (esSocio) {
@@ -77,11 +77,14 @@ function BookingPage() {
       case 1:
         return (
           <div className="vista-seleccion-salon">
-            {/* --- INICIO DE LA SECCIÓN MODIFICADA --- */}
-            {/* Se ha reorganizado el título y el selector para que estén en la misma línea */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h2>Paso 1: Seleccione un Espacio</h2>
-              <div style={{ textAlign: 'right' }}>
+            {/* --- INICIO DE LA SECCIÓN CORREGIDA --- */}
+            {/* Se usa un layout de 3 columnas con flexbox para centrar el título */}
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>{/* Espaciador izquierdo */}</div>
+              <div style={{ flex: 'none', textAlign: 'center' }}>
+                <h2>Paso 1: Seleccione un Espacio</h2>
+              </div>
+              <div style={{ flex: 1, textAlign: 'right' }}>
                 <label htmlFor="user-type-selector" style={{ marginRight: '10px', fontSize: '1em', color: '#4b5563' }}>Tipo de Reserva:</label>
                 <select 
                   id="user-type-selector"
@@ -94,7 +97,7 @@ function BookingPage() {
                 </select>
               </div>
             </div>
-            {/* --- FIN DE LA SECCIÓN MODIFICADA --- */}
+            {/* --- FIN DE LA SECCIÓN CORREGIDA --- */}
 
             <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
             <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />
