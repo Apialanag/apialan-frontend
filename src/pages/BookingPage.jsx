@@ -14,18 +14,13 @@ function BookingPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
-  
-  // --- NUEVO ESTADO PARA IDENTIFICAR AL SOCIO ---
   const [esSocio, setEsSocio] = useState(false);
-
-  // Estados calculados, que viven en este componente padre
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  // Función para obtener el precio correcto según el tipo de cliente y salón
+  // Toda tu lógica de cálculo de precios y manejo de estado se mantiene intacta
   const getPrecioPorHora = (salon, esSocio) => {
     if (!salon) return 0;
-    
     if (esSocio) {
       if (salon.nombre.includes('Grande')) return 5000;
       if (salon.nombre.includes('Mediana')) return 4000;
@@ -34,7 +29,6 @@ function BookingPage() {
     return parseFloat(salon.precio_por_hora);
   };
 
-  // useEffect para calcular costo y duración. Ahora considera si es socio.
   useEffect(() => {
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
@@ -42,7 +36,6 @@ function BookingPage() {
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
         const precioHora = getPrecioPorHora(salonSeleccionado, esSocio);
-
         setDuracionCalculada(duracion);
         setCostoCalculado(duracion * precioHora);
       } else {
@@ -84,22 +77,26 @@ function BookingPage() {
       case 1:
         return (
           <div className="vista-seleccion-salon">
-            {/* --- NUEVO SELECTOR DE TIPO DE CLIENTE --- */}
-            <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-              <label htmlFor="user-type-selector" style={{ marginRight: '10px', fontSize: '1.1em' }}>Tipo de Reserva:</label>
-              <select 
-                id="user-type-selector"
-                value={esSocio ? 'socio' : 'publico'}
-                onChange={(e) => setEsSocio(e.target.value === 'socio')}
-                style={{ padding: '8px 12px', fontSize: '1em', borderRadius: '8px', border: '1px solid #ccc' }}
-              >
-                <option value="publico">Público General</option>
-                <option value="socio">Socio/a Apialan AG</option>
-              </select>
+            {/* --- INICIO DE LA SECCIÓN MODIFICADA --- */}
+            {/* Se ha reorganizado el título y el selector para que estén en la misma línea */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2>Paso 1: Seleccione un Espacio</h2>
+              <div style={{ textAlign: 'right' }}>
+                <label htmlFor="user-type-selector" style={{ marginRight: '10px', fontSize: '1em', color: '#4b5563' }}>Tipo de Reserva:</label>
+                <select 
+                  id="user-type-selector"
+                  value={esSocio ? 'socio' : 'publico'}
+                  onChange={(e) => setEsSocio(e.target.value === 'socio')}
+                  style={{ padding: '8px 12px', fontSize: '1em', borderRadius: '8px', border: '1px solid #ccc' }}
+                >
+                  <option value="publico">Público General</option>
+                  <option value="socio">Socio/a Apialan AG</option>
+                </select>
+              </div>
             </div>
-            <h2>Paso 1: Seleccione un Espacio</h2>
+            {/* --- FIN DE LA SECCIÓN MODIFICADA --- */}
+
             <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
-            {/* Pasamos el estado 'esSocio' al componente de la lista */}
             <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocio} />
           </div>
         );
@@ -139,7 +136,7 @@ function BookingPage() {
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}
-            esSocio={esSocio} // Pasamos el estado para mostrar un aviso
+            esSocio={esSocio}
           />
         );
       default:

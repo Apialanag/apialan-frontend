@@ -17,24 +17,24 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
     if (nombreEspacio.includes('Grande')) {
       return {
         ...corporateColors,
-        '--header-bg': '#3730a3',
+        '--header-bg': '#3730a3', // Azul oscuro y premium
       };
     } else if (nombreEspacio.includes('Mediana')) {
       return {
         ...corporateColors,
-        '--header-bg': '#2563EB',
+        '--header-bg': '#2563EB', // Azul celeste / vivo
       };
-    } else {
+    } else { // Por defecto, para la Sala Pequeña
       return {
         ...corporateColors,
-        '--header-bg': '#60A5FA',
+        '--header-bg': '#60A5FA', // Azul más claro y accesible
       };
     }
   };
 
   const cssVariables = getEspacioColorStyles(salon.nombre);
 
-  // --- NUEVA LÓGICA PARA OBTENER EL PRECIO DE SOCIO ---
+  // Lógica para obtener el precio de socio
   const getPrecioSocio = (salon) => {
     if (salon.nombre.includes('Grande')) return 5000;
     if (salon.nombre.includes('Mediana')) return 4000;
@@ -62,7 +62,7 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
             Capacidad: {salon.capacidad} personas
           </span>
           
-          {/* --- NUEVA VISUALIZACIÓN DE PRECIOS DINÁMICOS --- */}
+          {/* Visualización de precios dinámicos actualizada */}
           <div style={{ textAlign: 'right' }}>
             {esSocio && (
               <span className="price-tag" style={{ color: '#16a34a', display: 'block' }}>
@@ -72,7 +72,8 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
             <span 
               className="price-tag" 
               style={{ 
-                textDecoration: esSocio ? 'line-through' : 'none', 
+                textDecoration: esSocio ? 'line-through' : 'none',
+                textDecorationColor: esSocio ? '#ef4444' : 'inherit', // Línea roja
                 color: esSocio ? '#9ca3af' : 'inherit', // Gris para el precio tachado
                 fontSize: esSocio ? '0.9em' : '1.125em'
               }}
