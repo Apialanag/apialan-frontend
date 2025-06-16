@@ -46,9 +46,12 @@
   font-weight: 700;
 }
 
+/* El subtítulo ahora tendrá un margen superior */
 .vista-seleccion-salon > p {
   font-size: 1.2em;
   color: var(--color-gray-600);
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 /* Grid responsivo para las tarjetas */
@@ -142,24 +145,25 @@
   color: var(--color-indigo-600);
 }
 
-/* =================================
-   Estilos para Validación de Socio
-   ================================= */
 
-/* Contenedor principal del título para centrarlo */
-.title-container {
-  position: relative;
-  text-align: center;
-  margin-bottom: 0.5rem; /* Menos margen inferior para el título */
+/* =======================================================
+   Estilos para Validación de Socio (Actualizado y Mejorado)
+   ======================================================= */
+
+/* Contenedor principal del título */
+.step-header {
+  display: flex;
+  justify-content: center; /* Centra el título horizontalmente */
+  align-items: center;
+  position: relative; /* Es el contenedor de referencia para el botón */
+  margin-bottom: 0.5rem;
 }
 
-/* El subtítulo ahora tendrá un margen superior */
-.vista-seleccion-salon > p {
+.step-header-title {
   text-align: center;
-  margin-bottom: 1rem; /* Reducido para acercarlo a las tarjetas */
 }
 
-/* Contenedor del botón de validación, posicionado a la derecha */
+/* Contenedor del botón, posicionado a la derecha de forma absoluta en DESKTOP */
 .socio-validation-container {
   position: absolute;
   right: 0;
@@ -176,7 +180,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap; /* Evita que el texto se parta */
+  white-space: nowrap;
 }
 
 .socio-validate-button:hover {
@@ -184,7 +188,7 @@
   border-color: #a5b4fc;
 }
 
-/* Banner de bienvenida pequeño para cuando el socio ya está verificado */
+/* Banner de bienvenida pequeño para socio verificado */
 .welcome-socio-banner-small {
   background-color: #d1fae5;
   color: #065f46;
@@ -199,6 +203,27 @@
   text-align: center;
   color: #065f46;
   font-weight: 500;
-  margin-top: 1rem;
-  margin-bottom: 0;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+
+/* --- INICIO DE LA SOLUCIÓN RESPONSIVA --- */
+/* Estas reglas se aplican solo en pantallas de 768px de ancho o menos (móviles y tablets pequeñas) */
+@media (max-width: 768px) {
+  .step-header {
+    flex-direction: column; /* Apila el título y el botón verticalmente */
+    position: static; /* Desactiva el posicionamiento relativo para que no interfiera */
+    margin-bottom: 1.5rem;
+  }
+
+  .step-header-title h2 {
+    font-size: 2em; /* Puedes ajustar el tamaño para móvil si es necesario */
+  }
+
+  .socio-validation-container {
+    position: static; /* Desactiva el posicionamiento absoluto */
+    transform: none; /* Resetea la transformación */
+    margin-top: 1rem; /* Añade un espacio entre el título y el botón */
+  }
 }
