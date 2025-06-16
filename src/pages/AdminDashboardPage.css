@@ -8,7 +8,7 @@
 .admin-dashboard h2 {
   font-size: 2em;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 1rem; /* Ajuste de margen */
 }
 
 .admin-dashboard p {
@@ -16,47 +16,36 @@
   margin-bottom: 30px;
 }
 
-/* --- ESTILOS PARA LOS FILTROS (REFACTORIZADOS Y UNIFICADOS) --- */
+/* --- ESTILOS PARA LOS FILTROS (Se mantienen de tu código original) --- */
 .filtros-container {
   display: flex;
   align-items: flex-end;
-  gap: 20px; /* Aumentamos el espacio para que 'respiren' mejor */
+  gap: 20px;
   flex-wrap: wrap;
   margin-top: 16px;
-  margin-bottom: 30px; /* Un poco más de margen inferior */
+  margin-bottom: 30px;
 }
-
 .filtro-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 180px; /* Ancho mínimo para cada filtro */
+  min-width: 180px;
 }
-
-/* El input de búsqueda puede ser un poco más ancho */
 .filtro-item.filtro-busqueda {
-    min-width: 220px;
+  min-width: 220px;
 }
-
 .filtro-item label {
   font-size: 14px;
   font-weight: 500;
   color: var(--color-gray-600);
 }
-
 .filtro-acciones {
   display: flex;
   gap: 8px;
 }
-
-/* Base unificada para todos los inputs y selects de los filtros */
 .filtro-input,
 .filtro-select,
 .react-datepicker__input-container input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -64,15 +53,11 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--color-gray-800, #1f2937);
-  
   background-color: var(--color-white, #fff);
   border: 1px solid var(--border-color-default, #ccc);
   border-radius: 6px;
-  
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-
-/* Estilo específico para el <select> para añadir una flecha personalizada */
 .filtro-select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -80,8 +65,6 @@
   background-size: 16px 12px;
   cursor: pointer;
 }
-
-/* Estilo al hacer foco en cualquiera de los filtros */
 .filtro-input:focus,
 .filtro-select:focus,
 .react-datepicker__input-container input:focus {
@@ -89,9 +72,9 @@
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
 }
-
-/* Botones de acción para los filtros */
-.boton-principal, .boton-secundario {
+.boton-secundario {
+  background-color: var(--color-gray-600, #4b5563);
+  color: var(--color-white, #fff);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -99,25 +82,81 @@
   font-weight: 500;
   transition: all 0.2s ease;
 }
-
-.boton-principal {
-  background-color: var(--color-indigo-600, #4f46e5);
-  color: var(--color-white, #fff);
-}
-.boton-principal:hover {
-  background-color: var(--color-indigo-800, #3730a3);
-}
-
-.boton-secundario {
-  background-color: var(--color-gray-600, #4b5563);
-  color: var(--color-white, #fff);
-}
 .boton-secundario:hover {
   background-color: var(--color-gray-800, #1f2937);
 }
 
 
-/* --- ESTILOS DE LA TABLA DE RESERVAS --- */
+/* =================================
+   NUEVOS ESTILOS PARA PESTAÑAS Y FORMULARIO DE SOCIOS
+   ================================= */
+.tabs-container {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover:not(.active) {
+    color: #3730a3;
+}
+
+.tab-button.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+.form-add-socio {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.form-add-socio h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.form-add-socio form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.form-add-socio input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1em;
+  min-width: 200px;
+}
+
+.form-add-socio .boton-principal {
+  background-color: #4f46e5;
+  color: white;
+}
+.form-add-socio .boton-principal:hover {
+  background-color: #4338ca;
+}
+
+
+/* --- ESTILOS DE LA TABLA (Mantenidos y unificados) --- */
 .reservas-table-container {
   width: 100%;
   overflow-x: auto;
@@ -140,10 +179,11 @@
 }
 
 .reservas-table thead th {
-  background-color: var(--color-gray-50);
+  background-color: #f9fafb;
   font-weight: 600;
   color: var(--color-gray-600);
   font-size: 0.9em;
+  text-transform: uppercase;
 }
 
 .reservas-table tbody tr:last-of-type td {
@@ -151,11 +191,16 @@
 }
 
 .reservas-table tbody tr:hover {
-  background-color: var(--color-indigo-50);
+  background-color: #f9fafb;
 }
 
-.reservas-table td {
-  font-size: 0.95em;
+.reservas-table td input,
+.reservas-table td select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #4f46e5;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 /* Badges de Estado */
@@ -166,59 +211,49 @@
   font-size: 0.8em;
   text-transform: capitalize;
 }
-
-.status-pendiente {
-  background-color: #fffbeb; 
-  color: #b45309;
-}
-
-.status-confirmada, 
-.status-pagado {
+.status-confirmada, .status-pagado, .status-activo {
   background-color: #d1fae5; 
   color: #065f46;
 }
-
+.status-pendiente {
+  background-color: #fef3c7; 
+  color: #92400e;
+}
 .status-cancelada_por_admin,
-.status-cancelada_por_cliente {
+.status-cancelada_por_cliente,
+.status-inactivo {
   background-color: #fee2e2;
   color: #991b1b;
 }
 
-/* Botones de Acción dentro de la tabla */
+/* --- ESTILOS DE BOTONES DE ACCIÓN (Mejorados) --- */
 .action-button {
   padding: 6px 12px;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   margin-right: 5px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
-
 .action-button.edit {
-  background-color: var(--color-indigo-100);
-  color: var(--color-indigo-800);
+  background-color: #e0e7ff;
+  color: #3730a3;
 }
 .action-button.edit:hover {
-  background-color: var(--color-indigo-600);
-  color: var(--color-white);
+  background-color: #c7d2fe;
 }
-
 .action-button.cancel {
-  background-color: var(--color-red-100);
-  color: var(--color-red-500);
+  background-color: #fee2e2;
+  color: #b91c1c;
 }
 .action-button.cancel:hover {
-  background-color: var(--color-red-500);
-  color: var(--color-white);
+  background-color: #fecaca;
 }
-
-/* Estilo para filas canceladas */
 .fila-cancelada td {
   text-decoration: line-through;
   color: #999;
 }
-
 .fila-cancelada .action-button.cancel,
 .action-button.cancel:disabled {
   background-color: #eee;
@@ -227,54 +262,44 @@
   border-color: #ddd;
 }
 
+/* --- ESTILOS DE PAGINACIÓN (Se mantienen de tu código original) --- */
 .pagination-container {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px 0;
-  gap: 8px; /* Espacio entre botones */
-  user-select: none; /* Evita que el texto se seleccione al hacer doble clic */
+  gap: 8px;
+  user-select: none;
 }
-
-/* Estilo base para TODOS los botones de paginación */
 .pagination-btn {
   border: 1px solid var(--border-color-default, #ccc);
   background-color: var(--color-white, #fff);
   color: var(--color-gray-600, #4b5563);
   padding: 8px;
-  min-width: 40px; /* Ancho mínimo para que los números se vean bien */
+  min-width: 40px;
   text-align: center;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 }
-
-/* Estilo para los botones de Anterior/Siguiente */
 .pagination-btn.arrow {
   padding: 8px 16px;
 }
-
 .pagination-btn:hover:not(:disabled) {
   border-color: var(--color-indigo-600, #4f46e5);
   color: var(--color-indigo-600, #4f46e5);
 }
-
-/* Estilo para el botón de la página ACTIVA */
 .pagination-btn.active {
   background-color: var(--color-indigo-600, #4f46e5);
   border-color: var(--color-indigo-600, #4f46e5);
   color: var(--color-white, #fff);
   font-weight: 700;
 }
-
-/* Estilo para los botones deshabilitados */
 .pagination-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
-
-/* Estilo para los puntos suspensivos (...) */
 .pagination-ellipsis {
   display: flex;
   align-items: center;
