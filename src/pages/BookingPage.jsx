@@ -9,17 +9,16 @@ import Paso4_DatosYResumen from '../components/Paso4_DatosYResumen';
 import SocioValidationModal from '../components/SocioValidationModal'; 
 
 function BookingPage() {
+  // --- Estados y lógica se mantienen igual que en tu versión ---
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const [salonSeleccionado, setSalonSeleccionado] = useState(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
-  
   const [esSocioValidado, setEsSocioValidado] = useState(false);
   const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
@@ -57,8 +56,8 @@ function BookingPage() {
     setEsSocioValidado(true);
   };
   
-  const nextStep = () => { if (currentStep < totalSteps) setCurrentStep(currentStep + 1); };
-  const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
+  const nextStep = () => setCurrentStep(prev => prev + 1);
+  const prevStep = () => setCurrentStep(prev => prev - 1);
   const goToStep = (step) => { if (step < currentStep) setCurrentStep(step); };
   
   const handleSelectSalon = (salon) => {
@@ -89,8 +88,11 @@ function BookingPage() {
         return (
           <div className="vista-seleccion-salon">
             {/* --- INICIO DE LA NUEVA INTERFAZ DE TÍTULO --- */}
-            <div className="title-container">
-              <h2>Paso 1: Seleccione un Espacio</h2>
+            <div className="step-header">
+              <div className="step-header-spacer"></div>
+              <div className="step-header-title">
+                <h2>Paso 1: Seleccione un Espacio</h2>
+              </div>
               <div className="socio-validation-container">
                 {esSocioValidado ? (
                   <div className="welcome-socio-banner-small">
@@ -104,57 +106,24 @@ function BookingPage() {
               </div>
             </div>
 
-            {esSocioValidado && (
+            {esSocioValidado ? (
               <p className="welcome-socio-message">
                 ¡Bienvenido/a, {nombreSocio}! Ya puedes ver tus precios preferenciales.
               </p>
+            ) : (
+              <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
             )}
             
-            <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
             <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />
           </div>
         );
       case 2:
-        return (
-          <Paso2_SeleccionFecha 
-            salonSeleccionado={salonSeleccionado}
-            fechaSeleccionada={fechaSeleccionada}
-            setFechaSeleccionada={setFechaSeleccionada}
-            nextStep={nextStep}
-            prevStep={() => handleSelectSalon(null)} 
-          />
-        );
+        return <Paso2_SeleccionFecha salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} setFechaSeleccionada={setFechaSeleccionada} nextStep={nextStep} prevStep={() => handleSelectSalon(null)} />;
       case 3:
-        return (
-          <Paso3_SeleccionHorario 
-            salonSeleccionado={salonSeleccionado}
-            fechaSeleccionada={fechaSeleccionada}
-            horaInicio={horaInicio}
-            setHoraInicio={setHoraInicio}
-            horaTermino={horaTermino}
-            setHoraTermino={setHoraTermino}
-            costoCalculado={costoCalculado}
-            duracionCalculada={duracionCalculada}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        );
+        return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
-        return (
-          <Paso4_DatosYResumen 
-            salonSeleccionado={salonSeleccionado}
-            fechaSeleccionada={fechaSeleccionada}
-            horaInicio={horaInicio}
-            horaTermino={horaTermino}
-            costoCalculado={costoCalculado}
-            duracionCalculada={duracionCalculada}
-            onReservationSuccess={handleReservationSuccess}
-            prevStep={prevStep}
-            esSocio={esSocioValidado}
-          />
-        );
+        return <Paso4_DatosYResumen salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} horaTermino={horaTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} onReservationSuccess={handleReservationSuccess} prevStep={prevStep} esSocio={esSocioValidado} />;
       default:
-        setCurrentStep(1);
         return <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />;
     }
   };
