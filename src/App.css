@@ -46,7 +46,6 @@
   font-weight: 700;
 }
 
-/* El subtítulo ahora tendrá un margen superior */
 .vista-seleccion-salon > p {
   font-size: 1.2em;
   color: var(--color-gray-600);
@@ -147,20 +146,13 @@
 
 
 /* =======================================================
-   Estilos para Validación de Socio (Actualizado y Mejorado)
+   Estilos para Validación de Socio (Versión Final Corregida)
    ======================================================= */
 
-/* Contenedor principal del título */
 .step-header {
-  display: flex;
-  justify-content: center; /* Centra el título horizontalmente */
-  align-items: center;
-  position: relative; /* Es el contenedor de referencia para el botón */
+  position: relative; /* Contenedor de referencia para el botón */
+  text-align: center; /* Asegura que el título h2 esté centrado */
   margin-bottom: 0.5rem;
-}
-
-.step-header-title {
-  text-align: center;
 }
 
 /* Contenedor del botón, posicionado a la derecha de forma absoluta en DESKTOP */
@@ -203,27 +195,29 @@
   text-align: center;
   color: #065f46;
   font-weight: 500;
-  margin-top: -0.5rem;
+  margin-top: 1rem;
   margin-bottom: 1rem;
 }
 
 
-/* --- INICIO DE LA SOLUCIÓN RESPONSIVA --- */
-/* Estas reglas se aplican solo en pantallas de 768px de ancho o menos (móviles y tablets pequeñas) */
+/* --- SOLUCIÓN RESPONSIVA --- */
+/* Estas reglas se aplican en pantallas de 768px de ancho o menos (móviles) */
 @media (max-width: 768px) {
   .step-header {
-    flex-direction: column; /* Apila el título y el botón verticalmente */
-    position: static; /* Desactiva el posicionamiento relativo para que no interfiera */
+    /* En móvil, volvemos a un layout de bloque normal */
+    position: static;
+    text-align: center;
     margin-bottom: 1.5rem;
   }
-
-  .step-header-title h2 {
-    font-size: 2em; /* Puedes ajustar el tamaño para móvil si es necesario */
+  
+  .step-header h2 {
+    font-size: 2em; /* Ajustamos el tamaño del título para móvil */
   }
 
   .socio-validation-container {
-    position: static; /* Desactiva el posicionamiento absoluto */
-    transform: none; /* Resetea la transformación */
-    margin-top: 1rem; /* Añade un espacio entre el título y el botón */
+    position: static; /* Desactivamos el posicionamiento absoluto */
+    transform: none; /* Reseteamos la transformación */
+    margin-top: 1rem; /* Añadimos espacio entre el título y el botón */
+    text-align: center; /* Centramos el botón */
   }
 }
