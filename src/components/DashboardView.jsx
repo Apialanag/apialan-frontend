@@ -44,18 +44,26 @@ function DashboardView() {
   if (error) return <p className="mensaje-error">{error}</p>;
   if (!stats) return <p>No hay datos disponibles.</p>;
 
-  // Preparamos los datos para el gráfico circular, asegurando un orden consistente
+  // --- SECCIÓN CORREGIDA ---
+  // Preparamos los datos para el gráfico circular de forma segura.
   const pieChartData = [
     { name: 'Socio', value: 0 },
     { name: 'Público General', value: 0 }
   ];
-  stats.graficos.reservasPorTipoCliente.forEach(item => {
+
+  // Verificamos que 'stats.graficos.reservasPorTipoCliente' exista y sea un array antes de usar forEach.
+  // El operador 'Optional Chaining' (?.) previene el error si 'graficos' es undefined.
+  // El operador 'Nullish Coalescing' (??) asegura que tengamos un array vacío si la propiedad no existe.
+  const reservasPorTipo = stats.graficos?.reservasPorTipoCliente ?? [];
+  
+  reservasPorTipo.forEach(item => {
     if (item.tipo === 'Socio') {
       pieChartData[0].value = item.cantidad;
     } else {
       pieChartData[1].value = item.cantidad;
     }
   });
+  // --- FIN DE LA SECCIÓN CORREGIDA ---
 
 
   return (
