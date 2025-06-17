@@ -375,3 +375,8 @@
   margin-bottom: 1.5rem;
   font-size: 1.2rem;
 }
+.charts-grid-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
+}
