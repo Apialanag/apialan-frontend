@@ -49,7 +49,7 @@ function BookingPage() {
       setDuracionCalculada(0);
       setCostoCalculado(0);
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, esSocioValidado]);
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData]); // Corregido: esSocioValidado -> socioData
   
   const handleValidationSuccess = (datosSocio) => { // Renombrado parámetro para claridad
     setNombreSocio(datosSocio.nombre_completo);
