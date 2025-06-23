@@ -16,15 +16,15 @@ function BookingPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
-  const [esSocioValidado, setEsSocioValidado] = useState(false);
+  const [socioData, setSocioData] = useState(null); // Cambiado de esSocioValidado a socioData
   const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  const getPrecioPorHora = (salon, esSocio) => {
+  const getPrecioPorHora = (salon, esSocioParam) => { // Renombrado esSocio a esSocioParam para evitar conflicto
     if (!salon) return 0;
-    if (esSocio) {
+    if (esSocioParam) { // Usar el parámetro
       if (salon.nombre.includes('Grande')) return 5000;
       if (salon.nombre.includes('Mediana')) return 4000;
       if (salon.nombre.includes('Pequeña')) return 3000;
@@ -38,7 +38,7 @@ function BookingPage() {
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
-        const precioHora = getPrecioPorHora(salonSeleccionado, esSocioValidado);
+        const precioHora = getPrecioPorHora(salonSeleccionado, !!socioData); // Usar !!socioData
         setDuracionCalculada(duracion);
         setCostoCalculado(duracion * precioHora);
       } else {
@@ -51,9 +51,9 @@ function BookingPage() {
     }
   }, [salonSeleccionado, horaInicio, horaTermino, esSocioValidado]);
   
-  const handleValidationSuccess = (socioData) => {
-    setNombreSocio(socioData.nombre_completo);
-    setEsSocioValidado(true);
+  const handleValidationSuccess = (datosSocio) => { // Renombrado parámetro para claridad
+    setNombreSocio(datosSocio.nombre_completo);
+    setSocioData(datosSocio); // Guardar el objeto completo del socio
   };
   
   const nextStep = () => setCurrentStep(prev => prev + 1);
@@ -78,7 +78,7 @@ function BookingPage() {
     setHoraInicio('');
     setHoraTermino('');
     setCurrentStep(1);
-    setEsSocioValidado(false);
+    setSocioData(null); // Restablecer socioData
     setNombreSocio('');
   };
   
@@ -94,7 +94,7 @@ function BookingPage() {
                 <h2>Paso 1: Seleccione un Espacio</h2>
               </div>
               <div className="socio-validation-container">
-                {esSocioValidado ? (
+                {socioData ? ( // Usar socioData
                   <div className="welcome-socio-banner-small">
                     ✓ Socio Verificado
                   </div>
@@ -106,7 +106,7 @@ function BookingPage() {
               </div>
             </div>
 
-            {esSocioValidado ? (
+            {socioData ? ( // Usar socioData
               <p className="welcome-socio-message">
                 ¡Bienvenido/a, {nombreSocio}! Ya puedes ver tus precios preferenciales.
               </p>
@@ -114,7 +114,7 @@ function BookingPage() {
               <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
             )}
             
-            <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />
+            <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} /> {/* Usar !!socioData */}
           </div>
         );
       case 2:
@@ -122,9 +122,9 @@ function BookingPage() {
       case 3:
         return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
-        return <Paso4_DatosYResumen salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} horaTermino={horaTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} onReservationSuccess={handleReservationSuccess} prevStep={prevStep} esSocio={esSocioValidado} />;
+        return <Paso4_DatosYResumen salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} horaTermino={horaTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} onReservationSuccess={handleReservationSuccess} prevStep={prevStep} esSocio={!!socioData} rutSocio={socioData ? socioData.rut : null} />; {/* Pasar rutSocio y !!socioData */}
       default:
-        return <SalonList onSalonSelect={handleSelectSalon} esSocio={esSocioValidado} />;
+        return <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} />; {/* Usar !!socioData */}
     }
   };
 

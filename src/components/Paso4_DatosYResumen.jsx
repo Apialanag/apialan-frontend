@@ -11,6 +11,7 @@ function Paso4_DatosYResumen({
   costoCalculado,
   onReservationSuccess,
   prevStep,
+  rutSocio, // Nueva prop
 }) {
   const [clienteNombre, setClienteNombre] = useState('');
   const [clienteEmail, setClienteEmail] = useState('');
@@ -43,8 +44,12 @@ function Paso4_DatosYResumen({
       hora_inicio: horaInicio,
       hora_termino: horaTermino,
       costo_total: costoCalculado, // Asegurarse que el costo se envía
-      notas_adicionales: notasAdicionales
+      notas_adicionales: notasAdicionales,
     };
+
+    if (rutSocio) {
+      datosReserva.rut_socio = rutSocio;
+    }
 
     try {
       await api.post('/reservas', datosReserva); 
