@@ -4,7 +4,7 @@ import api from '../api';
 import EditReservationModal from './EditReservationModal';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { es } from 'date-fns/locale'; // Import specific locale
-import { parse, format } from 'date-fns'; // Import parse and format
+import { parse, format, parseISO } from 'date-fns'; // Import parse, format, and parseISO
 import 'react-datepicker/dist/react-datepicker.css';
 import useDebounce from '../hooks/useDebounce';
 
@@ -43,12 +43,20 @@ function ReservasManager() {
       
       const response = await api.get('/admin/reservas', { params });
       
+      console.log("API Response (first 5):", response.data.reservas.slice(0, 5).map(r => ({ id: r.id, fecha_reserva: r.fecha_reserva })));
+
       // Sort reservations by fecha_reserva ascending (closest first)
       const sortedReservas = response.data.reservas.sort((a, b) => {
-        const dateA = parse(a.fecha_reserva, 'yyyy-MM-dd', new Date());
-        const dateB = parse(b.fecha_reserva, 'yyyy-MM-dd', new Date());
+        const dateA = parseISO(a.fecha_reserva); // Use parseISO for ISO 8601 strings
+        const dateB = parseISO(b.fecha_reserva); // Use parseISO for ISO 8601 strings
+        // Log individual comparisons for the first few items if needed for deeper debugging
+        // if (response.data.reservas.indexOf(a) < 2 || response.data.reservas.indexOf(b) < 2) {
+        //   console.log(`Comparing A: ${a.fecha_reserva} (parsed: ${dateA}) with B: ${b.fecha_reserva} (parsed: ${dateB}) -> Result: ${dateA - dateB}`);
+        // }
         return dateA - dateB; // Sort ascending (earliest first)
       });
+
+      console.log("Sorted Reservas (first 5):", sortedReservas.slice(0, 5).map(r => ({ id: r.id, fecha_reserva: r.fecha_reserva })));
 
       setReservas(sortedReservas);
       setTotalPages(response.data.totalPages);
@@ -111,12 +119,12 @@ function ReservasManager() {
   };
   // const formatearFecha = (fechaISO) => { const opciones = { year: 'numeric', month: 'long', day: 'numeric' }; return new Date(fechaISO).toLocaleDateString('es-CL', opciones); };
   const formatearFecha = (fechaISO) => {
-    // Assuming fechaISO is 'YYYY-MM-DD'
+    // fechaISO is now known to be a full ISO string e.g. 2025-07-11T00:00:00.000Z
     try {
-      const date = parse(fechaISO, 'yyyy-MM-dd', new Date());
+      const date = parseISO(fechaISO); // Use parseISO for ISO 8601 strings
       return format(date, 'PPP', { locale: es }); // 'PPP' is a long date format, e.g., "1 de ene. de 2023"
     } catch (e) {
-      console.error("Error parsing date:", fechaISO, e);
+      console.error("Error formatting date for display:", fechaISO, e);
       return fechaISO; // Fallback to original string if parsing fails
     }
   };
