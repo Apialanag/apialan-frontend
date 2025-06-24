@@ -43,7 +43,14 @@ function ReservasManager() {
       
       const response = await api.get('/admin/reservas', { params });
       
-      setReservas(response.data.reservas);
+      // Sort reservations by fecha_reserva ascending (closest first)
+      const sortedReservas = response.data.reservas.sort((a, b) => {
+        const dateA = parse(a.fecha_reserva, 'yyyy-MM-dd', new Date());
+        const dateB = parse(b.fecha_reserva, 'yyyy-MM-dd', new Date());
+        return dateA - dateB;
+      });
+
+      setReservas(sortedReservas);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);
 
