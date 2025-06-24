@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
 import EditReservationModal from './EditReservationModal';
 import DatePicker, { registerLocale } from 'react-datepicker';
-import es from 'date-fns/locale/es';
+import { es } from 'date-fns/locale'; // Import specific locale
+import { parse, format } from 'date-fns'; // Import parse and format
 import 'react-datepicker/dist/react-datepicker.css';
 import useDebounce from '../hooks/useDebounce';
 
@@ -101,7 +102,17 @@ function ReservasManager() {
   const handleUpdateReservation = (updatedReserva) => { 
     setReservas(reservas.map(reserva => reserva.id === updatedReserva.id ? updatedReserva : reserva)); 
   };
-  const formatearFecha = (fechaISO) => { const opciones = { year: 'numeric', month: 'long', day: 'numeric' }; return new Date(fechaISO).toLocaleDateString('es-CL', opciones); };
+  // const formatearFecha = (fechaISO) => { const opciones = { year: 'numeric', month: 'long', day: 'numeric' }; return new Date(fechaISO).toLocaleDateString('es-CL', opciones); };
+  const formatearFecha = (fechaISO) => {
+    // Assuming fechaISO is 'YYYY-MM-DD'
+    try {
+      const date = parse(fechaISO, 'yyyy-MM-dd', new Date());
+      return format(date, 'PPP', { locale: es }); // 'PPP' is a long date format, e.g., "1 de ene. de 2023"
+    } catch (e) {
+      console.error("Error parsing date:", fechaISO, e);
+      return fechaISO; // Fallback to original string if parsing fails
+    }
+  };
   
   const handleCancelReserva = async (reservaId) => {
     if (!window.confirm(`¿Estás seguro de que deseas cancelar la reserva con ID ${reservaId}?`)) return;

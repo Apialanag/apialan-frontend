@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-// import axios from 'axios'; // Ya no se usa axios directamente
-import api from '../api'; // <-- IMPORTAMOS NUESTRA INSTANCIA CENTRALIZADA
+import api from '../api';
 import CustomCalendar from './CustomCalendar';
 import './Paso2_SeleccionFecha.css';
+import { parse as parseDate, format as formatDate } from 'date-fns'; // Renamed to avoid conflict
 
 function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSeleccionada, nextStep, prevStep }) {
   const [disponibilidadMensual, setDisponibilidadMensual] = useState({});
   const [mesCalendario, setMesCalendario] = useState(fechaSeleccionada || new Date());
 
-  const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
+  // Updated to use date-fns
+  const formatearFechaParaAPI = (date) => date ? formatDate(date, 'yyyy-MM-dd') : '';
   
   useEffect(() => {
     if (salonSeleccionado) {
@@ -24,7 +25,9 @@ function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSe
         const disponibilidadProcesada = {};
         const totalBloquesPorDia = 9;
         response.data.forEach(reserva => {
-          const fecha = formatearFechaParaAPI(new Date(reserva.fecha_reserva));
+          // Parse reserva.fecha_reserva (e.g., '2023-10-26') as a local date
+          const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
+          const fecha = formatearFechaParaAPI(fechaDateObj); // Convert back to 'yyyy-MM-dd' string for key
           if (!disponibilidadProcesada[fecha]) {
             disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
           }
