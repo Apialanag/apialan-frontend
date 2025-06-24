@@ -47,7 +47,7 @@ function ReservasManager() {
       const sortedReservas = response.data.reservas.sort((a, b) => {
         const dateA = parse(a.fecha_reserva, 'yyyy-MM-dd', new Date());
         const dateB = parse(b.fecha_reserva, 'yyyy-MM-dd', new Date());
-        return dateA - dateB;
+        return dateB - dateA; // Reversed to sort descending (latest first)
       });
 
       setReservas(sortedReservas);
