@@ -25,15 +25,39 @@ function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSe
         const disponibilidadProcesada = {};
         const totalBloquesPorDia = 9;
         response.data.forEach(reserva => {
-          // Parse reserva.fecha_reserva (e.g., '2023-10-26') as a local date
-          const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
-          const fecha = formatearFechaParaAPI(fechaDateObj); // Convert back to 'yyyy-MM-dd' string for key
-          if (!disponibilidadProcesada[fecha]) {
-            disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
+          // --- COMIENZO DE LA MODIFICACIÓN ---
+          // Verificar que reserva.fecha_reserva sea un string válido y no esté vacío
+          // y que tenga un formato que se asemeje a YYYY-MM-DD antes de parsear.
+          // Esto es una heurística simple; una validación más robusta podría usar regex.
+          if (typeof reserva.fecha_reserva === 'string' && reserva.fecha_reserva.trim() !== '' && reserva.fecha_reserva.includes('-')) {
+            // Parse reserva.fecha_reserva (e.g., '2023-10-26') as a local date
+            const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
+
+            // Verificar si la fecha parseada es válida antes de continuar
+            if (fechaDateObj instanceof Date && !isNaN(fechaDateObj)) {
+              const fecha = formatearFechaParaAPI(fechaDateObj); // Convert back to 'yyyy-MM-dd' string for key
+              if (!disponibilidadProcesada[fecha]) {
+                disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
+              }
+              // Asegurarse de que hora_inicio y hora_termino también son válidos antes de parsear
+              if (reserva.hora_inicio && reserva.hora_termino && reserva.hora_inicio.includes(':') && reserva.hora_termino.includes(':')) {
+                const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
+                const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
+                if (!isNaN(hInicio) && !isNaN(hTermino)) {
+                  disponibilidadProcesada[fecha].ocupados += (hTermino - hInicio);
+                } else {
+                  console.warn(`Horas inválidas para la reserva con fecha ${reserva.fecha_reserva}: inicio='${reserva.hora_inicio}', termino='${reserva.hora_termino}'`);
+                }
+              } else {
+                console.warn(`Horas faltantes o en formato incorrecto para la reserva con fecha ${reserva.fecha_reserva}`);
+              }
+            } else {
+              console.warn(`Fecha inválida encontrada en reserva: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
+            }
+          } else {
+            console.warn(`Valor de fecha_reserva inválido o ausente: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
           }
-          const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
-          const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
-          disponibilidadProcesada[fecha].ocupados += (hTermino - hInicio);
+          // --- FIN DE LA MODIFICACIÓN ---
         });
         setDisponibilidadMensual(disponibilidadProcesada);
       }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
