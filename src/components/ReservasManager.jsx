@@ -119,13 +119,27 @@ function ReservasManager() {
   };
   // const formatearFecha = (fechaISO) => { const opciones = { year: 'numeric', month: 'long', day: 'numeric' }; return new Date(fechaISO).toLocaleDateString('es-CL', opciones); };
   const formatearFecha = (fechaISO) => {
-    // fechaISO is now known to be a full ISO string e.g. 2025-07-11T00:00:00.000Z
+    // fechaISO es un string como "2024-06-27T00:00:00.000Z"
+    // El objetivo es mostrar la fecha "nominal" (2024-06-27) independientemente de la zona horaria del usuario
+    // o de la parte horaria del string ISO.
     try {
-      const date = parseISO(fechaISO); // Use parseISO for ISO 8601 strings
-      return format(date, 'PPP', { locale: es }); // 'PPP' is a long date format, e.g., "1 de ene. de 2023"
+      if (!fechaISO || typeof fechaISO !== 'string' || fechaISO.length < 10) {
+        // Si fechaISO no es válido o es demasiado corto para ser YYYY-MM-DD...
+        console.warn("formatearFecha recibió un valor de fechaISO inválido:", fechaISO);
+        return "Fecha inválida";
+      }
+      // Tomamos solo la parte de la fecha (YYYY-MM-DD) del string ISO.
+      const datePart = fechaISO.substring(0, 10);
+
+      // Parseamos esta parte. `parse` interpretará 'yyyy-MM-dd' como medianoche local.
+      // Esto es lo que queremos para que `format` luego muestre el día correcto
+      // sin corrimientos por zona horaria desde UTC.
+      const fechaNominal = parse(datePart, 'yyyy-MM-dd', new Date());
+
+      return format(fechaNominal, 'PPP', { locale: es }); // 'PPP' es un formato largo, ej: "27 de jun. de 2024"
     } catch (e) {
       console.error("Error formatting date for display:", fechaISO, e);
-      return fechaISO; // Fallback to original string if parsing fails
+      return fechaISO; // Fallback al string original si algo falla
     }
   };
   
