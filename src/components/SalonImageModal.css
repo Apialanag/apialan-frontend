@@ -1,0 +1,61 @@
+/* src/components/SalonImageModal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80vw; /* Ajusta según necesites */
+  max-height: 80vh; /* Ajusta según necesites */
+  overflow: hidden; /* Para que el carrusel no se desborde */
+  position: relative;
+  display: flex; /* Para centrar el carrusel si es más pequeño */
+  flex-direction: column; /* Para el botón de cierre */
+  align-items: center; /* Centra el contenido horizontalmente */
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  z-index: 1010; /* Asegura que esté sobre el carrusel */
+}
+
+.carousel-image {
+  max-height: 70vh; /* Ajusta para que la imagen no sea más alta que el modal */
+  width: auto; /* Mantiene la proporción de la imagen */
+  object-fit: contain; /* Asegura que toda la imagen sea visible */
+  margin: auto; /* Centra la imagen si es más estrecha que el carrusel */
+}
+
+/* Ajustes específicos para el carrusel si es necesario */
+.carousel .slide {
+  background: none; /* Elimina el fondo por defecto si lo hay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel .control-dots .dot {
+    background: #ccc !important; /* Color de los puntos inactivos */
+}
+
+.carousel .control-dots .dot.selected {
+    background: #4f46e5 !important; /* Color del punto activo (usando tu color corporativo) */
+}
