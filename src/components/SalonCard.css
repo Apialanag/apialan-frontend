@@ -45,6 +45,19 @@
     padding: 1rem;
     color: white;
     background-color: var(--header-bg); /* Variable definida en el JSX */
+    position: relative; /* Para posicionar el hint de galería */
+}
+
+.view-gallery-hint {
+  position: absolute;
+  bottom: 8px; /* Ajusta según sea necesario */
+  right: 12px; /* Ajusta según sea necesario */
+  font-size: 0.75rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.8); /* Color blanco con algo de transparencia */
+  background-color: rgba(0, 0, 0, 0.2); /* Fondo oscuro sutil para legibilidad */
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 /* Badge de capacidad */
