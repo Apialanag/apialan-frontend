@@ -7,39 +7,23 @@ import SalonImageModal from './SalonImageModal'; // Importar el modal
 function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleCardClick = () => {
-    // Si hay fotos, abre el modal. Si no, ejecuta la acción de selección.
-    // Opcionalmente, podrías querer que siempre se seleccione y además se abra el modal si hay fotos.
-    // En este caso, el modal se abre independientemente de la selección.
-    // Si el modal debe abrirse EN LUGAR de onSelect, la lógica cambiaría.
-    // Por ahora, onSelect se llama desde el botón, y el clic en la card abre el modal.
-    if (salon.fotos && salon.fotos.length > 0) {
-      setIsModalOpen(true);
-    } else {
-      // Si no hay fotos, se puede ejecutar onSelect directamente o no hacer nada.
-      // Para este ejemplo, si no hay fotos, no hacemos nada especial al hacer clic en la card
-      // y dejamos que el botón "Seleccionar" maneje la selección.
-      // Si quieres que el clic en la card también seleccione, puedes llamar a onSelect(salon) aquí.
-      console.log("No hay fotos para mostrar en el modal.");
-    }
+  // Esta función se llamará cuando se haga clic en el área general de la tarjeta.
+  // Su única responsabilidad será llamar a onSelect.
+  const handleSelectSalon = () => {
+    onSelect(salon);
   };
 
-  const handleOpenModal = (e) => {
-    // Detiene la propagación para evitar que onSelect se active si el modal se abre
-    // desde un clic que también podría interpretarse como una selección.
+  // Esta función se llamará SOLO cuando se haga clic en el área del header (o el hint "Ver galería").
+  // Se encargará de abrir el modal SI hay fotos.
+  const handleOpenGalleryModal = (e) => {
+    // Detenemos la propagación para evitar que el clic en el header
+    // también active handleSelectSalon si el header está dentro del div principal de la tarjeta.
     e.stopPropagation();
     if (salon.fotos && salon.fotos.length > 0) {
       setIsModalOpen(true);
-    } else {
-      // Si no hay fotos, y el usuario hizo clic en un área que pensó abriría fotos,
-      // podrías querer seleccionar el salón. O simplemente no hacer nada.
-      // Para mantener la lógica original de selección a través del botón:
-      console.log("No hay fotos para mostrar.");
-      // Si el clic en la card (no en el botón) debe seleccionar si no hay fotos:
-      // onSelect(salon);
     }
+    // Si no hay fotos, no hacemos nada, ya que el clic fue específicamente para abrir la galería.
   };
-
 
   const getEspacioColorStyles = (nombreEspacio) => {
     const corporateColors = {
@@ -75,16 +59,23 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
     <>
       <div
         className={`salon-card ${isSelected ? 'selected' : ''}`}
-        // onClick={() => onSelect(salon)} // El clic general ahora puede abrir el modal
-        onClick={handleCardClick} // Usar handleCardClick para la lógica del modal/selección
+        onClick={handleSelectSalon} // Clic en la tarjeta general selecciona el salón
         style={cssVariables}
       >
-        <div className="card-header" onClick={handleOpenModal} style={{ cursor: (salon.fotos && salon.fotos.length > 0) ? 'pointer' : 'default' }}>
+        {/* El div del header ahora solo es responsable de abrir la galería */}
+        <div
+          className="card-header"
+          onClick={(salon.fotos && salon.fotos.length > 0) ? handleOpenGalleryModal : undefined}
+          style={{ cursor: (salon.fotos && salon.fotos.length > 0) ? 'pointer' : 'default' }}
+        >
           <h3 className="card-title">{salon.nombre}</h3>
           {(salon.fotos && salon.fotos.length > 0) && (
-            <span className="view-gallery-hint">Ver galería</span>
+            <span className="view-gallery-hint" onClick={handleOpenGalleryModal}> {/* También permite clic en el hint */}
+              Ver galería
+            </span>
           )}
         </div>
+        {/* El resto del cuerpo de la tarjeta. Si se hace clic aquí, se seleccionará el salón debido al onClick en el div principal. */}
         <div className="card-body">
         <div className="card-info-row">
           <span className="info-badge">
@@ -118,9 +109,15 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
           </div>
         </div>
         <div className="card-action">
-          {/* Asegurarse de que el botón de seleccionar todavía funcione como se espera */}
-          {/* Si el clic en la tarjeta abre el modal, el botón podría ser solo para seleccionar */}
-          <div className="boton-reservar-card" onClick={(e) => { e.stopPropagation(); onSelect(salon); }}>
+          {/* El botón de seleccionar explícitamente sigue funcionando igual,
+              deteniendo la propagación para no interferir con el onClick del div padre (handleSelectSalon)
+              si ya está haciendo lo mismo. Aunque en este caso, onSelect(salon) es la misma acción.
+              La propagación es más crucial si el botón hiciera algo diferente.
+          */}
+          <div className="boton-reservar-card" onClick={(e) => {
+              e.stopPropagation(); // Buena práctica mantenerlo
+              onSelect(salon);
+            }}>
             {isSelected ? 'Seleccionado ✓' : 'Seleccionar este Espacio'}
           </div>
         </div>
