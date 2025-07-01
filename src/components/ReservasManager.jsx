@@ -223,9 +223,18 @@ function ReservasManager() {
                     <td>{reserva.cliente_email}</td>
                     <td>{formatearFecha(reserva.fecha_reserva)}</td>
                     <td>{reserva.hora_inicio.substring(0, 5)} - {reserva.hora_termino.substring(0, 5)}</td>
-                    <td>${(parseFloat(reserva.costo_neto_historico) || 0).toLocaleString('es-CL')}</td>
-                    <td>${(parseFloat(reserva.costo_iva_historico) || 0).toLocaleString('es-CL')}</td>
-                    <td>${(parseFloat(reserva.costo_total_historico) || 0).toLocaleString('es-CL')}</td>
+                    <td>
+                      {reserva.costo_neto_historico != null ?
+                        `$${Math.round(parseFloat(reserva.costo_neto_historico)).toLocaleString('es-CL')}` : '-'}
+                    </td>
+                    <td>
+                      {reserva.costo_iva_historico != null ?
+                        `$${Math.round(parseFloat(reserva.costo_iva_historico)).toLocaleString('es-CL')}` : '-'}
+                    </td>
+                    <td>
+                      {reserva.costo_total_historico != null ?
+                        `$${Math.round(parseFloat(reserva.costo_total_historico)).toLocaleString('es-CL')}` : '-'}
+                    </td>
                     <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
                     <td>
