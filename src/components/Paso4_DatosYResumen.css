@@ -110,3 +110,14 @@
     background-color: #f8d7da;
     color: #842029;
 }
+
+.mensaje-socio-info {
+  background-color: #e0e7ff; /* Color similar al badge-bg de SalonCard */
+  color: #4338ca; /* Color similar al badge-text de SalonCard */
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: 500;
+}
