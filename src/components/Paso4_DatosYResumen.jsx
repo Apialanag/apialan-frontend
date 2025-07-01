@@ -17,44 +17,63 @@ function Paso4_DatosYResumen({
   emailSocioAutofill,
   // onSocioDataChange, // Necesario para limpiar datos de socio si el RUT se borra/cambia en este paso
 }) {
-  const [clienteNombre, setClienteNombre] = useState(nombreSocioAutofill || '');
-  const [clienteEmail, setClienteEmail] = useState(emailSocioAutofill || '');
-  const [clienteTelefono, setClienteTelefono] = useState('');
+  // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
+  const [clienteNombre, setClienteNombre] = useState(() => {
+    if (nombreSocioAutofill) return nombreSocioAutofill;
+    if (!esSocio && !nombreSocioAutofill) { // Asegurarse que esSocio es evaluado en el contexto de la primera carga
+      return localStorage.getItem('lastBookingName') || '';
+    }
+    return '';
+  });
+
+  const [clienteEmail, setClienteEmail] = useState(() => {
+    if (emailSocioAutofill) return emailSocioAutofill;
+    if (!esSocio && !emailSocioAutofill) {
+      return localStorage.getItem('lastBookingEmail') || '';
+    }
+    return '';
+  });
+
+  const [clienteTelefono, setClienteTelefono] = useState(() => {
+    // Telefono no viene del socio, así que solo depende de !esSocio para cargar de localStorage
+    // y que no haya datos de socio que indiquen un contexto diferente.
+    if (!esSocio && !nombreSocioAutofill && !emailSocioAutofill) { // Condición más general para no-socio
+      return localStorage.getItem('lastBookingPhone') || '';
+    }
+    return '';
+  });
+
   const [rutLocal, setRutLocal] = useState(rutSocio || '');
   const [mensajeSocio, setMensajeSocio] = useState('');
 
-  // Efecto para cargar datos desde localStorage al montar (solo si no es socio)
-  React.useEffect(() => {
-    if (!esSocio) {
-      const savedName = localStorage.getItem('lastBookingName');
-      const savedEmail = localStorage.getItem('lastBookingEmail');
-      const savedPhone = localStorage.getItem('lastBookingPhone');
-      if (savedName) setClienteNombre(savedName);
-      if (savedEmail) setClienteEmail(savedEmail);
-      if (savedPhone) setClienteTelefono(savedPhone);
-    }
-  }, []); // Se ejecuta solo una vez al montar, si no es socio en ese momento.
-
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
+  // Este useEffect se encarga de actualizar si el estado de socio cambia DESPUÉS del montaje inicial.
   React.useEffect(() => {
     if (esSocio && nombreSocioAutofill) {
       setClienteNombre(nombreSocioAutofill);
       setClienteEmail(emailSocioAutofill || '');
       setRutLocal(rutSocio || '');
       setMensajeSocio(`Datos de socio cargados: ${nombreSocioAutofill}.`);
-      // Borramos los datos de no-socio de localStorage si se valida como socio,
-      // para evitar que reaparezcan si luego se desloguea.
       localStorage.removeItem('lastBookingName');
       localStorage.removeItem('lastBookingEmail');
       localStorage.removeItem('lastBookingPhone');
     } else if (!esSocio) {
-      // Si se desloguea de socio, limpiamos campos si eran del socio.
-      // No recargamos de localStorage aquí, eso solo pasa al montar inicialmente o si el usuario refresca como no-socio.
-      if (clienteNombre === nombreSocioAutofill && nombreSocioAutofill) setClienteNombre('');
-      if (clienteEmail === emailSocioAutofill && emailSocioAutofill) setClienteEmail('');
+      // Si se desloguea de socio (esSocio cambia de true a false),
+      // limpiamos los campos si eran del socio.
+      // La carga inicial desde localStorage ya ocurrió en useState.
+      // No se recargan datos de localStorage aquí para no sobrescribir ediciones manuales post-deslogueo.
+      if (clienteNombre === nombreSocioAutofill && nombreSocioAutofill) { // Solo limpiar si el valor actual es el del socio
+        setClienteNombre(localStorage.getItem('lastBookingName') || ''); // Intentar recargar de localStorage tras deslogueo
+      }
+      if (clienteEmail === emailSocioAutofill && emailSocioAutofill) {
+        setClienteEmail(localStorage.getItem('lastBookingEmail') || ''); // Intentar recargar de localStorage tras deslogueo
+      }
+      // El teléfono no se autocompleta por socio, así que no se limpia aquí basado en socio.
+      // Si se desloguea, y había algo en localStorage, ya debería estar cargado por el useState.
+      // Si no había nada, el campo de teléfono permanecerá como esté.
       setMensajeSocio('');
     }
-  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio]);
+  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio]); // Faltaba clienteNombre y clienteEmail en dependencias? No, porque este efecto es para *reaccionar* a cambios de socio.
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
