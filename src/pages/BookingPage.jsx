@@ -16,8 +16,9 @@ function BookingPage() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
-  const [socioData, setSocioData] = useState(null); // Cambiado de esSocioValidado a socioData
-  const [nombreSocio, setNombreSocio] = useState('');
+  const [socioData, setSocioData] = useState(null);
+  // nombreSocio se puede derivar de socioData.nombre_completo, así que no necesitamos un estado separado.
+  // const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [costoCalculado, setCostoCalculado] = useState(0);
   const [duracionCalculada, setDuracionCalculada] = useState(0);
@@ -51,11 +52,21 @@ function BookingPage() {
     }
   }, [salonSeleccionado, horaInicio, horaTermino, socioData]); // Corregido: esSocioValidado -> socioData
   
-  const handleValidationSuccess = (datosSocio) => { // Renombrado parámetro para claridad
-    setNombreSocio(datosSocio.nombre_completo);
-    setSocioData(datosSocio); // Guardar el objeto completo del socio
+  const handleValidationSuccess = (datosSocio) => {
+    setSocioData(datosSocio); // Guardar el objeto completo del socio (incluye nombre, email, rut)
+    // setNombreSocio(datosSocio.nombre_completo); // Ya no es necesario, se accede desde socioData
+    setIsModalOpen(false); // Cerrar el modal al tener éxito
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
   };
   
+  // Función para desloguear o limpiar datos del socio
+  const handleLogoutSocio = () => {
+    setSocioData(null);
+    // Cualquier otra limpieza relacionada con el estado de socio
+  };
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
   const goToStep = (step) => { if (step < currentStep) setCurrentStep(step); };
@@ -78,8 +89,8 @@ function BookingPage() {
     setHoraInicio('');
     setHoraTermino('');
     setCurrentStep(1);
-    setSocioData(null); // Restablecer socioData
-    setNombreSocio('');
+    // setSocioData(null); // No necesariamente queremos desloguear al socio aquí.
+    // setNombreSocio(''); // Se deriva de socioData
   };
   
   const renderStep = () => {
@@ -94,9 +105,12 @@ function BookingPage() {
                 <h2>Paso 1: Seleccione un Espacio</h2>
               </div>
               <div className="socio-validation-container">
-                {socioData ? ( // Usar socioData
-                  <div className="welcome-socio-banner-small">
-                    ✓ Socio Verificado
+                {socioData ? (
+                  <div className="socio-info-banner">
+                    <span className="socio-name">✓ {socioData.nombre_completo}</span>
+                    <button onClick={handleLogoutSocio} className="logout-socio-button" title="Desconectar RUT socio">
+                      ✕
+                    </button>
                   </div>
                 ) : (
                   <button onClick={() => setIsModalOpen(true)} className="socio-validate-button">
@@ -106,15 +120,15 @@ function BookingPage() {
               </div>
             </div>
 
-            {socioData ? ( // Usar socioData
+            {socioData ? (
               <p className="welcome-socio-message">
-                ¡Bienvenido/a, {nombreSocio}! Ya puedes ver tus precios preferenciales.
+                ¡Bienvenido/a! Ya puedes ver tus precios preferenciales.
               </p>
             ) : (
-              <p>Haga clic en una tarjeta para ver su disponibilidad y comenzar su reserva.</p>
+              <p>Haz clic en "¿Eres Socio/a?" si tienes un RUT de socio para ver precios especiales o selecciona un espacio para continuar.</p>
             )}
             
-            <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} /> {/* Usar !!socioData */}
+            <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} />
           </div>
         );
       case 2:
@@ -122,9 +136,26 @@ function BookingPage() {
       case 3:
         return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
-        return <Paso4_DatosYResumen salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} horaTermino={horaTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} onReservationSuccess={handleReservationSuccess} prevStep={prevStep} esSocio={!!socioData} rutSocio={socioData ? socioData.rut : null} />; {/* Pasar rutSocio y !!socioData */}
+        // Pasar nombreSocio y emailSocio a Paso4_DatosYResumen
+        return (
+          <Paso4_DatosYResumen
+            salonSeleccionado={salonSeleccionado}
+            fechaSeleccionada={fechaSeleccionada}
+            horaInicio={horaInicio}
+            horaTermino={horaTermino}
+            costoCalculado={costoCalculado}
+            duracionCalculada={duracionCalculada}
+            onReservationSuccess={handleReservationSuccess}
+            prevStep={prevStep}
+            esSocio={!!socioData}
+            rutSocio={socioData ? socioData.rut : null}
+            nombreSocioAutofill={socioData ? socioData.nombre_completo : ''}
+            emailSocioAutofill={socioData ? socioData.email : ''}
+            onSocioDataChange={setSocioData} // Para permitir que Paso4 limpie socioData si el RUT se borra
+          />
+        );
       default:
-        return <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} />; {/* Usar !!socioData */}
+        return <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} />;
     }
   };
 
@@ -132,7 +163,7 @@ function BookingPage() {
     <>
       {isModalOpen && (
         <SocioValidationModal 
-          onClose={() => setIsModalOpen(false)} 
+          onClose={handleModalClose}
           onValidationSuccess={handleValidationSuccess} 
         />
       )}
