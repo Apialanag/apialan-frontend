@@ -52,11 +52,40 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Editar Reserva ID: {reserva.id}</h2>
+        <h2>Detalles Reserva ID: {reserva.id}</h2>
         <div className="modal-body">
-          <p><strong>Cliente:</strong> {reserva.cliente_nombre}</p>
-          <p><strong>Salón:</strong> {reserva.nombre_espacio}</p>
+          <div className="reserva-info-section">
+            <h4>Información del Cliente y Reserva</h4>
+            <p><strong>Cliente:</strong> {reserva.cliente_nombre} ({reserva.cliente_email})</p>
+            <p><strong>Teléfono:</strong> {reserva.cliente_telefono || 'No provisto'}</p>
+            <p><strong>Salón:</strong> {reserva.nombre_espacio}</p>
+            <p><strong>Fecha:</strong> {new Date(reserva.fecha_reserva).toLocaleDateString('es-CL', { timeZone: 'UTC' })}</p> {/* Asegurar UTC para parsear bien la fecha */}
+            <p><strong>Horario:</strong> {reserva.hora_inicio} - {reserva.hora_termino}</p>
+            <p><strong>Notas Adicionales:</strong> {reserva.notas_adicionales || 'Ninguna'}</p>
+          </div>
+
+          <hr />
+
+          <div className="reserva-billing-section">
+            <h4>Información de Pago y Facturación</h4>
+            <p><strong>Neto:</strong> ${(parseFloat(reserva.costo_neto_historico) || 0).toLocaleString('es-CL')}</p>
+            <p><strong>IVA:</strong> ${(parseFloat(reserva.costo_iva_historico) || 0).toLocaleString('es-CL')}</p>
+            <p><strong>Total:</strong> ${(parseFloat(reserva.costo_total_historico) || 0).toLocaleString('es-CL')}</p>
+            <p><strong>Tipo Documento:</strong> {reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'No especificado'}</p>
+            {reserva.tipo_documento === 'factura' && (
+              <div className="factura-details">
+                <h5>Datos de Factura:</h5>
+                <p><strong>RUT:</strong> {reserva.facturacion_rut || 'N/A'}</p>
+                <p><strong>Razón Social:</strong> {reserva.facturacion_razon_social || 'N/A'}</p>
+                <p><strong>Giro:</strong> {reserva.facturacion_giro || 'N/A'}</p>
+                <p><strong>Dirección:</strong> {reserva.facturacion_direccion || 'N/A'}</p>
+              </div>
+            )}
+          </div>
           
+          <hr />
+
+          <h4>Actualizar Estados</h4>
           <div className="form-group">
             <label htmlFor="estado-reserva">Estado de la Reserva</label>
             <select 
