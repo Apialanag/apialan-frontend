@@ -45,12 +45,58 @@
   margin-bottom: 30px;
 }
 .modal-body p {
-    margin: 0 0 10px 0;
-    font-size: 1.1em;
+    margin: 0 0 8px 0; /* Reducido margen inferior para párrafos de info */
+    font-size: 1em; /* Ligeramente más pequeño */
+    line-height: 1.5;
 }
 
-.modal-body .form-group {
+.modal-body hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 20px 0;
+}
+
+.reserva-info-section,
+.reserva-billing-section {
+  margin-bottom: 15px;
+}
+
+.reserva-info-section h4,
+.reserva-billing-section h4,
+.modal-body h4 { /* Para el "Actualizar Estados" */
+  font-size: 1.1em;
+  color: var(--color-indigo-600);
+  margin-bottom: 10px;
+  margin-top: 0; /* Resetear margen superior si es el primer elemento */
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--color-indigo-100);
+}
+.modal-body h4 { /* Específico para "Actualizar Estados" si no está en una sección */
     margin-top: 20px;
+}
+
+
+.factura-details {
+  margin-top: 10px;
+  padding-left: 15px;
+  border-left: 3px solid var(--color-indigo-100);
+}
+
+.factura-details h5 {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: 5px;
+}
+
+.factura-details p {
+  font-size: 0.9em;
+  margin-bottom: 4px;
+}
+
+
+.modal-body .form-group {
+    margin-top: 15px; /* Reducido margen superior para grupos de formulario */
 }
 .modal-body .form-group label {
     font-weight: 600;

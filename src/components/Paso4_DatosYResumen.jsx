@@ -47,6 +47,14 @@ function Paso4_DatosYResumen({
   const [rutLocal, setRutLocal] = useState(rutSocio || '');
   const [mensajeSocio, setMensajeSocio] = useState('');
 
+  // Nuevos estados para facturación
+  const [tipoDocumento, setTipoDocumento] = useState('boleta'); // 'boleta' o 'factura'
+  const [facturacionRut, setFacturacionRut] = useState('');
+  const [facturacionRazonSocial, setFacturacionRazonSocial] = useState('');
+  const [facturacionGiro, setFacturacionGiro] = useState('');
+  const [facturacionDireccion, setFacturacionDireccion] = useState('');
+
+
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
   // Este useEffect se encarga de actualizar si el estado de socio cambia DESPUÉS del montaje inicial.
   React.useEffect(() => {
@@ -83,12 +91,25 @@ function Paso4_DatosYResumen({
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
   
   const isFormValid = () => {
-    return clienteNombre.trim() !== '' && clienteEmail.trim() !== '' && /\S+@\S+\.\S+/.test(clienteEmail);
+    let isValid = clienteNombre.trim() !== '' && clienteEmail.trim() !== '' && /\S+@\S+\.\S+/.test(clienteEmail);
+    if (tipoDocumento === 'factura') {
+      isValid = isValid &&
+                  facturacionRut.trim() !== '' &&
+                  facturacionRazonSocial.trim() !== '' &&
+                  facturacionGiro.trim() !== '' &&
+                  facturacionDireccion.trim() !== '';
+    }
+    return isValid;
   };
   
   const handleSubmit = async () => {
     if (!isFormValid()) {
-      setMensajeReserva({ texto: 'Por favor, complete su nombre y email correctamente.', tipo: 'error' });
+      let errorMsg = 'Por favor, complete su nombre y email correctamente.';
+      if (tipoDocumento === 'factura' &&
+          (facturacionRut.trim() === '' || facturacionRazonSocial.trim() === '' || facturacionGiro.trim() === '' || facturacionDireccion.trim() === '')) {
+        errorMsg = 'Por favor, complete todos los datos de contacto y facturación requeridos.';
+      }
+      setMensajeReserva({ texto: errorMsg, tipo: 'error' });
       return;
     }
     
@@ -120,7 +141,15 @@ function Paso4_DatosYResumen({
       // Por ahora, mantendré el envío de un solo 'costo_total' que el backend podría usar o ignorar si recalcula.
       costo_total: desglosePrecio.total, // El backend podría usar esto como 'costo_total_historico' o recalcular.
       notas_adicionales: notasAdicionales,
+      tipo_documento: tipoDocumento,
     };
+
+    if (tipoDocumento === 'factura') {
+      datosReserva.facturacion_rut = facturacionRut;
+      datosReserva.facturacion_razon_social = facturacionRazonSocial;
+      datosReserva.facturacion_giro = facturacionGiro;
+      datosReserva.facturacion_direccion = facturacionDireccion;
+    }
 
     // Usar rutLocal aquí porque es el que podría haber sido modificado por el usuario en este paso.
     // Si esSocio es true, significa que la validación original fue exitosa.
@@ -200,6 +229,47 @@ function Paso4_DatosYResumen({
             <label htmlFor="notas-adicionales">Comentarios Adicionales</label>
             <textarea id="notas-adicionales" placeholder="¿Algún requerimiento especial?" value={notasAdicionales} onChange={(e) => setNotasAdicionales(e.target.value)} rows="4" />
           </div>
+
+          <hr className="form-separator" />
+
+          {/* Selector de Tipo de Documento */}
+          <div className="form-group tipo-documento-selector">
+            <h3>Tipo de Documento Tributario</h3>
+            <div className="radio-group">
+              <label>
+                <input type="radio" value="boleta" checked={tipoDocumento === 'boleta'} onChange={(e) => setTipoDocumento(e.target.value)} />
+                Boleta
+              </label>
+              <label>
+                <input type="radio" value="factura" checked={tipoDocumento === 'factura'} onChange={(e) => setTipoDocumento(e.target.value)} />
+                Factura (Empresa)
+              </label>
+            </div>
+          </div>
+
+          {/* Campos de Facturación (Condicional) */}
+          {tipoDocumento === 'factura' && (
+            <div className="datos-facturacion-section">
+              <h4>Datos para Facturación</h4>
+              <p>Por favor, completa los datos para la emisión de tu factura.</p>
+              <div className="form-group">
+                <label htmlFor="facturacion-rut">RUT Empresa *</label>
+                <input type="text" id="facturacion-rut" placeholder="Ej: 76.123.456-7" value={facturacionRut} onChange={(e) => setFacturacionRut(e.target.value)} required={tipoDocumento === 'factura'} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="facturacion-razon-social">Razón Social *</label>
+                <input type="text" id="facturacion-razon-social" placeholder="Nombre legal de la empresa" value={facturacionRazonSocial} onChange={(e) => setFacturacionRazonSocial(e.target.value)} required={tipoDocumento === 'factura'} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="facturacion-giro">Giro *</label>
+                <input type="text" id="facturacion-giro" placeholder="Actividad económica principal" value={facturacionGiro} onChange={(e) => setFacturacionGiro(e.target.value)} required={tipoDocumento === 'factura'} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="facturacion-direccion">Dirección Comercial *</label>
+                <textarea id="facturacion-direccion" placeholder="Calle, Número, Comuna, Ciudad" value={facturacionDireccion} onChange={(e) => setFacturacionDireccion(e.target.value)} rows="3" required={tipoDocumento === 'factura'} />
+              </div>
+            </div>
+          )}
         </div>
         <div className="panel-resumen">
           <h3>Resumen de tu Reserva</h3>

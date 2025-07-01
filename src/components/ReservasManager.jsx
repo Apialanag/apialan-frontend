@@ -208,6 +208,7 @@ function ReservasManager() {
                 <th>Neto</th>
                 <th>IVA</th>
                 <th>Total</th>
+                <th>Tipo Doc.</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -225,15 +226,16 @@ function ReservasManager() {
                     <td>${(parseFloat(reserva.costo_neto_historico) || 0).toLocaleString('es-CL')}</td>
                     <td>${(parseFloat(reserva.costo_iva_historico) || 0).toLocaleString('es-CL')}</td>
                     <td>${(parseFloat(reserva.costo_total_historico) || 0).toLocaleString('es-CL')}</td>
+                    <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
                     <td>
-                      <button onClick={() => handleOpenEditModal(reserva)} className="action-button edit">Editar</button>
+                      <button onClick={() => handleOpenEditModal(reserva)} className="action-button edit">Ver/Editar</button> {/* Cambiado texto botón */}
                       <button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar</button>
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No hay reservas que coincidan con los filtros seleccionados.</td></tr>
+                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '20px' }}>No hay reservas que coincidan con los filtros seleccionados.</td></tr>
               )}
             </tbody>
           </table>
