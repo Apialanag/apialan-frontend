@@ -8,10 +8,11 @@ function Paso4_DatosYResumen({
   horaInicio,
   horaTermino,
   duracionCalculada,
-  costoCalculado,
+  // costoCalculado, // Reemplazado por desglosePrecio
+  desglosePrecio,
   onReservationSuccess,
   prevStep,
-  esSocio, // Ya existía, para lógica de precios, etc.
+  esSocio,
   rutSocio,
   nombreSocioAutofill,
   emailSocioAutofill,
@@ -102,7 +103,22 @@ function Paso4_DatosYResumen({
       fecha_reserva: formatearFechaParaAPI(fechaSeleccionada),
       hora_inicio: horaInicio,
       hora_termino: horaTermino,
-      costo_total: costoCalculado,
+      // Enviar el desglose de precios al backend si la API lo espera
+      // Según el Paso 2 del plan, el backend calcula y guarda neto, iva, total.
+      // Por lo tanto, el frontend podría enviar solo el precio_neto_total o el precio_total_final,
+      // o el backend lo recalcula basado en el espacio_id, duracion y si es socio.
+      // Para mantener consistencia con el backend que ahora guarda el desglose,
+      // es mejor que el backend sea la fuente de verdad para el desglose guardado.
+      // El frontend envía la información necesaria para que el backend haga ese cálculo.
+      // Si la API /reservas ahora espera explícitamente costo_neto, costo_iva, costo_total, se deben enviar.
+      // Por ahora, asumiré que el backend recalcula y solo necesitamos enviar un `costo_total` como referencia,
+      // o que el backend infiere todo de `espacio_id`, `duracion` y `rutSocio`.
+      // Si el backend espera el desglose, se enviaría:
+      // costo_neto: desglosePrecio.neto,
+      // costo_iva: desglosePrecio.iva,
+      // costo_total: desglosePrecio.total,
+      // Por ahora, mantendré el envío de un solo 'costo_total' que el backend podría usar o ignorar si recalcula.
+      costo_total: desglosePrecio.total, // El backend podría usar esto como 'costo_total_historico' o recalcular.
       notas_adicionales: notasAdicionales,
     };
 
@@ -191,9 +207,22 @@ function Paso4_DatosYResumen({
           <div className="resumen-fila"><span>Fecha:</span><strong>{fechaSeleccionada?.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</strong></div>
           <div className="resumen-fila"><span>Horario:</span><strong>{horaInicio} - {horaTermino}</strong></div>
           <div className="resumen-fila"><span>Duración:</span><strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></div>
+
+          <div className="resumen-desglose-precio">
+            <div className="resumen-fila">
+              <span>Subtotal (Neto):</span>
+              <strong>${(desglosePrecio.neto || 0).toLocaleString('es-CL')}</strong>
+            </div>
+            <div className="resumen-fila">
+              <span>IVA (19%):</span>
+              <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong>
+            </div>
+          </div>
           <hr className="resumen-separador" />
-          <div className="resumen-total"><span>Total:</span><strong>${(costoCalculado || 0).toLocaleString('es-CL')}</strong></div>
-          {/* --- TEXTO ACTUALIZADO --- */}
+          <div className="resumen-total">
+            <span>Total:</span>
+            <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
+          </div>
           <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
         </div>
       </div>

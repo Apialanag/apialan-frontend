@@ -20,17 +20,39 @@ function BookingPage() {
   // nombreSocio se puede derivar de socioData.nombre_completo, así que no necesitamos un estado separado.
   // const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [costoCalculado, setCostoCalculado] = useState(0);
+  // const [costoCalculado, setCostoCalculado] = useState(0); // Reemplazado por desglosePrecio
+  const [desglosePrecio, setDesglosePrecio] = useState({ neto: 0, iva: 0, total: 0 });
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
-  const getPrecioPorHora = (salon, esSocioParam) => { // Renombrado esSocio a esSocioParam para evitar conflicto
+  const IVA_RATE = 0.19; // Definir la tasa de IVA globalmente aquí o importarla
+
+  const getPrecioNetoPorHora = (salon, esSocioParam) => {
     if (!salon) return 0;
-    if (esSocioParam) { // Usar el parámetro
-      if (salon.nombre.includes('Grande')) return 5000;
-      if (salon.nombre.includes('Mediana')) return 4000;
-      if (salon.nombre.includes('Pequeña')) return 3000;
+
+    // Usar precio_neto_socio_por_hora si es socio y esa propiedad existe
+    if (esSocioParam && salon.precio_neto_socio_por_hora) {
+      return parseFloat(salon.precio_neto_socio_por_hora);
     }
-    return parseFloat(salon.precio_por_hora);
+    // Usar precio_neto_por_hora si no es socio o si no hay precio específico de socio
+    if (salon.precio_neto_por_hora) {
+      return parseFloat(salon.precio_neto_por_hora);
+    }
+
+    // Lógica de fallback MUY BÁSICA si los campos netos no vienen de la API (esto debería evitarse)
+    // Esto asume que los precios hardcodeados (5000, 4000, 3000) eran precios TOTALES.
+    // Y que salon.precio_por_hora también era TOTAL.
+    // ESTA LÓGICA DE FALLBACK DEBERÍA SER REVISADA O ELIMINADA SI LA API YA ENVÍA LOS NETOS CORRECTAMENTE.
+    console.warn("Usando lógica de fallback para precios netos. Asegúrate que la API envíe precios netos.");
+    let precioTotalFallback = 0;
+    if (esSocioParam) {
+      if (salon.nombre.includes('Grande')) precioTotalFallback = 5000;
+      else if (salon.nombre.includes('Mediana')) precioTotalFallback = 4000;
+      else if (salon.nombre.includes('Pequeña')) precioTotalFallback = 3000;
+      else precioTotalFallback = parseFloat(salon.precio_por_hora || 0); // Asume que precio_por_hora es el total normal
+    } else {
+      precioTotalFallback = parseFloat(salon.precio_por_hora || 0); // Asume que precio_por_hora es el total normal
+    }
+    return Math.round(precioTotalFallback / (1 + IVA_RATE));
   };
 
   useEffect(() => {
@@ -39,18 +61,27 @@ function BookingPage() {
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
-        const precioHora = getPrecioPorHora(salonSeleccionado, !!socioData); // Usar !!socioData
+        const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
+
+        const netoTotalCalculado = duracion * precioNetoHora;
+        const ivaCalculado = Math.round(netoTotalCalculado * IVA_RATE);
+        const totalCalculado = netoTotalCalculado + ivaCalculado;
+
         setDuracionCalculada(duracion);
-        setCostoCalculado(duracion * precioHora);
+        setDesglosePrecio({
+          neto: netoTotalCalculado,
+          iva: ivaCalculado,
+          total: totalCalculado,
+        });
       } else {
         setDuracionCalculada(0);
-        setCostoCalculado(0);
+        setDesglosePrecio({ neto: 0, iva: 0, total: 0 });
       }
     } else {
       setDuracionCalculada(0);
-      setCostoCalculado(0);
+      setDesglosePrecio({ neto: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData]); // Corregido: esSocioValidado -> socioData
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData]);
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio); // Guardar el objeto completo del socio (incluye nombre, email, rut)
@@ -134,16 +165,16 @@ function BookingPage() {
       case 2:
         return <Paso2_SeleccionFecha salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} setFechaSeleccionada={setFechaSeleccionada} nextStep={nextStep} prevStep={() => handleSelectSalon(null)} />;
       case 3:
-        return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} costoCalculado={costoCalculado} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
+        return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} desglosePrecio={desglosePrecio} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
-        // Pasar nombreSocio y emailSocio a Paso4_DatosYResumen
         return (
           <Paso4_DatosYResumen
             salonSeleccionado={salonSeleccionado}
             fechaSeleccionada={fechaSeleccionada}
             horaInicio={horaInicio}
             horaTermino={horaTermino}
-            costoCalculado={costoCalculado}
+            // costoCalculado={costoCalculado} // Reemplazado por desglosePrecio
+            desglosePrecio={desglosePrecio}
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}

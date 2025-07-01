@@ -109,7 +109,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; /* Reducido para dar espacio al hint */
+}
+
+.price-breakdown-hint {
+  font-size: 0.75rem; /* Más pequeño */
+  color: var(--color-gray-500); /* Color gris, menos prominente */
+  text-align: right; /* Alineado con los precios */
+  margin-bottom: 1rem; /* Espacio antes de las comodidades */
+  padding-right: 5px; /* Pequeño padding para que no pegue al borde */
 }
 
 .price-tag {

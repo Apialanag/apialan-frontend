@@ -44,16 +44,35 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
 
   const cssVariables = getEspacioColorStyles(salon.nombre);
 
-  const getPrecioSocio = (salon) => {
-    if (salon.nombre.includes('Grande')) return 5000;
-    if (salon.nombre.includes('Mediana')) return 4000;
-    if (salon.nombre.includes('Pequeña')) return 3000;
-    return salon.precio_por_hora;
+  // Asumiendo que la API ahora devuelve precio_neto_por_hora y precio_neto_socio_por_hora
+  // y que el backend ya hizo la conversión de precios totales a netos.
+  // Si precio_neto_socio_por_hora no viene en el objeto salon, usamos una lógica similar a la anterior
+  // pero con los nombres de campo actualizados y asumiendo que los valores son netos.
+  const IVA_RATE = 0.19;
+
+  const getPrecioNetoSocio = (salon) => {
+    // Si la API ya provee 'precio_neto_socio_por_hora', usarlo directamente.
+    if (salon.precio_neto_socio_por_hora) {
+      return parseFloat(salon.precio_neto_socio_por_hora);
+    }
+    // Lógica de fallback si 'precio_neto_socio_por_hora' no está definido directamente en el salón
+    // y se basa en el nombre (esto debería actualizarse si la API cambia).
+    // Estos serían precios NETOS para socios.
+    if (salon.nombre.includes('Grande')) return Math.round(5000 / (1 + IVA_RATE)); // Ejemplo: si 5000 era el total
+    if (salon.nombre.includes('Mediana')) return Math.round(4000 / (1 + IVA_RATE)); // Ejemplo: si 4000 era el total
+    if (salon.nombre.includes('Pequeña')) return Math.round(3000 / (1 + IVA_RATE)); // Ejemplo: si 3000 era el total
+    return parseFloat(salon.precio_neto_por_hora); // Si no hay precio socio específico, socio paga precio normal neto
   };
-  
-  const precioSocio = getPrecioSocio(salon);
-  const precioNormalFormateado = new Intl.NumberFormat('es-CL').format(salon.precio_por_hora);
-  const precioSocioFormateado = new Intl.NumberFormat('es-CL').format(precioSocio);
+
+  const precioNetoNormal = parseFloat(salon.precio_neto_por_hora);
+  const precioNetoSocio = getPrecioNetoSocio(salon);
+
+  // Para mostrar en la tarjeta, generalmente se muestra el precio final (total con IVA)
+  const precioTotalNormal = Math.round(precioNetoNormal * (1 + IVA_RATE));
+  const precioTotalSocio = Math.round(precioNetoSocio * (1 + IVA_RATE));
+
+  const precioTotalNormalFormateado = new Intl.NumberFormat('es-CL').format(precioTotalNormal);
+  const precioTotalSocioFormateado = new Intl.NumberFormat('es-CL').format(precioTotalSocio);
 
   return (
     <>
@@ -84,7 +103,7 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
           <div style={{ textAlign: 'right' }}>
             {esSocio && (
               <span className="price-tag" style={{ color: '#DC2626', display: 'block' }}>
-                ${precioSocioFormateado}/hr
+                ${precioTotalSocioFormateado}/hr (IVA incl.)
               </span>
             )}
             <span 
@@ -96,9 +115,12 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
                 fontSize: esSocio ? '0.9em' : '1.125em'
               }}
             >
-              ${precioNormalFormateado}/hr
+              ${precioTotalNormalFormateado}/hr (IVA incl.)
             </span>
           </div>
+        </div>
+        <div className="price-breakdown-hint">
+          *Precios por hora con IVA incluido. El desglose se mostrará al reservar.
         </div>
         <div className="comodidades-section">
           <h4 className="comodidades-title">Comodidades:</h4>

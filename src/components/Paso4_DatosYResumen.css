@@ -70,6 +70,22 @@
     color: var(--color-gray-800);
     font-weight: 500;
 }
+
+/* Estilos para el desglose de precios */
+.resumen-desglose-precio {
+    padding-top: 10px; /* Espacio antes del desglose */
+    margin-bottom: 10px; /* Espacio después del desglose, antes del separador */
+}
+
+.resumen-desglose-precio .resumen-fila {
+    font-size: 0.9em; /* Un poco más pequeño para el desglose */
+    margin-bottom: 8px; /* Menos espacio entre líneas del desglose */
+}
+
+.resumen-desglose-precio .resumen-fila span {
+    color: var(--color-gray-500); /* Texto del desglose un poco más claro */
+}
+
 .resumen-separador {
     border: none;
     border-top: 1px solid var(--color-indigo-100);
