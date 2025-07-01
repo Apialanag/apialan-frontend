@@ -20,32 +20,41 @@ function Paso4_DatosYResumen({
   const [clienteNombre, setClienteNombre] = useState(nombreSocioAutofill || '');
   const [clienteEmail, setClienteEmail] = useState(emailSocioAutofill || '');
   const [clienteTelefono, setClienteTelefono] = useState('');
-  const [rutLocal, setRutLocal] = useState(rutSocio || ''); // Para manejar el RUT si se edita aquí
+  const [rutLocal, setRutLocal] = useState(rutSocio || '');
   const [mensajeSocio, setMensajeSocio] = useState('');
 
-  // Efecto para actualizar campos si las props de autofill cambian (ej. si el usuario vuelve atrás y se valida como otro socio)
+  // Efecto para cargar datos desde localStorage al montar (solo si no es socio)
   React.useEffect(() => {
-    if (esSocio && nombreSocioAutofill) { // Solo autorellenar si es socio y hay datos
+    if (!esSocio) {
+      const savedName = localStorage.getItem('lastBookingName');
+      const savedEmail = localStorage.getItem('lastBookingEmail');
+      const savedPhone = localStorage.getItem('lastBookingPhone');
+      if (savedName) setClienteNombre(savedName);
+      if (savedEmail) setClienteEmail(savedEmail);
+      if (savedPhone) setClienteTelefono(savedPhone);
+    }
+  }, []); // Se ejecuta solo una vez al montar, si no es socio en ese momento.
+
+  // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
+  React.useEffect(() => {
+    if (esSocio && nombreSocioAutofill) {
       setClienteNombre(nombreSocioAutofill);
-      setClienteEmail(emailSocioAutofill || ''); // Email puede ser null
+      setClienteEmail(emailSocioAutofill || '');
       setRutLocal(rutSocio || '');
       setMensajeSocio(`Datos de socio cargados: ${nombreSocioAutofill}.`);
+      // Borramos los datos de no-socio de localStorage si se valida como socio,
+      // para evitar que reaparezcan si luego se desloguea.
+      localStorage.removeItem('lastBookingName');
+      localStorage.removeItem('lastBookingEmail');
+      localStorage.removeItem('lastBookingPhone');
     } else if (!esSocio) {
-      // Si el estado de socio se quita (ej. logout en BookingPage)
-      // Limpiamos los campos que fueron autocompletados y el mensaje.
-      // Comprobamos contra las props originales para no limpiar si el usuario ya editó manualmente.
-      if (clienteNombre === nombreSocioAutofill) {
-        setClienteNombre('');
-      }
-      if (clienteEmail === emailSocioAutofill) {
-        setClienteEmail('');
-      }
-      // No limpiamos rutLocal necesariamente, podría ser un RUT no socio.
+      // Si se desloguea de socio, limpiamos campos si eran del socio.
+      // No recargamos de localStorage aquí, eso solo pasa al montar inicialmente o si el usuario refresca como no-socio.
+      if (clienteNombre === nombreSocioAutofill && nombreSocioAutofill) setClienteNombre('');
+      if (clienteEmail === emailSocioAutofill && emailSocioAutofill) setClienteEmail('');
       setMensajeSocio('');
     }
-    // Si esSocio es true pero nombreSocioAutofill es vacío (caso improbable si la lógica es correcta),
-    // no se hace nada, se mantienen los valores actuales.
-  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio]); // Dependencias correctas
+  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio]);
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
@@ -94,6 +103,13 @@ function Paso4_DatosYResumen({
     try {
       await api.post('/reservas', datosReserva); 
       setMensajeReserva({ texto: '¡Solicitud de reserva enviada! Revisa tu correo para ver las instrucciones de pago.', tipo: 'exito' });
+
+      // Guardar en localStorage si NO es socio
+      if (!esSocio) {
+        localStorage.setItem('lastBookingName', clienteNombre);
+        localStorage.setItem('lastBookingEmail', clienteEmail);
+        localStorage.setItem('lastBookingPhone', clienteTelefono);
+      }
       
       setTimeout(() => {
         onReservationSuccess();
