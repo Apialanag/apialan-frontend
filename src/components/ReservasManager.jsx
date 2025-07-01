@@ -198,15 +198,38 @@ function ReservasManager() {
       <div className="reservas-table-container">
           <table className="reservas-table">
             <thead>
-              <tr><th>ID</th><th>Salón</th><th>Cliente</th><th>Email</th><th>Fecha</th><th>Horario</th><th>Estado</th><th>Acciones</th></tr>
+              <tr>
+                <th>ID</th>
+                <th>Salón</th>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Neto</th>
+                <th>IVA</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
             </thead>
             <tbody>
               {reservas.length > 0 ? (
                 reservas.map(reserva => (
                   <tr key={reserva.id} className={reserva.estado_reserva.includes('cancelada') ? 'fila-cancelada' : ''}>
-                    <td>{reserva.id}</td><td>{reserva.nombre_espacio}</td><td>{reserva.cliente_nombre}</td><td>{reserva.cliente_email}</td><td>{formatearFecha(reserva.fecha_reserva)}</td><td>{reserva.hora_inicio.substring(0, 5)} - {reserva.hora_termino.substring(0, 5)}</td>
+                    <td>{reserva.id}</td>
+                    <td>{reserva.nombre_espacio}</td>
+                    <td>{reserva.cliente_nombre}</td>
+                    <td>{reserva.cliente_email}</td>
+                    <td>{formatearFecha(reserva.fecha_reserva)}</td>
+                    <td>{reserva.hora_inicio.substring(0, 5)} - {reserva.hora_termino.substring(0, 5)}</td>
+                    <td>${(parseFloat(reserva.costo_neto_historico) || 0).toLocaleString('es-CL')}</td>
+                    <td>${(parseFloat(reserva.costo_iva_historico) || 0).toLocaleString('es-CL')}</td>
+                    <td>${(parseFloat(reserva.costo_total_historico) || 0).toLocaleString('es-CL')}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
-                    <td><button onClick={() => handleOpenEditModal(reserva)} className="action-button edit">Editar</button><button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar</button></td>
+                    <td>
+                      <button onClick={() => handleOpenEditModal(reserva)} className="action-button edit">Editar</button>
+                      <button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar</button>
+                    </td>
                   </tr>
                 ))
               ) : (

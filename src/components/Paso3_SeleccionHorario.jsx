@@ -10,10 +10,8 @@ function Paso3_SeleccionHorario({
   setHoraInicio,
   horaTermino,
   setHoraTermino,
-  // --- CORRECCIÓN CLAVE: Añadir estos props para recibirlos del padre ---
-  costoCalculado,
+  desglosePrecio, // Recibe el objeto de desglose en lugar de costoCalculado
   duracionCalculada,
-  // -----------------------------------------------------------------
   nextStep,
   prevStep
 }) {
@@ -123,10 +121,13 @@ function Paso3_SeleccionHorario({
         </div>
       </div>
 
-      {horaTermino && (
+      {horaTermino && desglosePrecio && (
         <div className="resumen-horario">
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
-          <p>Total Estimado: <strong>${(costoCalculado || 0).toLocaleString('es-CL')}</strong></p>
+          {/* Mostrar el desglose del precio */}
+          <p>Subtotal (Neto): <strong>${(desglosePrecio.neto || 0).toLocaleString('es-CL')}</strong></p>
+          <p>IVA (19%): <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong></p>
+          <p>Total Estimado: <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong></p>
         </div>
       )}
 
