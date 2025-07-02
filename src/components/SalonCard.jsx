@@ -103,7 +103,7 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
           <div style={{ textAlign: 'right' }}>
             {esSocio && (
               <span className="price-tag" style={{ color: '#DC2626', display: 'block' }}>
-                ${precioTotalSocioFormateado}/hr (IVA incl.)
+                ${precioTotalSocioFormateado}/hr
               </span>
             )}
             <span 
@@ -115,12 +115,12 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
                 fontSize: esSocio ? '0.9em' : '1.125em'
               }}
             >
-              ${precioTotalNormalFormateado}/hr (IVA incl.)
+              ${precioTotalNormalFormateado}/hr
             </span>
           </div>
         </div>
         <div className="price-breakdown-hint">
-          *Precios por hora con IVA incluido. El desglose se mostrará al reservar.
+          *Precios por hora con IVA incluido.
         </div>
         <div className="comodidades-section">
           <h4 className="comodidades-title">Comodidades:</h4>
