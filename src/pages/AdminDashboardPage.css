@@ -259,9 +259,12 @@
 .action-button.view:hover {
   background-color: #d1d5db; /* Gris un poco más oscuro al pasar el mouse */
 }
-.action-button.edit-state { /* Estilo para el nuevo botón "Cambiar Estado" */
-  background-color: #fef3c7; /* Amarillo claro, similar a pendiente */
-  color: #92400e; /* Naranja oscuro */
+.action-button.edit-state { /* Estilo para el botón "Editar" (antes Cambiar Estado) */
+  background-color: #DBEAFE; /* Azul claro (Tailwind blue-100) */
+  color: #1E40AF; /* Azul oscuro (Tailwind blue-800) */
+}
+.action-button.edit-state:hover {
+  background-color: #BFDBFE; /* Azul un poco más oscuro (Tailwind blue-200) */
 }
 
 .action-button.cancel {
