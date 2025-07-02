@@ -4,32 +4,35 @@ import './EditReservationModal.css';
 
 function EditReservationModal({ reserva, onClose, onUpdate }) {
   // Estados locales para los campos del formulario del modal
-  const [estadoReserva, setEstadoReserva] = useState('');
-  const [estadoPago, setEstadoPago] = useState('');
+  const [currentEstadoReserva, setCurrentEstadoReserva] = useState('');
+  // estadoPago se mostrará pero no será directamente editable si la lógica principal es:
+  // confirmar reserva -> backend actualiza estado_pago a 'pagado'
+  // const [currentEstadoPago, setCurrentEstadoPago] = useState('');
+  const [initialEstadoReserva, setInitialEstadoReserva] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Cuando el modal se abre, llenamos los campos con los datos de la reserva actual
+  // Cuando el modal se abre o la reserva cambia, actualizamos los estados internos
   useEffect(() => {
     if (reserva) {
-      setEstadoReserva(reserva.estado_reserva || 'pendiente');
-      setEstadoPago(reserva.estado_pago || 'pendiente_pago');
+      setCurrentEstadoReserva(reserva.estado_reserva || 'pendiente');
+      setInitialEstadoReserva(reserva.estado_reserva || 'pendiente');
+      // setCurrentEstadoPago(reserva.estado_pago || 'pendiente_pago');
     }
   }, [reserva]);
 
   const handleSaveChanges = async () => {
-    if (!reserva) return;
+    if (!reserva || currentEstadoReserva === initialEstadoReserva) return; // No guardar si no hay cambios
 
     setIsSubmitting(true);
     setError('');
 
+    // Solo enviamos estado_reserva. El backend se encarga de estado_pago si es necesario.
     const updatedData = {
-      estado_reserva: estadoReserva,
-      estado_pago: estadoPago,
+      estado_reserva: currentEstadoReserva,
     };
 
     try {
-      // Se usa el endpoint PUT con la instancia 'api' centralizada, lo cual es correcto.
       const response = await api.put(`/reservas/${reserva.id}`, updatedData);
       
       // Llamamos a la función onUpdate pasada desde el padre para actualizar la tabla
@@ -87,38 +90,36 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
 
           <h4>Actualizar Estados</h4>
           <div className="form-group">
-            <label htmlFor="estado-reserva">Estado de la Reserva</label>
+            <label htmlFor="estado-reserva">Actualizar Estado de la Reserva:</label>
             <select 
               id="estado-reserva" 
-              value={estadoReserva} 
-              onChange={(e) => setEstadoReserva(e.target.value)}
+              value={currentEstadoReserva}
+              onChange={(e) => setCurrentEstadoReserva(e.target.value)}
             >
+              {/* Opciones basadas en los estados que el admin puede setear.
+                   'pendiente' es un estado inicial común.
+                   Si el backend usa 'pendiente_pago' como estado de reserva, ajustar aquí.
+              */}
               <option value="pendiente">Pendiente</option>
               <option value="confirmada">Confirmada</option>
-              <option value="pagado">Pagado</option>
               <option value="cancelada_por_admin">Cancelada por Admin</option>
-              <option value="cancelada_por_cliente">Cancelada por Cliente</option>
+              {/* <option value="cancelada_por_cliente">Cancelada por Cliente</option>  Generalmente el cliente la cancela por otra vía */}
+              {/* <option value="pagado">Pagado</option>  'pagado' es un estado_pago, no un estado_reserva usualmente seteable directamente si 'confirmada' lo implica */}
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="estado-pago">Estado del Pago</label>
-            <select 
-              id="estado-pago" 
-              value={estadoPago} 
-              onChange={(e) => setEstadoPago(e.target.value)}
-            >
-              <option value="pendiente_pago">Pendiente de Pago</option>
-              <option value="pagado">Pagado</option>
-              <option value="reembolsado">Reembolsado</option>
-            </select>
-          </div>
+          <p><strong>Estado de Pago Actual:</strong> {reserva.estado_pago ? reserva.estado_pago.replace(/_/g, ' ') : 'N/A'}</p>
+          {/* El estado_pago se actualiza por el backend al confirmar. No se ofrece control directo aquí para simplificar. */}
 
           {error && <p className="mensaje-error">{error}</p>}
         </div>
         <div className="modal-footer">
           <button onClick={onClose} className="boton-secundario">Cancelar</button>
-          <button onClick={handleSaveChanges} disabled={isSubmitting} className="boton-principal">
+          <button
+            onClick={handleSaveChanges}
+            disabled={isSubmitting || currentEstadoReserva === initialEstadoReserva}
+            className="boton-principal"
+          >
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </button>
         </div>
