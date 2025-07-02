@@ -98,7 +98,51 @@
 .modal-body .form-group {
     margin-top: 15px; /* Reducido margen superior para grupos de formulario */
 }
-.modal-body .form-group label {
+
+.estado-section {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color-light);
+}
+.estado-section h4 {
+  font-size: 1.1em;
+  color: var(--color-indigo-600);
+  margin-top: 0;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--color-indigo-100);
+}
+.estado-section p {
+  font-size: 1em;
+  margin-bottom: 5px;
+}
+
+
+.form-group-estado { /* Para el select de estado cuando está en modo edición */
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group-estado label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: var(--color-gray-700);
+}
+.form-group-estado select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color-default);
+    border-radius: 6px;
+    font-size: 1em;
+    font-family: inherit;
+    background-color: var(--color-white); /* Fondo blanco para el select en modo edición */
+}
+
+
+.modal-body .form-group label { /* Estilos generales para labels si los hubiera fuera de .form-group-estado */
     font-weight: 600;
     margin-bottom: 8px;
     display: block;

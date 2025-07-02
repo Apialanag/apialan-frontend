@@ -23,6 +23,7 @@ function ReservasManager() {
   const [totalPages, setTotalPages] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState(null);
+  const [modalInitialMode, setModalInitialMode] = useState('view'); // 'view' o 'edit'
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : null;
 
@@ -112,8 +113,25 @@ function ReservasManager() {
     return [...new Set(items)];
   };
 
-  const handleOpenEditModal = (reserva) => { setEditingReservation(reserva); setIsModalOpen(true); };
-  const handleCloseModal = () => { setIsModalOpen(false); setEditingReservation(null); };
+  // const handleOpenEditModal = (reserva) => { setEditingReservation(reserva); setIsModalOpen(true); };
+  const handleOpenViewModal = (reserva) => {
+    setEditingReservation(reserva);
+    setModalInitialMode('view');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditStateModal = (reserva) => {
+    setEditingReservation(reserva);
+    setModalInitialMode('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingReservation(null);
+    // No es necesario resetear modalInitialMode aquí, se setea antes de abrir.
+  };
+
   const handleUpdateReservation = (updatedReserva) => { 
     setReservas(reservas.map(reserva => reserva.id === updatedReserva.id ? updatedReserva : reserva)); 
   };
@@ -237,9 +255,10 @@ function ReservasManager() {
                     </td>
                     <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
-                    <td>
-                      <button onClick={() => handleOpenEditModal(reserva)} className="action-button edit">Ver/Editar</button> {/* Cambiado texto botón */}
-                      <button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar</button>
+                    <td className="actions-cell">
+                      <button onClick={() => handleOpenViewModal(reserva)} className="action-button view">Ver Detalles</button>
+                      <button onClick={() => handleOpenEditStateModal(reserva)} className="action-button edit-state">Cambiar Estado</button>
+                      <button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar Reserva</button>
                     </td>
                   </tr>
                 ))
@@ -260,7 +279,14 @@ function ReservasManager() {
             <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="pagination-btn arrow">Siguiente</button>
         </div>
       )}
-      {isModalOpen && (<EditReservationModal reserva={editingReservation} onClose={handleCloseModal} onUpdate={handleUpdateReservation} />)}
+      {isModalOpen && (
+        <EditReservationModal
+          reserva={editingReservation}
+          onClose={handleCloseModal}
+          onUpdate={handleUpdateReservation}
+          initialMode={modalInitialMode} // Pasar el modo inicial
+        />
+      )}
     </>
   );
 }
