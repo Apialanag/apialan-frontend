@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import './EditReservationModal.css';
 
-function EditReservationModal({ reserva, onClose, onUpdate }) {
+function EditReservationModal({ reserva, onClose, onUpdate, initialMode = 'view' }) { // Añadir initialMode
   // Estados locales para los campos del formulario del modal
   const [currentEstadoReserva, setCurrentEstadoReserva] = useState('');
-  // estadoPago se mostrará pero no será directamente editable si la lógica principal es:
-  // confirmar reserva -> backend actualiza estado_pago a 'pagado'
-  // const [currentEstadoPago, setCurrentEstadoPago] = useState('');
   const [initialEstadoReserva, setInitialEstadoReserva] = useState('');
+  const [modoEdicionEstado, setModoEdicionEstado] = useState(initialMode === 'edit'); // Usar initialMode
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,9 +15,10 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
     if (reserva) {
       setCurrentEstadoReserva(reserva.estado_reserva || 'pendiente');
       setInitialEstadoReserva(reserva.estado_reserva || 'pendiente');
-      // setCurrentEstadoPago(reserva.estado_pago || 'pendiente_pago');
+      setModoEdicionEstado(initialMode === 'edit'); // Establecer modo edición basado en initialMode
+      setError('');
     }
-  }, [reserva]);
+  }, [reserva, initialMode]); // Añadir initialMode a las dependencias
 
   const handleSaveChanges = async () => {
     if (!reserva || currentEstadoReserva === initialEstadoReserva) return; // No guardar si no hay cambios
@@ -71,9 +70,9 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
 
           <div className="reserva-billing-section">
             <h4>Información de Pago y Facturación</h4>
-            <p><strong>Neto:</strong> ${(parseFloat(reserva.costo_neto_historico) || 0).toLocaleString('es-CL')}</p>
-            <p><strong>IVA:</strong> ${(parseFloat(reserva.costo_iva_historico) || 0).toLocaleString('es-CL')}</p>
-            <p><strong>Total:</strong> ${(parseFloat(reserva.costo_total_historico) || 0).toLocaleString('es-CL')}</p>
+            <p><strong>Neto:</strong> {reserva.costo_neto_historico != null ? `$${Math.round(parseFloat(reserva.costo_neto_historico)).toLocaleString('es-CL')}` : '-'}</p>
+            <p><strong>IVA:</strong> {reserva.costo_iva_historico != null ? `$${Math.round(parseFloat(reserva.costo_iva_historico)).toLocaleString('es-CL')}` : '-'}</p>
+            <p><strong>Total:</strong> {reserva.costo_total_historico != null ? `$${Math.round(parseFloat(reserva.costo_total_historico)).toLocaleString('es-CL')}` : '-'}</p>
             <p><strong>Tipo Documento:</strong> {reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'No especificado'}</p>
             {reserva.tipo_documento === 'factura' && (
               <div className="factura-details">
@@ -85,43 +84,61 @@ function EditReservationModal({ reserva, onClose, onUpdate }) {
               </div>
             )}
           </div>
-          
+
           <hr />
 
-          <h4>Actualizar Estados</h4>
-          <div className="form-group">
-            <label htmlFor="estado-reserva">Actualizar Estado de la Reserva:</label>
-            <select 
-              id="estado-reserva" 
-              value={currentEstadoReserva}
-              onChange={(e) => setCurrentEstadoReserva(e.target.value)}
-            >
-              {/* Opciones basadas en los estados que el admin puede setear.
-                   'pendiente' es un estado inicial común.
-                   Si el backend usa 'pendiente_pago' como estado de reserva, ajustar aquí.
-              */}
-              <option value="pendiente">Pendiente</option>
-              <option value="confirmada">Confirmada</option>
-              <option value="cancelada_por_admin">Cancelada por Admin</option>
-              {/* <option value="cancelada_por_cliente">Cancelada por Cliente</option>  Generalmente el cliente la cancela por otra vía */}
-              {/* <option value="pagado">Pagado</option>  'pagado' es un estado_pago, no un estado_reserva usualmente seteable directamente si 'confirmada' lo implica */}
-            </select>
+          <div className="estado-section">
+            <h4>Estado Actual</h4>
+            <p><strong>Estado Reserva:</strong> {reserva.estado_reserva ? reserva.estado_reserva.replace(/_/g, ' ') : 'N/A'}</p>
+            <p><strong>Estado Pago:</strong> {reserva.estado_pago ? reserva.estado_pago.replace(/_/g, ' ') : 'N/A'}</p>
           </div>
 
-          <p><strong>Estado de Pago Actual:</strong> {reserva.estado_pago ? reserva.estado_pago.replace(/_/g, ' ') : 'N/A'}</p>
-          {/* El estado_pago se actualiza por el backend al confirmar. No se ofrece control directo aquí para simplificar. */}
+          {modoEdicionEstado && (
+            <div className="form-group-estado">
+              <label htmlFor="estado-reserva">Nuevo Estado de la Reserva:</label>
+              <select
+                id="estado-reserva"
+                value={currentEstadoReserva}
+                onChange={(e) => setCurrentEstadoReserva(e.target.value)}
+              >
+                <option value="pendiente">Pendiente</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="cancelada_por_admin">Cancelada por Admin</option>
+              </select>
+            </div>
+          )}
 
           {error && <p className="mensaje-error">{error}</p>}
         </div>
+
         <div className="modal-footer">
-          <button onClick={onClose} className="boton-secundario">Cancelar</button>
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSubmitting || currentEstadoReserva === initialEstadoReserva}
-            className="boton-principal"
-          >
-            {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
+          {modoEdicionEstado ? (
+            <>
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSubmitting || currentEstadoReserva === initialEstadoReserva}
+                className="boton-principal"
+              >
+                {isSubmitting ? 'Guardando...' : 'Guardar Cambios de Estado'}
+              </button>
+              <button onClick={onClose} className="boton-secundario">Cancelar</button>
+              {/* Cancelar en modo edición ahora simplemente cierra el modal,
+                  ya que el modal se abrirá en el modo correcto la próxima vez.
+                  Alternativamente, podría volver a modo 'view' si initialMode fue 'view'.
+                  Pero si se abrió para 'edit', cerrar es lo más simple.
+              */}
+            </>
+          ) : ( // Modo visualización
+            <>
+              {/* Si se abrió en modo 'view', no mostramos el botón 'Modificar Estado' aquí,
+                  ya que el usuario usó 'Cambiar Estado' desde la tabla si quería editar.
+                  Si se quiere permitir cambiar a modo edición desde modo vista, se añadiría aquí.
+                  Por ahora, si initialMode es 'view', solo hay botón 'Cerrar'.
+              */}
+               {initialMode === 'view' && <button onClick={() => setModoEdicionEstado(true)} className="boton-principal">Modificar Estado</button>}
+              <button onClick={onClose} className="boton-secundario">Cerrar</button>
+            </>
+          )}
         </div>
       </div>
     </div>

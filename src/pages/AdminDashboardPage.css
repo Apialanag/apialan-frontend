@@ -248,9 +248,22 @@
   background-color: #e0e7ff;
   color: #3730a3;
 }
-.action-button.edit:hover {
+.action-button.edit:hover,
+.action-button.edit-state:hover {
   background-color: #c7d2fe;
 }
+.action-button.view { /* Nuevo estilo para el botón "Ver Detalles" */
+  background-color: #e5e7eb; /* Gris claro */
+  color: #374151; /* Gris oscuro */
+}
+.action-button.view:hover {
+  background-color: #d1d5db; /* Gris un poco más oscuro al pasar el mouse */
+}
+.action-button.edit-state { /* Estilo para el nuevo botón "Cambiar Estado" */
+  background-color: #fef3c7; /* Amarillo claro, similar a pendiente */
+  color: #92400e; /* Naranja oscuro */
+}
+
 .action-button.cancel {
   background-color: #fee2e2;
   color: #b91c1c;
