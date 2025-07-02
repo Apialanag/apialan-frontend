@@ -256,9 +256,9 @@ function ReservasManager() {
                     <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
                     <td className="actions-cell">
-                      <button onClick={() => handleOpenViewModal(reserva)} className="action-button view">Ver Detalles</button>
-                      <button onClick={() => handleOpenEditStateModal(reserva)} className="action-button edit-state">Cambiar Estado</button>
-                      <button onClick={() => handleCancelReserva(reserva.id)} className="action-button cancel" disabled={reserva.estado_reserva.includes('cancelada')}>Cancelar Reserva</button>
+                      <button onClick={() => handleOpenViewModal(reserva)} className="action-button view">Ver</button>
+                      <button onClick={() => handleOpenEditStateModal(reserva)} className="action-button edit-state">Editar</button>
+                      {/* El botón de cancelar reserva se elimina de aquí */}
                     </td>
                   </tr>
                 ))

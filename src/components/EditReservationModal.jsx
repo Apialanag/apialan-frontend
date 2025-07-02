@@ -54,46 +54,50 @@ function EditReservationModal({ reserva, onClose, onUpdate, initialMode = 'view'
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Detalles Reserva ID: {reserva.id}</h2>
+        <h2>
+          {initialMode === 'edit' ? `Cambiar Estado - Reserva ID: ${reserva.id}` : `Detalles Reserva ID: ${reserva.id}`}
+        </h2>
         <div className="modal-body">
-          <div className="reserva-info-section">
-            <h4>Información del Cliente y Reserva</h4>
-            <p><strong>Cliente:</strong> {reserva.cliente_nombre} ({reserva.cliente_email})</p>
-            <p><strong>Teléfono:</strong> {reserva.cliente_telefono || 'No provisto'}</p>
-            <p><strong>Salón:</strong> {reserva.nombre_espacio}</p>
-            <p><strong>Fecha:</strong> {new Date(reserva.fecha_reserva).toLocaleDateString('es-CL', { timeZone: 'UTC' })}</p> {/* Asegurar UTC para parsear bien la fecha */}
-            <p><strong>Horario:</strong> {reserva.hora_inicio} - {reserva.hora_termino}</p>
-            <p><strong>Notas Adicionales:</strong> {reserva.notas_adicionales || 'Ninguna'}</p>
-          </div>
-
-          <hr />
-
-          <div className="reserva-billing-section">
-            <h4>Información de Pago y Facturación</h4>
-            <p><strong>Neto:</strong> {reserva.costo_neto_historico != null ? `$${Math.round(parseFloat(reserva.costo_neto_historico)).toLocaleString('es-CL')}` : '-'}</p>
-            <p><strong>IVA:</strong> {reserva.costo_iva_historico != null ? `$${Math.round(parseFloat(reserva.costo_iva_historico)).toLocaleString('es-CL')}` : '-'}</p>
-            <p><strong>Total:</strong> {reserva.costo_total_historico != null ? `$${Math.round(parseFloat(reserva.costo_total_historico)).toLocaleString('es-CL')}` : '-'}</p>
-            <p><strong>Tipo Documento:</strong> {reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'No especificado'}</p>
-            {reserva.tipo_documento === 'factura' && (
-              <div className="factura-details">
-                <h5>Datos de Factura:</h5>
-                <p><strong>RUT:</strong> {reserva.facturacion_rut || 'N/A'}</p>
-                <p><strong>Razón Social:</strong> {reserva.facturacion_razon_social || 'N/A'}</p>
-                <p><strong>Giro:</strong> {reserva.facturacion_giro || 'N/A'}</p>
-                <p><strong>Dirección:</strong> {reserva.facturacion_direccion || 'N/A'}</p>
+          {initialMode === 'view' && (
+            <>
+              <div className="reserva-info-section">
+                <h4>Información del Cliente y Reserva</h4>
+                <p><strong>Cliente:</strong> {reserva.cliente_nombre} ({reserva.cliente_email})</p>
+                <p><strong>Teléfono:</strong> {reserva.cliente_telefono || 'No provisto'}</p>
+                <p><strong>Salón:</strong> {reserva.nombre_espacio}</p>
+                <p><strong>Fecha:</strong> {new Date(reserva.fecha_reserva).toLocaleDateString('es-CL', { timeZone: 'UTC' })}</p>
+                <p><strong>Horario:</strong> {reserva.hora_inicio} - {reserva.hora_termino}</p>
+                <p><strong>Notas Adicionales:</strong> {reserva.notas_adicionales || 'Ninguna'}</p>
               </div>
-            )}
-          </div>
+              <hr />
+              <div className="reserva-billing-section">
+                <h4>Información de Pago y Facturación</h4>
+                <p><strong>Neto:</strong> {reserva.costo_neto_historico != null ? `$${Math.round(parseFloat(reserva.costo_neto_historico)).toLocaleString('es-CL')}` : '-'}</p>
+                <p><strong>IVA:</strong> {reserva.costo_iva_historico != null ? `$${Math.round(parseFloat(reserva.costo_iva_historico)).toLocaleString('es-CL')}` : '-'}</p>
+                <p><strong>Total:</strong> {reserva.costo_total_historico != null ? `$${Math.round(parseFloat(reserva.costo_total_historico)).toLocaleString('es-CL')}` : '-'}</p>
+                <p><strong>Tipo Documento:</strong> {reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'No especificado'}</p>
+                {reserva.tipo_documento === 'factura' && (
+                  <div className="factura-details">
+                    <h5>Datos de Factura:</h5>
+                    <p><strong>RUT:</strong> {reserva.facturacion_rut || 'N/A'}</p>
+                    <p><strong>Razón Social:</strong> {reserva.facturacion_razon_social || 'N/A'}</p>
+                    <p><strong>Giro:</strong> {reserva.facturacion_giro || 'N/A'}</p>
+                    <p><strong>Dirección:</strong> {reserva.facturacion_direccion || 'N/A'}</p>
+                  </div>
+                )}
+              </div>
+              <hr />
+            </>
+          )}
 
-          <hr />
-
+          {/* Sección de Estado siempre visible, pero el control de edición depende de modoEdicionEstado */}
           <div className="estado-section">
-            <h4>Estado Actual</h4>
+            <h4>{initialMode === 'edit' && !modoEdicionEstado ? 'Estado Actual (Visualización)' : (modoEdicionEstado ? 'Actualizar Estado' : 'Estado Actual')}</h4>
             <p><strong>Estado Reserva:</strong> {reserva.estado_reserva ? reserva.estado_reserva.replace(/_/g, ' ') : 'N/A'}</p>
             <p><strong>Estado Pago:</strong> {reserva.estado_pago ? reserva.estado_pago.replace(/_/g, ' ') : 'N/A'}</p>
           </div>
 
-          {modoEdicionEstado && (
+          {modoEdicionEstado && ( // Solo mostrar el dropdown si estamos en modo de edición de estado
             <div className="form-group-estado">
               <label htmlFor="estado-reserva">Nuevo Estado de la Reserva:</label>
               <select
@@ -104,6 +108,7 @@ function EditReservationModal({ reserva, onClose, onUpdate, initialMode = 'view'
                 <option value="pendiente">Pendiente</option>
                 <option value="confirmada">Confirmada</option>
                 <option value="cancelada_por_admin">Cancelada por Admin</option>
+                <option value="cancelada_por_cliente">Cancelada por Cliente</option>
               </select>
             </div>
           )}
