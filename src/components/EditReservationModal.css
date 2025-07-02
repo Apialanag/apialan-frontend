@@ -42,11 +42,14 @@
 }
 
 .modal-body {
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reducido para compensar el padding del scrollbar si es necesario */
+  padding-right: 15px; /* Espacio para el scrollbar si aparece, para que no tape contenido */
+  max-height: 70vh;   /* Altura máxima antes de que aparezca el scroll */
+  overflow-y: auto;   /* Scroll vertical solo cuando sea necesario */
 }
 .modal-body p {
-    margin: 0 0 8px 0; /* Reducido margen inferior para párrafos de info */
-    font-size: 1em; /* Ligeramente más pequeño */
+    margin: 0 0 8px 0;
+    font-size: 1em;
     line-height: 1.5;
 }
 
