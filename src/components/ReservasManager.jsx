@@ -3,10 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
 import EditReservationModal from './EditReservationModal';
 import DatePicker, { registerLocale } from 'react-datepicker';
-import { es } from 'date-fns/locale'; // Import specific locale
-import { parse, format, parseISO } from 'date-fns'; // Import parse, format, and parseISO
+import { es } from 'date-fns/locale';
+import { parse, format, parseISO, format as formatDateFns } from 'date-fns'; // Asegúrate de tener format también si lo usas aparte
 import 'react-datepicker/dist/react-datepicker.css';
 import useDebounce from '../hooks/useDebounce';
+import { CSVLink } from 'react-csv'; // Importar CSVLink
 
 registerLocale('es', es);
 
@@ -24,6 +25,8 @@ function ReservasManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState(null);
   const [modalInitialMode, setModalInitialMode] = useState('view'); // 'view' o 'edit'
+  // const [csvData, setCsvData] = useState([]); // Se generarán al momento
+  // const [csvHeaders, setCsvHeaders] = useState([]); // Se definirán en la función de exportación
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : null;
 
@@ -89,6 +92,79 @@ function ReservasManager() {
     setFechaFinFiltro(null);
     setEstadoFiltro('');
     setBusquedaFiltro('');
+  };
+
+  const escapeCsvCell = (cellData) => {
+    if (cellData == null) { // Captura undefined y null
+      return '';
+    }
+    const stringData = String(cellData);
+    // Si contiene comas, saltos de línea o comillas dobles, encerrar entre comillas dobles
+    // y duplicar las comillas dobles internas.
+    if (stringData.includes(',') || stringData.includes('\n') || stringData.includes('"')) {
+      return `"${stringData.replace(/"/g, '""')}"`;
+    }
+    return stringData;
+  };
+
+  const handleExportCSV = () => {
+    if (reservas.length === 0) {
+      alert("No hay datos para exportar.");
+      return;
+    }
+
+    const headers = [
+      'ID Reserva', 'Salón', 'Cliente', 'Email Cliente', 'Teléfono Cliente',
+      'Fecha Reserva', 'Hora Inicio', 'Hora Término',
+      'Costo Neto', 'Costo IVA', 'Costo Total',
+      'Estado Reserva', 'Estado Pago', 'Tipo Documento',
+      'RUT Facturación', 'Razón Social', 'Giro', 'Dirección Facturación',
+      'RUT Socio', 'Notas Adicionales', 'Fecha Creación'
+    ];
+
+    const dataRows = reservas.map(r => [
+      r.id,
+      r.nombre_espacio,
+      r.cliente_nombre,
+      r.cliente_email,
+      r.cliente_telefono,
+      r.fecha_reserva ? formatDateFns(parseISO(r.fecha_reserva), 'yyyy-MM-dd') : '', // Formato simple para CSV
+      r.hora_inicio ? r.hora_inicio.substring(0,5) : '',
+      r.hora_termino ? r.hora_termino.substring(0,5) : '',
+      r.costo_neto_historico != null ? Math.round(parseFloat(r.costo_neto_historico)) : '',
+      r.costo_iva_historico != null ? Math.round(parseFloat(r.costo_iva_historico)) : '',
+      r.costo_total_historico != null ? Math.round(parseFloat(r.costo_total_historico)) : '',
+      r.estado_reserva ? r.estado_reserva.replace(/_/g, ' ') : '',
+      r.estado_pago ? r.estado_pago.replace(/_/g, ' ') : '',
+      r.tipo_documento ? (r.tipo_documento.charAt(0).toUpperCase() + r.tipo_documento.slice(1)) : '',
+      r.facturacion_rut,
+      r.facturacion_razon_social,
+      r.facturacion_giro,
+      r.facturacion_direccion,
+      r.rut_socio,
+      r.notas_adicionales,
+      r.fecha_creacion ? formatDateFns(parseISO(r.fecha_creacion), 'yyyy-MM-dd HH:mm:ss') : ''
+    ].map(escapeCsvCell)); // Aplicar escape a cada celda
+
+    const csvContent = [
+      headers.join(','),
+      ...dataRows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) { // Feature detection
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `reservas_${formatDateFns(new Date(), 'yyyy-MM-dd')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      alert("La exportación CSV no es soportada en este navegador.");
+    }
   };
 
   const handlePageChange = (newPage) => {
@@ -179,6 +255,7 @@ function ReservasManager() {
       <p>Filtra las reservas por fecha, estado o cliente.</p>
       {error && <p className="mensaje-error">{error}</p>}
       <div className="filtros-container">
+          {/* ... otros filtros ... */}
           <div className="filtro-item filtro-busqueda">
             <label htmlFor="busqueda">Buscar:</label>
             <input
@@ -211,6 +288,16 @@ function ReservasManager() {
           </div>
           <div className="filtro-acciones">
             <button onClick={handleClearFilters} className="boton-secundario">Limpiar Filtros</button>
+            {/* El botón de exportar se añadirá aquí, pero sin usar CSVLink directamente en el JSX de renderizado.
+                Se llamará a una función handleExportCSV que generará y descargará el archivo.
+            */}
+            <button
+              onClick={() => handleExportCSV()} // Se creará esta función
+              className="boton-principal export-csv-button"
+              disabled={reservas.length === 0 || loading}
+            >
+              Exportar a CSV
+            </button>
           </div>
       </div>
       <div className="reservas-table-container">

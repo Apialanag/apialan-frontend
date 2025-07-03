@@ -94,6 +94,18 @@
   background-color: var(--color-gray-800, #1f2937);
 }
 
+.export-csv-button { /* Estilo para el nuevo botón de exportar */
+  /* Hereda de boton-principal si se usa esa clase, o definir estilos específicos */
+  /* Por ejemplo, si boton-principal es azul, este también lo será */
+  /* Si se quiere un color diferente, se puede especificar aquí: */
+  /* background-color: #10b981; */ /* Un verde, por ejemplo */
+  /* color: white; */
+  /* padding: 8px 16px; */ /* Asegurar padding consistente con otros botones de acción */
+}
+.export-csv-button:hover {
+  /* background-color: #059669; */ /* Verde más oscuro para hover */
+}
+
 
 /* =================================
    ESTILOS PARA PESTAÑAS Y FORMULARIO DE SOCIOS (Mejorados)
