@@ -1,0 +1,145 @@
+/* src/components/SalonCardSkeleton.css */
+.salon-card-skeleton {
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem; /* Similar a SalonCard */
+  background-color: #ffffff;
+  padding: 1.25rem; /* Similar a SalonCard, ajustar si es diferente */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Similar a SalonCard */
+  width: 100%; /* Para que ocupe el espacio en el grid */
+  box-sizing: border-box;
+}
+
+@keyframes pulse {
+  0% { background-color: #f0f0f0; }
+  50% { background-color: #e0e0e0; }
+  100% { background-color: #f0f0f0; }
+}
+
+.skeleton-header,
+.skeleton-body,
+.skeleton-info-row,
+.skeleton-price-group,
+.skeleton-comodidades-section,
+.skeleton-comodidades-tags,
+.skeleton-action {
+  display: flex;
+  flex-direction: column; /* Por defecto, se ajustará según necesidad */
+}
+
+.skeleton-header {
+  /* background-color: #d1d5db;  No, el fondo lo dará la animación en los hijos */
+  /* padding: 0.75rem 1.25rem; No es necesario, se simula con los hijos */
+  border-bottom: 1px solid #eee; /* Similar al card-header */
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skeleton-title {
+  height: 24px; /* Altura aproximada del título */
+  width: 60%;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-gallery-hint {
+  height: 16px; /* Altura aproximada del hint */
+  width: 30%;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-body {
+  gap: 0.75rem; /* Espacio entre elementos del cuerpo */
+}
+
+.skeleton-info-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-badge {
+  height: 28px; /* Altura del badge de capacidad */
+  width: 40%;
+  background-color: #f0f0f0;
+  border-radius: 14px; /* Para hacerlo redondeado */
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-price-group {
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.skeleton-price {
+  height: 20px;
+  width: 70px; /* Ancho aproximado del precio */
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-price-original {
+  height: 16px;
+  width: 60px; /* Ancho aproximado del precio tachado */
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-price-hint {
+  height: 14px;
+  width: 80%;
+  margin-top: -0.25rem; /* Ajuste para que esté más cerca de los precios */
+  margin-bottom: 0.75rem;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-comodidades-title {
+  height: 18px;
+  width: 50%;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-comodidades-tags {
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.skeleton-tag {
+  height: 24px;
+  width: 70px; /* Ancho de una etiqueta de comodidad */
+  background-color: #f0f0f0;
+  border-radius: 12px; /* Para hacerlo redondeado */
+  animation: pulse 1.s infinite ease-in-out;
+}
+
+.skeleton-action {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee; /* Similar al card-action */
+}
+
+.skeleton-button {
+  height: 40px; /* Altura del botón */
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 8px; /* Similar al botón */
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Ajustar el padding del skeleton-card si es necesario para que coincida visualmente con SalonCard */
+/* Es posible que SalonCard tenga paddings internos en card-header y card-body que aquí se simulan con márgenes y tamaños */
+/* La clave es que el tamaño total y la disposición general se parezcan */

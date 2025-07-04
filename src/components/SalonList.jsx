@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import SalonCard from './SalonCard';
+import SalonCardSkeleton from './SalonCardSkeleton'; // Importar el skeleton
 import './SalonList.css';
 
 // --- CAMBIO 1: Aceptamos la nueva propiedad 'esSocio' ---
@@ -29,18 +30,21 @@ function SalonList({ onSalonSelect, esSocio }) {
     fetchSalones();
   }, []);
 
-  if (loading) return <p>Cargando salones...</p>;
   if (error) return <p style={{ color: 'var(--color-red-500)' }}>{error}</p>;
 
   return (
     <div className="salones-container-vista-unica">
-      {salones.length > 0 ? (
+      {loading ? (
+        // Mostrar 3 skeletons mientras carga
+        Array.from({ length: 3 }).map((_, index) => (
+          <SalonCardSkeleton key={index} />
+        ))
+      ) : salones.length > 0 ? (
         salones.map(salon => (
           <SalonCard 
             key={salon.id} 
             salon={salon}
             onSelect={onSalonSelect}
-            // --- CAMBIO 2: Pasamos la propiedad 'esSocio' a cada tarjeta ---
             esSocio={esSocio}
           />
         ))
