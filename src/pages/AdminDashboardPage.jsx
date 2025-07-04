@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import ReservasManager from '../components/ReservasManager';
 import SociosManager from '../components/SociosManager';
-import DashboardView from '../components/DashboardView'; // <-- 1. Importa el nuevo componente del dashboard
+import DashboardView from '../components/DashboardView';
+import CuponesManager from '../components/CuponesManager'; // Importar CuponesManager
 import './AdminDashboardPage.css';
 
 function AdminDashboardPage() {
-  // 2. La pestaña inicial ahora es 'dashboard'
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('dashboard'); // Mantener dashboard como inicial si se prefiere
 
   return (
     <div className="admin-dashboard">
@@ -33,13 +33,19 @@ function AdminDashboardPage() {
         >
           Gestión de Socios
         </button>
+        <button
+          className={`tab-button ${activeTab === 'cupones' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cupones')}
+        >
+          Gestión de Cupones
+        </button>
       </div>
 
-      {/* 4. Muestra el componente del dashboard cuando la pestaña está activa */}
       <div className="tab-content">
         {activeTab === 'dashboard' && <DashboardView />}
         {activeTab === 'reservas' && <ReservasManager />}
         {activeTab === 'socios' && <SociosManager />}
+        {activeTab === 'cupones' && <CuponesManager />}
       </div>
     </div>
   );
