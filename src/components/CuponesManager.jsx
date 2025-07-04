@@ -1,7 +1,7 @@
 // src/components/CuponesManager.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api';
-// Importaremos un futuro Modal y DatePicker si son necesarios aquí o en subcomponentes.
+import api, { createCupon, updateCupon } from '../api'; // Importar funciones de API
+import CuponForm from './CuponForm'; // Importar el formulario
 // import DatePicker, { registerLocale } from 'react-datepicker';
 // import { es } from 'date-fns/locale';
 // import 'react-datepicker/dist/react-datepicker.css';
@@ -32,11 +32,12 @@ function CuponesManager() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCupon(null); // Limpiar el cupón en edición al cerrar
+    setError(''); // Limpiar errores del modal
   };
 
   const fetchCupones = useCallback(async (page = 1, activo = '', codigo = '') => {
     setLoading(true);
-    setError('');
+    // setError(''); // No limpiar error general aquí para que no parpadee si el modal tuvo un error
     try {
       const params = { page, limit: 10 }; // Asumiendo 10 por página, ajustar si es necesario
       if (activo) params.activo = activo;
@@ -50,15 +51,16 @@ function CuponesManager() {
       setCupones(response.data.cupones || []);
       setTotalPages(response.data.totalPages || 0);
       setCurrentPage(response.data.currentPage || 1);
-
+      setError(''); // Limpiar error si la carga fue exitosa
     } catch (err) {
       console.error("Error al obtener los cupones:", err);
-      setError('No se pudieron cargar los cupones. ' + (err.response?.data?.error || err.message));
+      const errorMessage = err.response?.data?.error || err.message || 'Error desconocido al cargar cupones.';
+      setError(`No se pudieron cargar los cupones. ${errorMessage}`);
       setCupones([]); // Limpiar cupones en caso de error
     } finally {
       setLoading(false);
     }
-  }, []); // Las dependencias reales se añadirán después, por ahora [] para que se llame una vez
+  }, []);
 
   // Ajustar el useEffect que llama a fetchCupones para resetear la página a 1 cuando los filtros cambian.
   useEffect(() => {
@@ -105,14 +107,47 @@ function CuponesManager() {
     return valor;
   };
 
+  const handleSaveCupon = async (formData) => {
+    setLoading(true); // Podríamos tener un loading específico para el modal
+    setError('');
+    try {
+      if (editingCupon && editingCupon.id) {
+        // Estamos editando
+        await updateCupon(editingCupon.id, formData);
+        // Podríamos añadir un mensaje de éxito aquí (ej. con un estado de notificación)
+      } else {
+        // Estamos creando
+        await createCupon(formData);
+        // Podríamos añadir un mensaje de éxito aquí
+      }
+      fetchCupones(currentPage, filtroActivo, filtroCodigo); // Refrescar lista
+      handleCloseModal(); // Cerrar modal
+    } catch (err) {
+      console.error("Error al guardar el cupón:", err);
+      const errorMessage = err.response?.data?.message || // El backend puede enviar 'message'
+                           err.response?.data?.error ||   // o 'error'
+                           err.message ||
+                           'Error desconocido al guardar el cupón.';
+      setError(`Error al guardar el cupón: ${errorMessage}`);
+      // No cerramos el modal en caso de error para que el usuario pueda corregir
+    } finally {
+      setLoading(false); // Desactivar loading general o el específico del modal
+    }
+  };
 
-  if (loading) return <p>Cargando cupones...</p>;
-  if (error) return <p className="mensaje-error">{error}</p>;
+  // Mensaje de error general para la carga de la lista
+  const listError = error && !isModalOpen ? <p className="mensaje-error">{error}</p> : null;
+  // Mensaje de error específico para el modal
+  const modalError = error && isModalOpen ? <p className="mensaje-error" style={{marginTop: '10px', marginBottom: '0px'}}>{error}</p> : null;
+
+
+  if (loading && !isModalOpen) return <p>Cargando cupones...</p>; // Solo mostrar loading general si el modal no está abierto
 
   return (
     <div className="cupones-manager">
       <h2>Gestión de Cupones</h2>
       <p>Aquí puedes crear, editar y administrar los cupones de descuento.</p>
+      {listError}
 
       <div className="filtros-y-acciones-cupones">
         <div className="filtros-cupones-grupo">
@@ -183,14 +218,14 @@ function CuponesManager() {
                     </span>
                   </td>
                   <td className="actions-cell">
-                    {/* <button className="action-button edit" onClick={() => { setEditingCupon(cupon); setIsModalOpen(true); }}>Editar</button>
                     <button
-                      className={`action-button ${cupon.activo ? 'cancel' : 'activate'}`}
-                      // onClick={() => handleToggleActivo(cupon)}
+                      className="action-button edit"
+                      onClick={() => handleOpenModal(cupon)}
+                      title="Editar Cupón"
                     >
-                      {cupon.activo ? 'Desactivar' : 'Activar'}
-                    </button> */}
-                    (Acciones)
+                      Editar
+                    </button>
+                    {/* Aquí podrían ir otras acciones como Desactivar/Activar si se implementan */}
                   </td>
                 </tr>
               ))
@@ -210,20 +245,25 @@ function CuponesManager() {
       {/* Modal de Formulario de Cupón (a crear en el siguiente paso) */}
       {/* Este es un placeholder visual. La funcionalidad del modal se hará después. */}
       {isModalOpen && (
-        <div className="modal-backdrop" onClick={handleCloseModal}>
+        <div className="modal-backdrop"> {/* No cerrar al hacer clic fuera por ahora, usar botón Cancelar */}
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{editingCupon ? 'Editar Cupón' : 'Crear Nuevo Cupón'}</h2>
-            <p>Formulario del cupón aquí...</p>
-            <p>Cupón a editar: {editingCupon ? editingCupon.codigo : 'Nuevo'}</p>
-            <div className="modal-footer">
-              <button onClick={handleCloseModal} className="boton-secundario">Cancelar</button>
-              <button className="boton-principal">Guardar</button>
-            </div>
+            {modalError /* Mostrar error específico del modal aquí arriba del formulario */}
+            {loading && isModalOpen && <p>Guardando cupón...</p>}
+            {!loading && ( // Solo mostrar el formulario si no estamos en estado de carga del modal
+              <CuponForm
+                initialData={editingCupon}
+                onSubmit={handleSaveCupon}
+                onCancel={handleCloseModal}
+                isLoading={loading && isModalOpen} // Pasar el estado de carga específico del modal
+              />
+            )}
+            {/* Los botones de acción ahora están dentro de CuponForm */}
           </div>
         </div>
       )}
 
-      {totalPages > 1 && (
+      {totalPages > 1 && !loading && ( // No mostrar paginación si está cargando
         <div className="pagination-container">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
