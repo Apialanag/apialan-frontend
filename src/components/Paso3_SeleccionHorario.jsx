@@ -104,10 +104,12 @@ function Paso3_SeleccionHorario({
                 >
                   {horario.hora}
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              )) // Fin del map de horariosDelDia
+            ) : ( // Else para horariosDelDia.length > 0
+              !cargandoHorarios && <p className="no-options-text">No hay horarios de inicio disponibles para esta fecha.</p>
+            )}
+          </div> {/* Fin de horarios-container */}
+        </div> {/* Fin de columna-horarios para Hora de Inicio */}
         <div className="columna-horarios">
           <p><strong>Hora de Término</strong></p>
           {horaInicio ? (
