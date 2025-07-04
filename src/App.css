@@ -65,6 +65,53 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* =================================
+   Estilos para Modales Genéricos
+   ================================= */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegurar que esté por encima de otros contenidos */
+}
+
+.modal-content {
+  background-color: var(--color-white);
+  padding: 20px; /* Ajustar padding según sea necesario, CuponForm ya tiene su propio padding */
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 90%; /* Ancho máximo del modal */
+  max-width: 600px; /* Un ancho máximo fijo, ajustar según diseño */
+
+  /* Para el scroll cuando el contenido es muy largo */
+  max-height: 85vh; /* Máxima altura del modal respecto a la ventana */
+  overflow-y: auto; /* Scroll vertical solo si es necesario */
+}
+
+/* Ajustes para el contenido del formulario dentro del modal, si es necesario */
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  color: var(--color-gray-800);
+}
+
+/* Opcional: Estilos para el pie de página del modal si los botones estuvieran fuera del form */
+/* .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color-default);
+} */
 @media (min-width: 1100px) { /* Desktop */
   .salones-container-vista-unica {
     grid-template-columns: repeat(3, minmax(0, 1fr));
