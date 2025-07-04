@@ -42,8 +42,8 @@ function CuponesManager() {
       if (activo) params.activo = activo;
       if (codigo) params.busqueda_codigo = codigo; // O el nombre del param que espere el backend
 
-      // Asegúrate que la ruta '/admin/cupones' sea la correcta para tu API de administrador
-      const response = await api.get('/admin/cupones', { params });
+      // Asegúrate que la ruta '/cupones' sea la correcta para tu API
+      const response = await api.get('/cupones', { params });
 
       // Asumiendo que la respuesta del backend tiene la forma:
       // { cupones: [...], totalPages: X, currentPage: Y }
