@@ -21,8 +21,21 @@ function BookingPage() {
   // const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [costoCalculado, setCostoCalculado] = useState(0); // Reemplazado por desglosePrecio
-  const [desglosePrecio, setDesglosePrecio] = useState({ neto: 0, iva: 0, total: 0 });
+  const [desglosePrecio, setDesglosePrecio] = useState({
+    netoOriginal: 0, // Neto antes de cualquier cupón, pero después de descuento de socio
+    montoDescuentoCupon: 0,
+    netoConDescuento: 0, // Neto final después de cupón (sobre este se calcula el IVA)
+    iva: 0,
+    total: 0
+  });
   const [duracionCalculada, setDuracionCalculada] = useState(0);
+
+  // Estados para cupones
+  const [codigoCuponInput, setCodigoCuponInput] = useState(''); // Para el input en Paso4
+  const [cuponAplicado, setCuponAplicado] = useState(null); // { codigo, montoDescontado, mensaje, netoOriginalParaCalculo }
+  const [errorCupon, setErrorCupon] = useState('');
+  const [validandoCupon, setValidandoCupon] = useState(false);
+
 
   const IVA_RATE = 0.19; // Definir la tasa de IVA globalmente aquí o importarla
 
@@ -62,42 +75,84 @@ function BookingPage() {
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
         const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
+        const netoOriginalCalculado = duracion * precioNetoHora;
 
-        const netoTotalCalculado = duracion * precioNetoHora;
-        const ivaCalculado = Math.round(netoTotalCalculado * IVA_RATE);
-        const totalCalculado = netoTotalCalculado + ivaCalculado;
+        let netoFinal = netoOriginalCalculado;
+        let montoDescuentoAplicado = 0;
+
+        if (cuponAplicado && cuponAplicado.montoDescontado > 0) {
+          // Verificar si el cupón sigue siendo aplicable (ej. si el neto original cambió mucho)
+          // Esta es una simplificación. Una lógica más robusta podría requerir revalidar el cupón
+          // si el netoOriginalCalculado es muy diferente del cuponAplicado.netoOriginalParaCalculo.
+          // Por ahora, si hay un cupón, recalculamos su efecto sobre el nuevo netoOriginalCalculado.
+          // Idealmente, el backend daría el montoDescontado basado en el neto actual.
+          // Si el cupón fue un %:
+          // if (cuponAplicado.tipo === 'porcentaje') {
+          //   montoDescuentoAplicado = netoOriginalCalculado * (cuponAplicado.valor / 100);
+          // } else { // monto fijo
+          //   montoDescuentoAplicado = cuponAplicado.valor;
+          // }
+          // Para simplificar, usamos el montoDescontado que ya tenemos del cupón,
+          // pero esto podría ser impreciso si el neto base cambió mucho.
+          // Lo correcto sería que el backend devuelva el neto final o el monto a descontar
+          // basado en el neto actual de la reserva.
+          // Asumimos que cuponAplicado.montoDescontado es el valor a restar.
+
+          // Si el cupón se aplicó a un neto específico, y ese neto (netoOriginalCalculado) ha cambiado,
+          // el cupón debería invalidarse o recalcularse.
+          if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculado) {
+            console.log("Neto original cambió, reseteando cupón.");
+            setCuponAplicado(null); // Resetear cupón si el neto base cambió.
+            setErrorCupon("El total de la reserva cambió. Por favor, aplica el cupón nuevamente si corresponde.");
+            montoDescuentoAplicado = 0;
+          } else {
+            montoDescuentoAplicado = cuponAplicado.montoDescontado;
+          }
+          netoFinal = netoOriginalCalculado - montoDescuentoAplicado;
+        }
+
+        netoFinal = Math.max(0, netoFinal); // Asegurar que el neto no sea negativo
+
+        const ivaCalculado = Math.round(netoFinal * IVA_RATE);
+        const totalCalculado = netoFinal + ivaCalculado;
 
         setDuracionCalculada(duracion);
         setDesglosePrecio({
-          neto: netoTotalCalculado,
+          netoOriginal: netoOriginalCalculado,
+          montoDescuentoCupon: montoDescuentoAplicado,
+          netoConDescuento: netoFinal,
           iva: ivaCalculado,
           total: totalCalculado,
         });
       } else {
         setDuracionCalculada(0);
-        setDesglosePrecio({ neto: 0, iva: 0, total: 0 });
+        setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
       }
     } else {
       setDuracionCalculada(0);
-      setDesglosePrecio({ neto: 0, iva: 0, total: 0 });
+      setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData]);
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado]); // Añadir cuponAplicado como dependencia
   
   const handleValidationSuccess = (datosSocio) => {
-    setSocioData(datosSocio); // Guardar el objeto completo del socio (incluye nombre, email, rut)
-    // setNombreSocio(datosSocio.nombre_completo); // Ya no es necesario, se accede desde socioData
-    setIsModalOpen(false); // Cerrar el modal al tener éxito
+    setSocioData(datosSocio);
+    setCuponAplicado(null); // Resetear cupón si cambia el estado de socio
+    setErrorCupon('');
+    setCodigoCuponInput('');
+    setIsModalOpen(false);
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
   
-  // Función para desloguear o limpiar datos del socio
   const handleLogoutSocio = () => {
     setSocioData(null);
-    // Cualquier otra limpieza relacionada con el estado de socio
+    setCuponAplicado(null); // Resetear cupón si se desloguea el socio
+    setErrorCupon('');
+    setCodigoCuponInput('');
   };
+
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
   const goToStep = (step) => { if (step < currentStep) setCurrentStep(step); };
@@ -107,6 +162,9 @@ function BookingPage() {
     setFechaSeleccionada(null);
     setHoraInicio('');
     setHoraTermino('');
+    setCuponAplicado(null); // Resetear cupón si cambia el salón
+    setErrorCupon('');
+    setCodigoCuponInput('');
     if(salon){
       nextStep();
     } else {
@@ -119,9 +177,11 @@ function BookingPage() {
     setFechaSeleccionada(null);
     setHoraInicio('');
     setHoraTermino('');
+    setCuponAplicado(null); // Limpiar cupón después de una reserva exitosa
+    setErrorCupon('');
+    setCodigoCuponInput('');
+    // No limpiar socioData aquí, podría querer hacer otra reserva como socio.
     setCurrentStep(1);
-    // setSocioData(null); // No necesariamente queremos desloguear al socio aquí.
-    // setNombreSocio(''); // Se deriva de socioData
   };
   
   const renderStep = () => {
@@ -182,7 +242,18 @@ function BookingPage() {
             rutSocio={socioData ? socioData.rut : null}
             nombreSocioAutofill={socioData ? socioData.nombre_completo : ''}
             emailSocioAutofill={socioData ? socioData.email : ''}
-            onSocioDataChange={setSocioData} // Para permitir que Paso4 limpie socioData si el RUT se borra
+            onSocioDataChange={setSocioData}
+            // Props para cupones
+            codigoCuponInput={codigoCuponInput}
+            setCodigoCuponInput={setCodigoCuponInput}
+            cuponAplicado={cuponAplicado}
+            setCuponAplicado={setCuponAplicado}
+            errorCupon={errorCupon}
+            setErrorCupon={setErrorCupon}
+            validandoCupon={validandoCupon}
+            setValidandoCupon={setValidandoCupon}
+            // IVA_RATE={IVA_RATE} // El cálculo final con IVA se hace aquí en BookingPage
+            // setDesglosePrecio={setDesglosePrecio} // Para que Paso4 pueda influir en el desglose si es necesario
           />
         );
       default:
