@@ -26,4 +26,19 @@ api.interceptors.request.use(
 );
 
 // 4. Exporta la instancia para usarla en toda la aplicación.
+
+// Funciones específicas para Cupones
+export const createCupon = (cuponData) => {
+  return api.post('/cupones', cuponData);
+};
+
+export const updateCupon = (id, cuponData) => {
+  return api.put(`/cupones/${id}`, cuponData);
+};
+
+// Podríamos añadir getCuponById si fuera necesario cargar un cupón individualmente
+// export const getCuponById = (id) => {
+//   return api.get(`/cupones/${id}`);
+// };
+
 export default api;
