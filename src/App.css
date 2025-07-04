@@ -82,21 +82,23 @@
   z-index: 1000; /* Asegurar que esté por encima de otros contenidos */
 }
 
-.modal-content {
+/* Aumentamos especificidad con #root */
+#root .modal-content {
   background-color: var(--color-white);
-  padding: 20px; /* Ajustar padding según sea necesario, CuponForm ya tiene su propio padding */
+  padding: 20px; /* CuponForm tiene su propio padding, esto podría ser redundante o necesitar ajuste */
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-lg);
-  width: 90%; /* Ancho máximo del modal */
-  max-width: 600px; /* Un ancho máximo fijo, ajustar según diseño */
+  width: 90%; /* Ancho del modal */
+  max-width: 600px; /* Ancho máximo fijo */
 
-  /* Para el scroll cuando el contenido es muy largo */
-  max-height: 85vh; /* Máxima altura del modal respecto a la ventana */
-  overflow-y: auto; /* Scroll vertical solo si es necesario */
+  max-height: 85vh; /* Máxima altura del modal */
+  overflow-y: auto;   /* Scroll vertical si el contenido excede max-height */
+  display: flex;      /* Para controlar mejor el flujo interno */
+  flex-direction: column;
 }
 
 /* Ajustes para el contenido del formulario dentro del modal, si es necesario */
-.modal-content h2 {
+#root .modal-content h2 {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 1.5em;
