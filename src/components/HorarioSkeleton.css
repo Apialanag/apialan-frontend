@@ -1,0 +1,33 @@
+/* src/components/HorarioSkeleton.css */
+.horario-skeleton {
+  padding: 12px; /* Similar a .boton-horario */
+  border: 1px solid #e0e0e0; /* Color de borde del esqueleto */
+  border-radius: 6px; /* Similar a .boton-horario */
+  background-color: #f9f9f9; /* Fondo base del esqueleto */
+  width: 100%; /* Similar a .boton-horario */
+  box-sizing: border-box;
+  display: flex; /* Para centrar la línea de texto si es necesario, o solo para estructura */
+  justify-content: center; /* Centra la línea de texto horizontalmente */
+  align-items: center; /* Centra la línea de texto verticalmente */
+  min-height: 46px; /* Altura aproximada de un .boton-horario (padding + font-size + border) */
+}
+
+.skeleton-text-line {
+  height: 16px; /* Altura aproximada de la línea de texto (font-size de 1em) */
+  width: 50%; /* Ancho de la línea de texto simulada */
+  background-color: #e0e0e0; /* Color de la línea de texto */
+  border-radius: 4px;
+  animation: pulse-horario 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-horario {
+  0% {
+    background-color: #e0e0e0;
+  }
+  50% {
+    background-color: #d0d0d0; /* Un poco más oscuro para el pulso */
+  }
+  100% {
+    background-color: #e0e0e0;
+  }
+}

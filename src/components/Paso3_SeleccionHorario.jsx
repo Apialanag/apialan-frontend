@@ -1,6 +1,7 @@
 // src/components/Paso3_SeleccionHorario.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import HorarioSkeleton from './HorarioSkeleton'; // Importar el skeleton
 import './Paso3_SeleccionHorario.css';
 
 function Paso3_SeleccionHorario({
@@ -88,9 +89,13 @@ function Paso3_SeleccionHorario({
       <div className="seleccion-horario-grid">
         <div className="columna-horarios">
           <p><strong>Hora de Inicio</strong></p>
-          {cargandoHorarios ? <p>Cargando...</p> : (
-            <div className="horarios-container">
-              {horariosDelDia.map(horario => (
+          <div className="horarios-container">
+            {cargandoHorarios ? (
+              Array.from({ length: 9 }).map((_, index) => (
+                <HorarioSkeleton key={`skeleton-inicio-${index}`} />
+              ))
+            ) : horariosDelDia.length > 0 ? (
+              horariosDelDia.map(horario => (
                 <button
                   key={`inicio-${horario.hora}`}
                   onClick={() => handleSeleccionarHoraInicio(horario.hora)}
@@ -99,10 +104,12 @@ function Paso3_SeleccionHorario({
                 >
                   {horario.hora}
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
+              )) // Fin del map de horariosDelDia
+            ) : ( // Else para horariosDelDia.length > 0
+              !cargandoHorarios && <p className="no-options-text">No hay horarios de inicio disponibles para esta fecha.</p>
+            )}
+          </div> {/* Fin de horarios-container */}
+        </div> {/* Fin de columna-horarios para Hora de Inicio */}
         <div className="columna-horarios">
           <p><strong>Hora de Término</strong></p>
           {horaInicio ? (
