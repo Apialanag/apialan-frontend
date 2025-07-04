@@ -16,7 +16,17 @@ function Paso4_DatosYResumen({
   rutSocio,
   nombreSocioAutofill,
   emailSocioAutofill,
-  // onSocioDataChange, // Necesario para limpiar datos de socio si el RUT se borra/cambia en este paso
+  // Props para cupones desde BookingPage
+  codigoCuponInput,
+  setCodigoCuponInput,
+  cuponAplicado,
+  // setCuponAplicado, // La lógica de aplicar cupón estará aquí
+  errorCupon,
+  setErrorCupon,
+  validandoCupon,
+  setValidandoCupon,
+  // setDesglosePrecio, // Para actualizar el desglose general
+  // onSocioDataChange,
 }) {
   // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
   const [clienteNombre, setClienteNombre] = useState(() => {
@@ -88,6 +98,56 @@ function Paso4_DatosYResumen({
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Props para cupones (setters que vienen de BookingPage)
+  // Estas props ya están desestructuradas en la definición del componente:
+  // setCodigoCuponInput, cuponAplicado, setCuponAplicado, errorCupon, setErrorCupon,
+  // validandoCupon, setValidandoCupon.
+  // Usaremos directamente setCuponAplicado (que es la prop de BookingPage)
+  // en lugar de setCuponAplicadoGlobal.
+
+  // const IVA_RATE = 0.19; // No es necesario aquí si BookingPage recalcula todo.
+
+  const handleAplicarCuponLocal = async () => {
+    if (!codigoCuponInput.trim()) return;
+    setValidandoCupon(true);
+    setErrorCupon('');
+
+    try {
+      // El endpoint y la estructura del payload deben coincidir con el backend
+      const response = await api.post('/cupones/validar', {
+        codigo_cupon: codigoCuponInput,
+        monto_neto_base_reserva: desglosePrecio.netoOriginal // Neto antes de cualquier cupón
+      });
+
+      if (response.data && response.data.esValido) {
+        setCuponAplicado({ // Esta es la prop setCuponAplicado de BookingPage
+          codigo: response.data.codigoCuponValidado,
+          montoDescontado: response.data.montoDescontado,
+          mensaje: response.data.mensaje,
+          // Guardamos el netoOriginal al que se aplicó este cupón.
+          // BookingPage usará esto para verificar si el neto base ha cambiado.
+          netoOriginalAlAplicar: desglosePrecio.netoOriginal
+        });
+      } else {
+        setCuponAplicado(null);
+        setErrorCupon(response.data.mensaje || 'Cupón no válido o no aplicable.');
+      }
+    } catch (err) {
+      console.error("Error al validar cupón:", err.response || err);
+      setCuponAplicado(null);
+      setErrorCupon(err.response?.data?.mensaje || 'Error al conectar con el servicio de cupones.');
+    } finally {
+      setValidandoCupon(false);
+    }
+  };
+
+  const handleRemoverCuponLocal = () => {
+    setCuponAplicado(null); // Llama al setter de BookingPage
+    setErrorCupon('');
+    setCodigoCuponInput('');
+  };
+
+
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
   
   const isFormValid = () => {
@@ -151,20 +211,21 @@ function Paso4_DatosYResumen({
       datosReserva.facturacion_direccion = facturacionDireccion;
     }
 
-    // Usar rutLocal aquí porque es el que podría haber sido modificado por el usuario en este paso.
-    // Si esSocio es true, significa que la validación original fue exitosa.
     if (esSocio && rutLocal) {
       datosReserva.rut_socio = rutLocal;
-    } else if (!esSocio && rutLocal.trim() !== '') {
-      // Si el usuario ingresó un RUT aquí pero no es socio validado (o se deslogueó),
-      // podríamos querer enviar ese RUT igualmente, o no, dependiendo de la lógica de negocio.
-      // Por ahora, solo enviamos rut_socio si esSocio es true.
-      // Si se quiere enviar siempre que haya algo en rutLocal:
-      // datosReserva.rut_socio = rutLocal;
+    }
+    // No enviar rut_socio si no es socio, incluso si rutLocal tiene algo (podría ser un RUT de facturación no socio)
+
+    // Añadir datos del cupón si está aplicado
+    if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
+      datosReserva.codigo_cupon_aplicado = cuponAplicado.codigo;
+      datosReserva.monto_descuento_aplicado = cuponAplicado.montoDescontado;
     }
 
 
     try {
+      // El backend debe usar el desglosePrecio.total como referencia y recalcular/verificar
+      // el desglose final con el cupón para guardarlo de forma segura.
       await api.post('/reservas', datosReserva); 
       setMensajeReserva({ texto: '¡Solicitud de reserva enviada! Revisa tu correo para ver las instrucciones de pago.', tipo: 'exito' });
 
@@ -232,6 +293,41 @@ function Paso4_DatosYResumen({
 
           <hr className="form-separator" />
 
+          {/* Sección de Cupón de Descuento */}
+          <div className="cupon-section form-group">
+            <h3>¿Tienes un Cupón de Descuento?</h3>
+            <div className="cupon-input-group">
+              <input
+                type="text"
+                id="codigo-cupon"
+                placeholder="Ingresa tu código"
+                value={codigoCuponInput}
+                onChange={(e) => { setCodigoCuponInput(e.target.value.toUpperCase()); setErrorCupon(''); }}
+                disabled={!!cuponAplicado} // Deshabilitar si ya hay un cupón aplicado
+              />
+              {!cuponAplicado ? (
+                <button
+                  onClick={handleAplicarCuponLocal} // Esta función se definirá aquí
+                  disabled={validandoCupon || !codigoCuponInput.trim()}
+                  className="boton-aplicar-cupon"
+                >
+                  {validandoCupon ? 'Validando...' : 'Aplicar'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleRemoverCuponLocal} // Esta función se definirá aquí
+                  className="boton-remover-cupon"
+                >
+                  Quitar Cupón
+                </button>
+              )}
+            </div>
+            {errorCupon && <p className="mensaje-error-cupon">{errorCupon}</p>}
+            {cuponAplicado && cuponAplicado.mensaje && <p className="mensaje-exito-cupon">{cuponAplicado.mensaje}</p>}
+          </div>
+
+          <hr className="form-separator" />
+
           {/* Selector de Tipo de Documento */}
           <div className="form-group tipo-documento-selector">
             <h3>Tipo de Documento Tributario</h3>
@@ -280,8 +376,18 @@ function Paso4_DatosYResumen({
 
           <div className="resumen-desglose-precio">
             <div className="resumen-fila">
-              <span>Subtotal (Neto):</span>
-              <strong>${(desglosePrecio.neto || 0).toLocaleString('es-CL')}</strong>
+              <span>Neto Original:</span>
+              <strong>${(desglosePrecio.netoOriginal || 0).toLocaleString('es-CL')}</strong>
+            </div>
+            {cuponAplicado && desglosePrecio.montoDescuentoCupon > 0 && (
+              <div className="resumen-fila descuento-cupon">
+                <span>Descuento Cupón ({cuponAplicado.codigo}):</span>
+                <strong>-${(desglosePrecio.montoDescuentoCupon || 0).toLocaleString('es-CL')}</strong>
+              </div>
+            )}
+            <div className="resumen-fila subtotal-descuento">
+              <span>Subtotal (Neto con desc.):</span>
+              <strong>${(desglosePrecio.netoConDescuento || 0).toLocaleString('es-CL')}</strong>
             </div>
             <div className="resumen-fila">
               <span>IVA (19%):</span>
@@ -290,7 +396,7 @@ function Paso4_DatosYResumen({
           </div>
           <hr className="resumen-separador" />
           <div className="resumen-total">
-            <span>Total:</span>
+            <span>Total Final:</span>
             <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
           </div>
           <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
