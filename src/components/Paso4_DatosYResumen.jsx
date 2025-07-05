@@ -27,9 +27,25 @@ function Paso4_DatosYResumen({
   setValidandoCupon,
   // setDesglosePrecio, // Para actualizar el desglose general
   // onSocioDataChange,
-}) {
-  console.log('[Paso4] Inicio componente. Props de Cupón:', { codigoCuponInput, setCodigoCuponInput, cuponAplicado, setCuponAplicado, errorCupon, setErrorCupon, validandoCupon, setValidandoCupon });
-  console.log('[Paso4] Props generales recibidas:', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
+}) { // La desestructuración original se mantiene por ahora para el resto del componente
+
+  // Loguear las props de cupón accediéndolas desde el objeto 'props' si está disponible,
+  // o desde las variables desestructuradas si 'props' no se pasó explícitamente.
+  // Nota: Para que 'props' esté disponible aquí, la firma de la función debería ser 'function Paso4_DatosYResumen(props) {'
+  // Como la firma actual desestructura, usaremos las variables desestructuradas para el log,
+  // ya que 'props' como tal no estaría definido en este scope a menos que cambiemos la firma.
+  // El log anterior ya hacía esto, lo mantendremos y confiaremos en él.
+  console.log('[Paso4] Inicio componente. Props de Cupón (desestructuradas):', {
+    codigoCuponInput,
+    setCodigoCuponInput: typeof setCodigoCuponInput, // Loguear typeof para funciones
+    cuponAplicado,
+    setCuponAplicado: typeof setCuponAplicado,
+    errorCupon,
+    setErrorCupon: typeof setErrorCupon,
+    validandoCupon,
+    setValidandoCupon: typeof setValidandoCupon
+  });
+  console.log('[Paso4] Props generales recibidas (desestructuradas):', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
 
   // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
   const [clienteNombre, setClienteNombre] = useState(() => {
@@ -114,7 +130,8 @@ function Paso4_DatosYResumen({
     console.log('[Paso4] Inicio handleAplicarCuponLocal.');
     console.log('[Paso4] typeof setCuponAplicado:', typeof setCuponAplicado);
     console.log('[Paso4] typeof setErrorCupon:', typeof setErrorCupon);
-    console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon);
+    console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon); // Loguear el valor también
+    console.log('[Paso4] Props object:', props); // Loguear el objeto props completo
 
     if (!codigoCuponInput.trim()) return;
 

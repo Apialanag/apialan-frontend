@@ -221,6 +221,13 @@ function BookingPage() {
       case 3:
         return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} desglosePrecio={desglosePrecio} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
+        // --- INICIO LOGS DE DEPURACIÓN EN BOOKINGPAGE ---
+        console.log('[BookingPage] renderStep case 4. Verificando setters ANTES de pasar a Paso4:');
+        console.log('[BookingPage] typeof setCodigoCuponInput:', typeof setCodigoCuponInput, setCodigoCuponInput);
+        console.log('[BookingPage] typeof setCuponAplicado:', typeof setCuponAplicado, setCuponAplicado);
+        console.log('[BookingPage] typeof setErrorCupon:', typeof setErrorCupon, setErrorCupon);
+        console.log('[BookingPage] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon);
+        // --- FIN LOGS DE DEPURACIÓN EN BOOKINGPAGE ---
         return (
           <Paso4_DatosYResumen
             salonSeleccionado={salonSeleccionado}
@@ -251,6 +258,7 @@ function BookingPage() {
           />
         );
       default:
+        // El console.log anterior aquí era incorrecto, ya que este es el caso default.
         return <SalonList onSalonSelect={handleSelectSalon} esSocio={!!socioData} />;
     }
   };
