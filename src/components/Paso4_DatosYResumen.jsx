@@ -28,6 +28,9 @@ function Paso4_DatosYResumen({
   // setDesglosePrecio, // Para actualizar el desglose general
   // onSocioDataChange,
 }) {
+  console.log('[Paso4] Inicio componente. Props de Cupón:', { codigoCuponInput, setCodigoCuponInput, cuponAplicado, setCuponAplicado, errorCupon, setErrorCupon, validandoCupon, setValidandoCupon });
+  console.log('[Paso4] Props generales recibidas:', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
+
   // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
   const [clienteNombre, setClienteNombre] = useState(() => {
     if (nombreSocioAutofill) return nombreSocioAutofill;
@@ -108,9 +111,30 @@ function Paso4_DatosYResumen({
   // const IVA_RATE = 0.19; // No es necesario aquí si BookingPage recalcula todo.
 
   const handleAplicarCuponLocal = async () => {
+    console.log('[Paso4] Inicio handleAplicarCuponLocal.');
+    console.log('[Paso4] typeof setCuponAplicado:', typeof setCuponAplicado);
+    console.log('[Paso4] typeof setErrorCupon:', typeof setErrorCupon);
+    console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon);
+
     if (!codigoCuponInput.trim()) return;
-    setValidandoCupon(true);
-    setErrorCupon('');
+
+    // Verificar si setValidandoCupon es una función antes de llamarla
+    if (typeof setValidandoCupon === 'function') {
+      setValidandoCupon(true);
+    } else {
+      console.error('[Paso4] setValidandoCupon no es una función!', setValidandoCupon);
+      // Podrías querer manejar este error de alguna manera, o simplemente no llamar a la función.
+      // Por ahora, solo lo logueamos y continuamos, pero la UI de carga no funcionará.
+    }
+
+    // Verificar si setErrorCupon es una función antes de llamarla
+    if (typeof setErrorCupon === 'function') {
+      setErrorCupon('');
+    } else {
+      console.error('[Paso4] setErrorCupon no es una función!', setErrorCupon);
+    }
+
+    console.log('[Paso4] handleAplicarCuponLocal. Enviando:', { codigo_cupon: codigoCuponInput, monto_neto_base_reserva: desglosePrecio.netoOriginal });
 
     try {
       // El endpoint y la estructura del payload deben coincidir con el backend
@@ -118,28 +142,46 @@ function Paso4_DatosYResumen({
         codigo_cupon: codigoCuponInput,
         monto_neto_base_reserva: desglosePrecio.netoOriginal // Neto antes de cualquier cupón
       });
+      console.log('[Paso4] Respuesta de /cupones/validar:', response.data);
 
       if (response.data && response.data.esValido) {
-        setCuponAplicado({ // Esta es la prop setCuponAplicado de BookingPage
+        const cuponDataParaBookingPage = {
           codigo: response.data.codigoCuponValidado,
           montoDescontado: response.data.montoDescontado,
           mensaje: response.data.mensaje,
-            cuponId: response.data.cuponId, // ID del cupón para enviar al crear reserva
-            netoConDescuentoDelCupon: response.data.netoConDescuento, // Neto ya calculado por backend
-          // Guardamos el netoOriginal al que se aplicó este cupón.
-          // BookingPage usará esto para verificar si el neto base ha cambiado.
-            netoOriginalAlAplicar: desglosePrecio.netoOriginal
-        });
+          cuponId: response.data.cuponId,
+          netoConDescuentoDelCupon: response.data.netoConDescuento,
+          netoOriginalAlAplicar: desglosePrecio.netoOriginal
+        };
+        console.log('[Paso4] Cupón válido. Llamando a setCuponAplicado con:', cuponDataParaBookingPage);
+        if (typeof setCuponAplicado === 'function') {
+          setCuponAplicado(cuponDataParaBookingPage);
+        } else {
+          console.error('[Paso4] setCuponAplicado no es una función al intentar aplicar cupón válido!', setCuponAplicado);
+        }
       } else {
-        setCuponAplicado(null);
-        setErrorCupon(response.data.mensaje || 'Cupón no válido o no aplicable.');
+        console.log('[Paso4] Cupón no válido o no aplicable. Mensaje:', response.data.mensaje);
+        if (typeof setCuponAplicado === 'function') {
+          setCuponAplicado(null);
+        } else {
+          console.error('[Paso4] setCuponAplicado no es una función al intentar setear cupón a null!', setCuponAplicado);
+        }
+        if (typeof setErrorCupon === 'function') {
+          setErrorCupon(response.data.mensaje || 'Cupón no válido o no aplicable.');
+        }
       }
     } catch (err) {
-      console.error("Error al validar cupón:", err.response || err);
-      setCuponAplicado(null);
-      setErrorCupon(err.response?.data?.mensaje || 'Error al conectar con el servicio de cupones.');
+      console.error("[Paso4] Error al validar cupón (catch):", err.response || err);
+      if (typeof setCuponAplicado === 'function') {
+        setCuponAplicado(null);
+      }
+      if (typeof setErrorCupon === 'function') {
+        setErrorCupon(err.response?.data?.mensaje || 'Error al conectar con el servicio de cupones.');
+      }
     } finally {
-      setValidandoCupon(false);
+      if (typeof setValidandoCupon === 'function') {
+        setValidandoCupon(false);
+      }
     }
   };
 
