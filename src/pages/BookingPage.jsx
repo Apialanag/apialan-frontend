@@ -75,64 +75,49 @@ function BookingPage() {
       if (hTerminoNum > hInicioNum) {
         const duracion = hTerminoNum - hInicioNum;
         const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
-        const netoOriginalCalculado = duracion * precioNetoHora;
+        const netoOriginalCalculadoParaCupon = duracion * precioNetoHora; // Este es el neto post-socio, base para el cupón
 
-        let netoFinal = netoOriginalCalculado;
-        let montoDescuentoAplicado = 0;
+        let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
+        let montoDescuentoCuponActual = 0;
 
         if (cuponAplicado && cuponAplicado.montoDescontado > 0) {
-          // Verificar si el cupón sigue siendo aplicable (ej. si el neto original cambió mucho)
-          // Esta es una simplificación. Una lógica más robusta podría requerir revalidar el cupón
-          // si el netoOriginalCalculado es muy diferente del cuponAplicado.netoOriginalParaCalculo.
-          // Por ahora, si hay un cupón, recalculamos su efecto sobre el nuevo netoOriginalCalculado.
-          // Idealmente, el backend daría el montoDescontado basado en el neto actual.
-          // Si el cupón fue un %:
-          // if (cuponAplicado.tipo === 'porcentaje') {
-          //   montoDescuentoAplicado = netoOriginalCalculado * (cuponAplicado.valor / 100);
-          // } else { // monto fijo
-          //   montoDescuentoAplicado = cuponAplicado.valor;
-          // }
-          // Para simplificar, usamos el montoDescontado que ya tenemos del cupón,
-          // pero esto podría ser impreciso si el neto base cambió mucho.
-          // Lo correcto sería que el backend devuelva el neto final o el monto a descontar
-          // basado en el neto actual de la reserva.
-          // Asumimos que cuponAplicado.montoDescontado es el valor a restar.
-
-          // Si el cupón se aplicó a un neto específico, y ese neto (netoOriginalCalculado) ha cambiado,
-          // el cupón debería invalidarse o recalcularse.
-          if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculado) {
-            console.log("Neto original cambió, reseteando cupón.");
-            setCuponAplicado(null); // Resetear cupón si el neto base cambió.
+          if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculadoParaCupon) {
+            console.warn("Neto original de la reserva cambió desde que se aplicó el cupón. Invalidando cupón.");
+            setCuponAplicado(null); // Invalida el cupón
             setErrorCupon("El total de la reserva cambió. Por favor, aplica el cupón nuevamente si corresponde.");
-            montoDescuentoAplicado = 0;
+            // montoDescuentoCuponActual ya es 0
+            // netoFinalTrasCupon ya es netoOriginalCalculadoParaCupon
           } else {
-            montoDescuentoAplicado = cuponAplicado.montoDescontado;
+            // El cupón sigue siendo válido para el neto base actual. Usar el neto ya calculado por el backend.
+            netoFinalTrasCupon = cuponAplicado.netoConDescuentoDelCupon;
+            montoDescuentoCuponActual = cuponAplicado.montoDescontado;
+            setErrorCupon(''); // Limpiar cualquier error de cupón anterior si ahora es válido
           }
-          netoFinal = netoOriginalCalculado - montoDescuentoAplicado;
         }
 
-        netoFinal = Math.max(0, netoFinal); // Asegurar que el neto no sea negativo
+        netoFinalTrasCupon = Math.max(0, netoFinalTrasCupon);
 
-        const ivaCalculado = Math.round(netoFinal * IVA_RATE);
-        const totalCalculado = netoFinal + ivaCalculado;
+        const ivaCalculado = Math.round(netoFinalTrasCupon * IVA_RATE);
+        const totalCalculado = netoFinalTrasCupon + ivaCalculado;
 
         setDuracionCalculada(duracion);
         setDesglosePrecio({
-          netoOriginal: netoOriginalCalculado,
-          montoDescuentoCupon: montoDescuentoAplicado,
-          netoConDescuento: netoFinal,
+          netoOriginal: netoOriginalCalculadoParaCupon, // El neto al que se intentó/aplicó el cupón
+          montoDescuentoCupon: montoDescuentoCuponActual,
+          netoConDescuento: netoFinalTrasCupon, // El neto final después de todos los descuentos
           iva: ivaCalculado,
           total: totalCalculado,
         });
-      } else {
+
+      } else { // Duración inválida
         setDuracionCalculada(0);
         setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
       }
-    } else {
+    } else { // Faltan datos para calcular
       setDuracionCalculada(0);
       setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado]); // Añadir cuponAplicado como dependencia
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, setCuponAplicado, setErrorCupon]);
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio);
