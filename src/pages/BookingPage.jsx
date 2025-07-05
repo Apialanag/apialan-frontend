@@ -69,6 +69,7 @@ function BookingPage() {
   };
 
   useEffect(() => {
+    console.log('[BookingPage] useEffect triggered. Deps:', { salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado });
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
@@ -80,15 +81,18 @@ function BookingPage() {
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
 
+        console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
+
         if (cuponAplicado && cuponAplicado.montoDescontado > 0) {
+          console.log('[BookingPage] Dentro if cuponAplicado. netoOriginalAlAplicar vs netoOriginalCalculadoParaCupon:', cuponAplicado.netoOriginalAlAplicar, netoOriginalCalculadoParaCupon);
           if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculadoParaCupon) {
-            console.warn("Neto original de la reserva cambió desde que se aplicó el cupón. Invalidando cupón.");
+            console.warn("[BookingPage] Neto original de la reserva cambió desde que se aplicó el cupón. Invalidando cupón.");
             setCuponAplicado(null); // Invalida el cupón
             setErrorCupon("El total de la reserva cambió. Por favor, aplica el cupón nuevamente si corresponde.");
-            // montoDescuentoCuponActual ya es 0
-            // netoFinalTrasCupon ya es netoOriginalCalculadoParaCupon
+            // montoDescuentoCuponActual es 0 (ya inicializado)
+            // netoFinalTrasCupon es netoOriginalCalculadoParaCupon (ya inicializado)
           } else {
-            // El cupón sigue siendo válido para el neto base actual. Usar el neto ya calculado por el backend.
+            console.log('[BookingPage] Cupón sigue válido. Aplicando descuento del backend.');
             netoFinalTrasCupon = cuponAplicado.netoConDescuentoDelCupon;
             montoDescuentoCuponActual = cuponAplicado.montoDescontado;
             setErrorCupon(''); // Limpiar cualquier error de cupón anterior si ahora es válido
@@ -96,20 +100,25 @@ function BookingPage() {
         }
 
         netoFinalTrasCupon = Math.max(0, netoFinalTrasCupon);
+        console.log('[BookingPage] Valores calculados:', { netoOriginalCalculadoParaCupon, montoDescuentoCuponActual, netoFinalTrasCupon });
 
         const ivaCalculado = Math.round(netoFinalTrasCupon * IVA_RATE);
         const totalCalculado = netoFinalTrasCupon + ivaCalculado;
+        console.log('[BookingPage] IVA y Total:', { ivaCalculado, totalCalculado });
 
-        setDuracionCalculada(duracion);
-        setDesglosePrecio({
-          netoOriginal: netoOriginalCalculadoParaCupon, // El neto al que se intentó/aplicó el cupón
+        const nuevoDesglose = {
+          netoOriginal: netoOriginalCalculadoParaCupon,
           montoDescuentoCupon: montoDescuentoCuponActual,
-          netoConDescuento: netoFinalTrasCupon, // El neto final después de todos los descuentos
+          netoConDescuento: netoFinalTrasCupon,
           iva: ivaCalculado,
           total: totalCalculado,
-        });
+        };
+        console.log('[BookingPage] setDesglosePrecio con:', nuevoDesglose);
+        setDuracionCalculada(duracion);
+        setDesglosePrecio(nuevoDesglose);
 
       } else { // Duración inválida
+        console.log('[BookingPage] Duración inválida o datos incompletos. Reseteando desglose.');
         setDuracionCalculada(0);
         setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
       }
