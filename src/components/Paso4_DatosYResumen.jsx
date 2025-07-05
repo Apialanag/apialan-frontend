@@ -124,9 +124,11 @@ function Paso4_DatosYResumen({
           codigo: response.data.codigoCuponValidado,
           montoDescontado: response.data.montoDescontado,
           mensaje: response.data.mensaje,
+            cuponId: response.data.cuponId, // ID del cupón para enviar al crear reserva
+            netoConDescuentoDelCupon: response.data.netoConDescuento, // Neto ya calculado por backend
           // Guardamos el netoOriginal al que se aplicó este cupón.
           // BookingPage usará esto para verificar si el neto base ha cambiado.
-          netoOriginalAlAplicar: desglosePrecio.netoOriginal
+            netoOriginalAlAplicar: desglosePrecio.netoOriginal
         });
       } else {
         setCuponAplicado(null);
@@ -220,6 +222,9 @@ function Paso4_DatosYResumen({
     if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
       datosReserva.codigo_cupon_aplicado = cuponAplicado.codigo;
       datosReserva.monto_descuento_aplicado = cuponAplicado.montoDescontado;
+      if (cuponAplicado.cuponId) {
+        datosReserva.cupon_id = cuponAplicado.cuponId; // Enviar el ID del cupón
+      }
     }
 
 

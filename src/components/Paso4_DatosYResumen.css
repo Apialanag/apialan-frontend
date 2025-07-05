@@ -225,6 +225,7 @@
 .boton-aplicar-cupon {
   background-color: var(--color-indigo-500); /* Azul */
   color: white;
+  border: 1px solid var(--color-indigo-700); /* Borde visible por defecto */
 }
 .boton-aplicar-cupon:hover:not(:disabled) {
   background-color: var(--color-indigo-700);
