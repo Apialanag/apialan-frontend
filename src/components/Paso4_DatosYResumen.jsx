@@ -261,44 +261,59 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
     
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
+    console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
 
-    const datosReserva = {
-      espacio_id: salonSeleccionado.id,
-      cliente_nombre: clienteNombre,
-      cliente_email: clienteEmail,
-      cliente_telefono: clienteTelefono,
-      fecha_reserva: formatearFechaParaAPI(fechaSeleccionada),
-      hora_inicio: horaInicio,
-      hora_termino: horaTermino,
-      // Enviar el desglose de precios al backend si la API lo espera
-      // Según el Paso 2 del plan, el backend calcula y guarda neto, iva, total.
-      // Por lo tanto, el frontend podría enviar solo el precio_neto_total o el precio_total_final,
-      // o el backend lo recalcula basado en el espacio_id, duracion y si es socio.
-      // Para mantener consistencia con el backend que ahora guarda el desglose,
-      // es mejor que el backend sea la fuente de verdad para el desglose guardado.
-      // El frontend envía la información necesaria para que el backend haga ese cálculo.
-      // Si la API /reservas ahora espera explícitamente costo_neto, costo_iva, costo_total, se deben enviar.
-      // Por ahora, asumiré que el backend recalcula y solo necesitamos enviar un `costo_total` como referencia,
-      // o que el backend infiere todo de `espacio_id`, `duracion` y `rutSocio`.
-      // Si el backend espera el desglose, se enviaría:
-      // costo_neto: desglosePrecio.neto,
-      // costo_iva: desglosePrecio.iva,
-      // costo_total: desglosePrecio.total,
-      // Por ahora, mantendré el envío de un solo 'costo_total' que el backend podría usar o ignorar si recalcula.
-      costo_total: desglosePrecio.total, // El backend podría usar esto como 'costo_total_historico' o recalcular.
-      notas_adicionales: notasAdicionales,
-      tipo_documento: tipoDocumento,
-    };
+    const datosReserva = {};
+    console.log('[Paso4] datosReserva inicializado:', datosReserva);
+
+    // Verificar que salonSeleccionado y fechaSeleccionada no sean null aquí
+    console.log('[Paso4] handleSubmit - Valores ANTES de construir datosReserva:', {
+        salonSeleccionado,
+        fechaSeleccionada,
+        desglosePrecio,
+        cuponAplicado,
+        clienteNombre, // Loguear también los que se usan directamente
+        clienteEmail,
+        clienteTelefono,
+        horaInicio,
+        horaTermino,
+        notasAdicionales,
+        tipoDocumento,
+        esSocio,
+        rutLocal
+    });
+
+    datosReserva.espacio_id = salonSeleccionado?.id; // Optional chaining por si acaso
+    console.log('[Paso4] datosReserva después de espacio_id:', datosReserva, 'salonSeleccionado:', salonSeleccionado);
+
+    datosReserva.cliente_nombre = clienteNombre;
+    datosReserva.cliente_email = clienteEmail;
+    datosReserva.cliente_telefono = clienteTelefono;
+    console.log('[Paso4] datosReserva después de datos cliente:', datosReserva);
+
+    datosReserva.fecha_reserva = formatearFechaParaAPI(fechaSeleccionada);
+    datosReserva.hora_inicio = horaInicio;
+    datosReserva.hora_termino = horaTermino;
+    console.log('[Paso4] datosReserva después de fecha y hora:', datosReserva, 'fechaSeleccionada:', fechaSeleccionada);
+
+    datosReserva.costo_total = desglosePrecio?.total; // Optional chaining
+    console.log('[Paso4] datosReserva después de costo_total:', datosReserva, 'desglosePrecio:', desglosePrecio);
+
+    datosReserva.notas_adicionales = notasAdicionales;
+    datosReserva.tipo_documento = tipoDocumento;
+    console.log('[Paso4] datosReserva después de notas y tipoDoc:', datosReserva);
 
     if (tipoDocumento === 'factura') {
       datosReserva.facturacion_rut = facturacionRut;
       datosReserva.facturacion_razon_social = facturacionRazonSocial;
       datosReserva.facturacion_giro = facturacionGiro;
       datosReserva.facturacion_direccion = facturacionDireccion;
+      console.log('[Paso4] datosReserva después de datos factura:', datosReserva);
     }
 
     if (esSocio && rutLocal) {
       datosReserva.rut_socio = rutLocal;
+      console.log('[Paso4] datosReserva después de rutSocio:', datosReserva);
     }
     // No enviar rut_socio si no es socio, incluso si rutLocal tiene algo (podría ser un RUT de facturación no socio)
 
@@ -309,9 +324,10 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
       if (cuponAplicado.cuponId) {
         datosReserva.cupon_id = cuponAplicado.cuponId; // Enviar el ID del cupón
       }
+      console.log('[Paso4] datosReserva después de datos cupón:', datosReserva, 'cuponAplicado:', cuponAplicado);
     }
 
-    console.log('[Paso4] Enviando a /reservas:', datosReserva); // <--- AÑADIDO ESTE LOG
+    console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
 
     try {
       // El backend debe usar el desglosePrecio.total como referencia y recalcular/verificar
