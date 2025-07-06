@@ -2,42 +2,38 @@ import React, { useState } from 'react';
 import api from '../api';
 import './Paso4_DatosYResumen.css';
 
-function Paso4_DatosYResumen({
-  salonSeleccionado,
-  fechaSeleccionada,
-  horaInicio,
-  horaTermino,
-  duracionCalculada,
-  // costoCalculado, // Reemplazado por desglosePrecio
-  desglosePrecio,
-  onReservationSuccess,
-  prevStep,
-  esSocio,
-  rutSocio,
-  nombreSocioAutofill,
-  emailSocioAutofill,
-  // Props para cupones desde BookingPage
-  codigoCuponInput,
-  setCodigoCuponInput,
-  cuponAplicado,
-  // setCuponAplicado, // La lógica de aplicar cupón estará aquí
-  errorCupon,
-  setErrorCupon,
-  validandoCupon,
-  setValidandoCupon,
-  // setDesglosePrecio, // Para actualizar el desglose general
-  // onSocioDataChange,
-}) { // La desestructuración original se mantiene por ahora para el resto del componente
+function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props como un objeto
 
-  // Loguear las props de cupón accediéndolas desde el objeto 'props' si está disponible,
-  // o desde las variables desestructuradas si 'props' no se pasó explícitamente.
-  // Nota: Para que 'props' esté disponible aquí, la firma de la función debería ser 'function Paso4_DatosYResumen(props) {'
-  // Como la firma actual desestructura, usaremos las variables desestructuradas para el log,
-  // ya que 'props' como tal no estaría definido en este scope a menos que cambiemos la firma.
-  // El log anterior ya hacía esto, lo mantendremos y confiaremos en él.
-  console.log('[Paso4] Inicio componente. Props de Cupón (desestructuradas):', {
+  console.log('[Paso4] RAW PROPS RECIBIDAS:', props);
+
+  // Desestructurar todas las props necesarias del objeto props
+  const {
+    salonSeleccionado,
+    fechaSeleccionada,
+    horaInicio,
+    horaTermino,
+    duracionCalculada,
+    desglosePrecio,
+    onReservationSuccess,
+    prevStep,
+    esSocio,
+    rutSocio,
+    nombreSocioAutofill,
+    emailSocioAutofill,
     codigoCuponInput,
-    setCodigoCuponInput: typeof setCodigoCuponInput, // Loguear typeof para funciones
+    setCodigoCuponInput,
+    cuponAplicado,
+    setCuponAplicado, // Esta es la que da problemas
+    errorCupon,
+    setErrorCupon,
+    validandoCupon,
+    setValidandoCupon
+    // onSocioDataChange, // Sigue comentada
+  } = props;
+
+  console.log('[Paso4] Inicio componente. Props de Cupón (después de desestructurar):', {
+    codigoCuponInput,
+    setCodigoCuponInput: typeof setCodigoCuponInput,
     cuponAplicado,
     setCuponAplicado: typeof setCuponAplicado,
     errorCupon,
@@ -45,7 +41,7 @@ function Paso4_DatosYResumen({
     validandoCupon,
     setValidandoCupon: typeof setValidandoCupon
   });
-  console.log('[Paso4] Props generales recibidas (desestructuradas):', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
+  console.log('[Paso4] Props generales recibidas (después de desestructurar):', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
 
   // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
   const [clienteNombre, setClienteNombre] = useState(() => {
