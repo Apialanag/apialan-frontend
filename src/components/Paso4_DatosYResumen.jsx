@@ -303,6 +303,7 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
       }
     }
 
+    console.log('[Paso4] Enviando a /reservas:', datosReserva); // <--- AÑADIDO ESTE LOG
 
     try {
       // El backend debe usar el desglosePrecio.total como referencia y recalcular/verificar
