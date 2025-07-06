@@ -241,13 +241,21 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
   };
   
   const handleSubmit = async () => {
-    if (!isFormValid()) {
-      let errorMsg = 'Por favor, complete su nombre y email correctamente.';
-      if (tipoDocumento === 'factura' &&
-          (facturacionRut.trim() === '' || facturacionRazonSocial.trim() === '' || facturacionGiro.trim() === '' || facturacionDireccion.trim() === '')) {
-        errorMsg = 'Por favor, complete todos los datos de contacto y facturación requeridos.';
-      }
-      setMensajeReserva({ texto: errorMsg, tipo: 'error' });
+    const formIsValid = isFormValid(); // Calcular una vez
+    console.log('[Paso4] handleSubmit: isFormValid() resultado:', formIsValid);
+    console.log('[Paso4] handleSubmit: Valores para validación:', {
+      clienteNombre,
+      clienteEmail,
+      tipoDocumento,
+      facturacionRut,
+      facturacionRazonSocial,
+      facturacionGiro,
+      facturacionDireccion
+    });
+
+    if (!formIsValid) {
+      // Actualicé el mensaje de error para ser más genérico aquí por si acaso.
+      setMensajeReserva({ texto: 'Por favor, complete todos los campos requeridos y asegúrese de que el email sea válido.', tipo: 'error' });
       return;
     }
     
