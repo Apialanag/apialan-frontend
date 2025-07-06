@@ -131,7 +131,8 @@ function Paso4_DatosYResumen({
     console.log('[Paso4] typeof setCuponAplicado:', typeof setCuponAplicado, setCuponAplicado); // Loguear el valor de la prop desestructurada
     console.log('[Paso4] typeof setErrorCupon:', typeof setErrorCupon, setErrorCupon);
     console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon);
-    // El log de 'props object' se eliminó porque la función no recibe 'props' como un solo objeto.
+    // Se elimina la siguiente línea que causaba "props is not defined"
+    // console.log('[Paso4] Props object:', props);
 
     if (!codigoCuponInput.trim()) return;
 
