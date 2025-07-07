@@ -291,27 +291,56 @@ function Paso4_DatosYResumen(props) {
     }
 
     // Se podría dejar este log si aún se está depurando la interacción con el backend.
-    // console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
+    console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
 
     try {
-      // El backend debe usar el desglosePrecio.total como referencia y recalcular/verificar
-      // el desglose final con el cupón para guardarlo de forma segura.
-      await api.post('/reservas', datosReserva); 
-      setMensajeReserva({ texto: '¡Solicitud de reserva enviada! Revisa tu correo para ver las instrucciones de pago.', tipo: 'exito' });
+      const responseReserva = await api.post('/reservas', datosReserva);
+      const reservaCreada = responseReserva.data;
 
-      // Guardar en localStorage si NO es socio
-      if (!esSocio) {
-        localStorage.setItem('lastBookingName', clienteNombre);
-        localStorage.setItem('lastBookingEmail', clienteEmail);
-        localStorage.setItem('lastBookingPhone', clienteTelefono);
+      if (reservaCreada && reservaCreada.id) {
+        setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
+
+        // Iniciar el proceso de pago
+        try {
+          const responseInicioPago = await api.post(`/reservas/${reservaCreada.id}/iniciar-pago`);
+          if (responseInicioPago.data && responseInicioPago.data.url_pago) {
+            window.location.href = responseInicioPago.data.url_pago;
+            // No llamar a onReservationSuccess aquí, la redirección se encarga.
+            // El estado se limpiará cuando el usuario navegue a una página de éxito/fallo y luego a la home.
+          } else {
+            // El backend no devolvió una url_pago
+            console.error("Error: El backend no proporcionó una URL de pago.", responseInicioPago.data);
+            setMensajeReserva({ texto: 'Error al iniciar el proceso de pago. No se obtuvo URL de la pasarela.', tipo: 'error' });
+            setIsSubmitting(false); // Permitir al usuario reintentar o ver el error
+          }
+        } catch (errorInicioPago) {
+          console.error("Error al iniciar el pago:", errorInicioPago.response || errorInicioPago);
+          setMensajeReserva({ texto: `Error al iniciar el pago: ${errorInicioPago.response?.data?.error || 'Servicio no disponible.'}`, tipo: 'error' });
+          setIsSubmitting(false); // Permitir reintento
+        }
+      } else {
+        // La creación de la reserva no devolvió un ID válido
+        console.error("Error: La creación de la reserva no devolvió un ID válido.", reservaCreada);
+        setMensajeReserva({ texto: 'Error al procesar la reserva. No se obtuvo ID.', tipo: 'error' });
+        setIsSubmitting(false);
       }
+
+      // Guardar en localStorage si NO es socio (esto podría moverse a onReservationSuccess si se decide usar)
+      // if (!esSocio) {
+      //   localStorage.setItem('lastBookingName', clienteNombre);
+      //   localStorage.setItem('lastBookingEmail', clienteEmail);
+      //   localStorage.setItem('lastBookingPhone', clienteTelefono);
+      // }
       
-      setTimeout(() => {
-        onReservationSuccess();
-      }, 4000);
+      // Comentado: onReservationSuccess limpia el estado y vuelve al paso 1.
+      // Esto ahora se manejará por las páginas de redirección de la pasarela.
+      // setTimeout(() => {
+      //   if (typeof onReservationSuccess === 'function') onReservationSuccess();
+      // }, 4000); // Este timeout ya no es apropiado aquí.
+
     } catch (error) {
       console.error("Error al crear reserva:", error.response || error);
-      setMensajeReserva({ texto: `Error: ${error.response?.data?.error || 'No se pudo procesar la solicitud.'}`, tipo: 'error' });
+      setMensajeReserva({ texto: `Error al crear la reserva: ${error.response?.data?.error || 'No se pudo procesar la solicitud.'}`, tipo: 'error' });
       setIsSubmitting(false);
     }
   };
