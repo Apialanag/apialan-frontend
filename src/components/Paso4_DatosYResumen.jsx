@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import api from '../api';
 import './Paso4_DatosYResumen.css';
 
-function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props como un objeto
-
-  console.log('[Paso4] RAW PROPS RECIBIDAS:', props);
-
+function Paso4_DatosYResumen(props) {
   // Desestructurar todas las props necesarias del objeto props
   const {
     salonSeleccionado,
@@ -31,17 +28,9 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
     // onSocioDataChange, // Sigue comentada
   } = props;
 
-  console.log('[Paso4] Inicio componente. Props de Cupón (después de desestructurar):', {
-    codigoCuponInput,
-    setCodigoCuponInput: typeof setCodigoCuponInput,
-    cuponAplicado,
-    setCuponAplicado: typeof setCuponAplicado,
-    errorCupon,
-    setErrorCupon: typeof setErrorCupon,
-    validandoCupon,
-    setValidandoCupon: typeof setValidandoCupon
-  });
-  console.log('[Paso4] Props generales recibidas (después de desestructurar):', { salonSeleccionado, fechaSeleccionada, horaInicio, horaTermino, desglosePrecio });
+  // Se eliminan los logs iniciales de props desestructuradas
+  // console.log('[Paso4] Inicio componente. Props de Cupón (después de desestructurar):', { ... });
+  // console.log('[Paso4] Props generales recibidas (después de desestructurar):', { ... });
 
   // Inicialización de estados intentando cargar desde localStorage si no hay datos de socio
   const [clienteNombre, setClienteNombre] = useState(() => {
@@ -123,12 +112,12 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
   // const IVA_RATE = 0.19; // No es necesario aquí si BookingPage recalcula todo.
 
   const handleAplicarCuponLocal = async () => {
-    console.log('[Paso4] Inicio handleAplicarCuponLocal.');
-    console.log('[Paso4] typeof setCuponAplicado:', typeof setCuponAplicado, setCuponAplicado); // Loguear el valor de la prop desestructurada
-    console.log('[Paso4] typeof setErrorCupon:', typeof setErrorCupon, setErrorCupon);
-    console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon);
-    // Se elimina la siguiente línea que causaba "props is not defined"
-    // console.log('[Paso4] Props object:', props);
+    // Se conservan los console.error para errores de programación (props no siendo funciones)
+    // Se eliminan los logs de flujo normal y de datos.
+    // console.log('[Paso4] Inicio handleAplicarCuponLocal.');
+    // console.log('[Paso4] typeof setCuponAplicado:', typeof setCuponAplicado, setCuponAplicado);
+    // console.log('[Paso4] typeof setErrorCupon:', typeof setErrorCupon, setErrorCupon);
+    // console.log('[Paso4] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon);
 
     if (!codigoCuponInput.trim()) return;
 
@@ -144,14 +133,14 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
       console.error('[Paso4] setErrorCupon NO es una función!', setErrorCupon);
     }
 
-    console.log('[Paso4] handleAplicarCuponLocal. Enviando:', { codigo_cupon: codigoCuponInput, monto_neto_base_reserva: desglosePrecio.netoOriginal });
+    // console.log('[Paso4] handleAplicarCuponLocal. Enviando:', { codigo_cupon: codigoCuponInput, monto_neto_base_reserva: desglosePrecio.netoOriginal });
 
     try {
       const response = await api.post('/cupones/validar', {
         codigo_cupon: codigoCuponInput,
         monto_neto_base_reserva: desglosePrecio.netoOriginal
       });
-      console.log('[Paso4] Respuesta de /cupones/validar:', response.data);
+      // console.log('[Paso4] Respuesta de /cupones/validar:', response.data);
 
       if (response.data && response.data.esValido) {
         const cuponDataParaBookingPage = {
@@ -162,14 +151,14 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
           netoConDescuentoDelCupon: response.data.netoConDescuento,
           netoOriginalAlAplicar: desglosePrecio.netoOriginal
         };
-        console.log('[Paso4] Cupón válido. Llamando a setCuponAplicado con:', cuponDataParaBookingPage);
+        // console.log('[Paso4] Cupón válido. Llamando a setCuponAplicado con:', cuponDataParaBookingPage);
         if (typeof setCuponAplicado === 'function') {
           setCuponAplicado(cuponDataParaBookingPage);
         } else {
           console.error('[Paso4] setCuponAplicado NO es una función al intentar aplicar cupón válido!', setCuponAplicado);
         }
       } else {
-        console.log('[Paso4] Cupón no válido o no aplicable. Mensaje:', response.data.mensaje);
+        // console.log('[Paso4] Cupón no válido o no aplicable. Mensaje:', response.data.mensaje);
         if (typeof setCuponAplicado === 'function') {
           setCuponAplicado(null);
         } else {
@@ -182,14 +171,14 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
         }
       }
     } catch (err) {
-      console.error("[Paso4] Error al validar cupón (catch):", err.response || err);
+      console.error("[Paso4] Error al validar cupón (catch):", err.response || err.message); // Loguear err.message también
       if (typeof setCuponAplicado === 'function') {
         setCuponAplicado(null);
       } else {
         console.error('[Paso4] setCuponAplicado NO es una función en catch!', setCuponAplicado);
       }
       if (typeof setErrorCupon === 'function') {
-        setErrorCupon(err.response?.data?.mensaje || 'Error al conectar con el servicio de cupones.');
+        setErrorCupon(err.response?.data?.mensaje || err.message || 'Error al conectar con el servicio de cupones.');
       } else {
         console.error('[Paso4] setErrorCupon NO es una función en catch!', setErrorCupon);
       }
@@ -203,10 +192,10 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
   };
 
   const handleRemoverCuponLocal = () => {
-    console.log('[Paso4] Inicio handleRemoverCuponLocal.');
-    console.log('[Paso4] typeof setCuponAplicado (remover):', typeof setCuponAplicado, setCuponAplicado);
-    console.log('[Paso4] typeof setErrorCupon (remover):', typeof setErrorCupon, setErrorCupon);
-    console.log('[Paso4] typeof setCodigoCuponInput (remover):', typeof setCodigoCuponInput, setCodigoCuponInput);
+    // console.log('[Paso4] Inicio handleRemoverCuponLocal.');
+    // console.log('[Paso4] typeof setCuponAplicado (remover):', typeof setCuponAplicado, setCuponAplicado);
+    // console.log('[Paso4] typeof setErrorCupon (remover):', typeof setErrorCupon, setErrorCupon);
+    // console.log('[Paso4] typeof setCodigoCuponInput (remover):', typeof setCodigoCuponInput, setCodigoCuponInput);
 
     if (typeof setCuponAplicado === 'function') {
       setCuponAplicado(null);
@@ -241,93 +230,68 @@ function Paso4_DatosYResumen(props) { // Cambiada la firma para recibir props co
   };
   
   const handleSubmit = async () => {
-    const formIsValid = isFormValid(); // Calcular una vez
-    console.log('[Paso4] handleSubmit: isFormValid() resultado:', formIsValid);
-    console.log('[Paso4] handleSubmit: Valores para validación:', {
-      clienteNombre,
-      clienteEmail,
-      tipoDocumento,
-      facturacionRut,
-      facturacionRazonSocial,
-      facturacionGiro,
-      facturacionDireccion
-    });
+    const formIsValid = isFormValid();
+    // console.log('[Paso4] handleSubmit: isFormValid() resultado:', formIsValid);
+    // console.log('[Paso4] handleSubmit: Valores para validación:', { clienteNombre, clienteEmail, tipoDocumento, facturacionRut, facturacionRazonSocial, facturacionGiro, facturacionDireccion });
 
     if (!formIsValid) {
-      // Actualicé el mensaje de error para ser más genérico aquí por si acaso.
       setMensajeReserva({ texto: 'Por favor, complete todos los campos requeridos y asegúrese de que el email sea válido.', tipo: 'error' });
       return;
     }
     
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
-    console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
+    // console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
 
     const datosReserva = {};
-    console.log('[Paso4] datosReserva inicializado:', datosReserva);
+    // console.log('[Paso4] datosReserva inicializado:', datosReserva);
 
-    // Verificar que salonSeleccionado y fechaSeleccionada no sean null aquí
-    console.log('[Paso4] handleSubmit - Valores ANTES de construir datosReserva:', {
-        salonSeleccionado,
-        fechaSeleccionada,
-        desglosePrecio,
-        cuponAplicado,
-        clienteNombre, // Loguear también los que se usan directamente
-        clienteEmail,
-        clienteTelefono,
-        horaInicio,
-        horaTermino,
-        notasAdicionales,
-        tipoDocumento,
-        esSocio,
-        rutLocal
-    });
+    // console.log('[Paso4] handleSubmit - Valores ANTES de construir datosReserva:', { salonSeleccionado, fechaSeleccionada, desglosePrecio, cuponAplicado, clienteNombre, clienteEmail, clienteTelefono, horaInicio, horaTermino, notasAdicionales, tipoDocumento, esSocio, rutLocal });
 
-    datosReserva.espacio_id = salonSeleccionado?.id; // Optional chaining por si acaso
-    console.log('[Paso4] datosReserva después de espacio_id:', datosReserva, 'salonSeleccionado:', salonSeleccionado);
+    datosReserva.espacio_id = salonSeleccionado?.id;
+    // console.log('[Paso4] datosReserva después de espacio_id:', datosReserva, 'salonSeleccionado:', salonSeleccionado);
 
     datosReserva.cliente_nombre = clienteNombre;
     datosReserva.cliente_email = clienteEmail;
     datosReserva.cliente_telefono = clienteTelefono;
-    console.log('[Paso4] datosReserva después de datos cliente:', datosReserva);
+    // console.log('[Paso4] datosReserva después de datos cliente:', datosReserva);
 
     datosReserva.fecha_reserva = formatearFechaParaAPI(fechaSeleccionada);
     datosReserva.hora_inicio = horaInicio;
     datosReserva.hora_termino = horaTermino;
-    console.log('[Paso4] datosReserva después de fecha y hora:', datosReserva, 'fechaSeleccionada:', fechaSeleccionada);
+    // console.log('[Paso4] datosReserva después de fecha y hora:', datosReserva, 'fechaSeleccionada:', fechaSeleccionada);
 
-    datosReserva.costo_total = desglosePrecio?.total; // Optional chaining
-    console.log('[Paso4] datosReserva después de costo_total:', datosReserva, 'desglosePrecio:', desglosePrecio);
+    datosReserva.costo_total = desglosePrecio?.total;
+    // console.log('[Paso4] datosReserva después de costo_total:', datosReserva, 'desglosePrecio:', desglosePrecio);
 
     datosReserva.notas_adicionales = notasAdicionales;
     datosReserva.tipo_documento = tipoDocumento;
-    console.log('[Paso4] datosReserva después de notas y tipoDoc:', datosReserva);
+    // console.log('[Paso4] datosReserva después de notas y tipoDoc:', datosReserva);
 
     if (tipoDocumento === 'factura') {
       datosReserva.facturacion_rut = facturacionRut;
       datosReserva.facturacion_razon_social = facturacionRazonSocial;
       datosReserva.facturacion_giro = facturacionGiro;
       datosReserva.facturacion_direccion = facturacionDireccion;
-      console.log('[Paso4] datosReserva después de datos factura:', datosReserva);
+      // console.log('[Paso4] datosReserva después de datos factura:', datosReserva);
     }
 
     if (esSocio && rutLocal) {
       datosReserva.rut_socio = rutLocal;
-      console.log('[Paso4] datosReserva después de rutSocio:', datosReserva);
+      // console.log('[Paso4] datosReserva después de rutSocio:', datosReserva);
     }
-    // No enviar rut_socio si no es socio, incluso si rutLocal tiene algo (podría ser un RUT de facturación no socio)
 
-    // Añadir datos del cupón si está aplicado
     if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
       datosReserva.codigo_cupon_aplicado = cuponAplicado.codigo;
       datosReserva.monto_descuento_aplicado = cuponAplicado.montoDescontado;
       if (cuponAplicado.cuponId) {
-        datosReserva.cupon_id = cuponAplicado.cuponId; // Enviar el ID del cupón
+        datosReserva.cupon_id = cuponAplicado.cuponId;
       }
-      console.log('[Paso4] datosReserva después de datos cupón:', datosReserva, 'cuponAplicado:', cuponAplicado);
+      // console.log('[Paso4] datosReserva después de datos cupón:', datosReserva, 'cuponAplicado:', cuponAplicado);
     }
 
-    console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
+    // Se podría dejar este log si aún se está depurando la interacción con el backend.
+    // console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
 
     try {
       // El backend debe usar el desglosePrecio.total como referencia y recalcular/verificar
