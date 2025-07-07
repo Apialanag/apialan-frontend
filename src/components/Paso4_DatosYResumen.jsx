@@ -134,6 +134,7 @@ function Paso4_DatosYResumen(props) {
     }
 
     // console.log('[Paso4] handleAplicarCuponLocal. Enviando:', { codigo_cupon: codigoCuponInput, monto_neto_base_reserva: desglosePrecio.netoOriginal });
+    console.log('Enviando a /cupones/validar:', { codigo_cupon: codigoCuponInput, monto_neto_base_reserva: desglosePrecio.netoOriginal });
 
     try {
       const response = await api.post('/cupones/validar', {
@@ -171,7 +172,7 @@ function Paso4_DatosYResumen(props) {
         }
       }
     } catch (err) {
-      console.error("[Paso4] Error al validar cupón (catch):", err.response || err.message); // Loguear err.message también
+      console.error("[Paso4] Error al validar cupón (catch):", err.response ? err.response.data : err.message); // Loguear err.message también
       if (typeof setCuponAplicado === 'function') {
         setCuponAplicado(null);
       } else {
@@ -295,14 +296,15 @@ function Paso4_DatosYResumen(props) {
 
     try {
       const responseReserva = await api.post('/reservas', datosReserva);
-      const reservaCreada = responseReserva.data;
+      const backendResponse = responseReserva.data; // Renamed for clarity
+      const reservaData = backendResponse.reserva; // Access the nested 'reserva' object
 
-      if (reservaCreada && reservaCreada.id) {
+      if (reservaData && reservaData.id) { // Check for reservaData and reservaData.id
         setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
 
         // Iniciar el proceso de pago
         try {
-          const responseInicioPago = await api.post(`/reservas/${reservaCreada.id}/iniciar-pago`);
+          const responseInicioPago = await api.post(`/reservas/${reservaData.id}/iniciar-pago`); // Use reservaData.id
           if (responseInicioPago.data && responseInicioPago.data.url_pago) {
             window.location.href = responseInicioPago.data.url_pago;
             // No llamar a onReservationSuccess aquí, la redirección se encarga.
@@ -320,7 +322,7 @@ function Paso4_DatosYResumen(props) {
         }
       } else {
         // La creación de la reserva no devolvió un ID válido
-        console.error("Error: La creación de la reserva no devolvió un ID válido.", reservaCreada);
+        console.error("Error: La creación de la reserva no devolvió un ID válido o la estructura esperada.", backendResponse);
         setMensajeReserva({ texto: 'Error al procesar la reserva. No se obtuvo ID.', tipo: 'error' });
         setIsSubmitting(false);
       }
