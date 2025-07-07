@@ -28,6 +28,12 @@ function ReservasManager() {
   // const [csvData, setCsvData] = useState([]); // Se generarán al momento
   // const [csvHeaders, setCsvHeaders] = useState([]); // Se definirán en la función de exportación
 
+  const formatearMonedaRedondeada = (valor) => {
+    const numero = parseFloat(valor || 0);
+    const redondeado = Math.round(numero);
+    return `$${redondeado.toLocaleString('es-CL')}`;
+  };
+
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : null;
 
   const fetchReservas = useCallback(async (pageToFetch) => {
@@ -310,9 +316,11 @@ function ReservasManager() {
                 <th>Email</th>
                 <th>Fecha</th>
                 <th>Horario</th>
-                <th>Neto</th>
-                <th>IVA</th>
-                <th>Total</th>
+                <th>Subtotal Neto</th>
+                <th>Descuento Cupón</th>
+                <th>Neto Final</th>
+                <th>IVA (19%)</th>
+                <th>Total General</th>
                 <th>Tipo Doc.</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -328,18 +336,24 @@ function ReservasManager() {
                     <td>{reserva.cliente_email}</td>
                     <td>{formatearFecha(reserva.fecha_reserva)}</td>
                     <td>{reserva.hora_inicio.substring(0, 5)} - {reserva.hora_termino.substring(0, 5)}</td>
+                    {/* Subtotal Neto */}
+                    <td>{formatearMonedaRedondeada(reserva.costo_neto_historico)}</td>
+                    {/* Descuento Cupón */}
                     <td>
-                      {reserva.costo_neto_historico != null ?
-                        `$${Math.round(parseFloat(reserva.costo_neto_historico)).toLocaleString('es-CL')}` : '-'}
+                      {parseFloat(reserva.monto_descuento_aplicado || 0) !== 0 ?
+                        formatearMonedaRedondeada(reserva.monto_descuento_aplicado) :
+                        '-'}
                     </td>
+                    {/* Neto Final */}
                     <td>
-                      {reserva.costo_iva_historico != null ?
-                        `$${Math.round(parseFloat(reserva.costo_iva_historico)).toLocaleString('es-CL')}` : '-'}
+                      {formatearMonedaRedondeada(
+                        parseFloat(reserva.costo_neto_historico || 0) - parseFloat(reserva.monto_descuento_aplicado || 0)
+                      )}
                     </td>
-                    <td>
-                      {reserva.costo_total_historico != null ?
-                        `$${Math.round(parseFloat(reserva.costo_total_historico)).toLocaleString('es-CL')}` : '-'}
-                    </td>
+                    {/* IVA (19%) */}
+                    <td>{formatearMonedaRedondeada(reserva.costo_iva_historico)}</td>
+                    {/* Total General */}
+                    <td>{formatearMonedaRedondeada(reserva.costo_total_historico)}</td>
                     <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
                     <td className="actions-cell">

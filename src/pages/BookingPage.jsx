@@ -69,7 +69,7 @@ function BookingPage() {
   };
 
   useEffect(() => {
-    console.log('[BookingPage] useEffect triggered. Deps:', { salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado });
+    // console.log('[BookingPage] useEffect triggered. Deps:', { salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado });
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
@@ -81,10 +81,10 @@ function BookingPage() {
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
 
-        console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
+        // console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
 
         if (cuponAplicado && cuponAplicado.montoDescontado > 0) {
-          console.log('[BookingPage] Dentro if cuponAplicado. netoOriginalAlAplicar vs netoOriginalCalculadoParaCupon:', cuponAplicado.netoOriginalAlAplicar, netoOriginalCalculadoParaCupon);
+          // console.log('[BookingPage] Dentro if cuponAplicado. netoOriginalAlAplicar vs netoOriginalCalculadoParaCupon:', cuponAplicado.netoOriginalAlAplicar, netoOriginalCalculadoParaCupon);
           if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculadoParaCupon) {
             console.warn("[BookingPage] Neto original de la reserva cambió desde que se aplicó el cupón. Invalidando cupón.");
             setCuponAplicado(null); // Invalida el cupón
@@ -92,7 +92,7 @@ function BookingPage() {
             // montoDescuentoCuponActual es 0 (ya inicializado)
             // netoFinalTrasCupon es netoOriginalCalculadoParaCupon (ya inicializado)
           } else {
-            console.log('[BookingPage] Cupón sigue válido. Aplicando descuento del backend.');
+            // console.log('[BookingPage] Cupón sigue válido. Aplicando descuento del backend.');
             netoFinalTrasCupon = cuponAplicado.netoConDescuentoDelCupon;
             montoDescuentoCuponActual = cuponAplicado.montoDescontado;
             setErrorCupon(''); // Limpiar cualquier error de cupón anterior si ahora es válido
@@ -100,11 +100,11 @@ function BookingPage() {
         }
 
         netoFinalTrasCupon = Math.max(0, netoFinalTrasCupon);
-        console.log('[BookingPage] Valores calculados:', { netoOriginalCalculadoParaCupon, montoDescuentoCuponActual, netoFinalTrasCupon });
+        // console.log('[BookingPage] Valores calculados:', { netoOriginalCalculadoParaCupon, montoDescuentoCuponActual, netoFinalTrasCupon });
 
         const ivaCalculado = Math.round(netoFinalTrasCupon * IVA_RATE);
         const totalCalculado = netoFinalTrasCupon + ivaCalculado;
-        console.log('[BookingPage] IVA y Total:', { ivaCalculado, totalCalculado });
+        // console.log('[BookingPage] IVA y Total:', { ivaCalculado, totalCalculado });
 
         const nuevoDesglose = {
           netoOriginal: netoOriginalCalculadoParaCupon,
@@ -113,12 +113,12 @@ function BookingPage() {
           iva: ivaCalculado,
           total: totalCalculado,
         };
-        console.log('[BookingPage] setDesglosePrecio con:', nuevoDesglose);
+        // console.log('[BookingPage] setDesglosePrecio con:', nuevoDesglose);
         setDuracionCalculada(duracion);
         setDesglosePrecio(nuevoDesglose);
 
       } else { // Duración inválida
-        console.log('[BookingPage] Duración inválida o datos incompletos. Reseteando desglose.');
+        // console.log('[BookingPage] Duración inválida o datos incompletos. Reseteando desglose.');
         setDuracionCalculada(0);
         setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
       }
@@ -221,13 +221,7 @@ function BookingPage() {
       case 3:
         return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} desglosePrecio={desglosePrecio} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
       case 4:
-        // --- INICIO LOGS DE DEPURACIÓN EN BOOKINGPAGE ---
-        console.log('[BookingPage] renderStep case 4. Verificando setters ANTES de pasar a Paso4:');
-        console.log('[BookingPage] typeof setCodigoCuponInput:', typeof setCodigoCuponInput, setCodigoCuponInput);
-        console.log('[BookingPage] typeof setCuponAplicado:', typeof setCuponAplicado, setCuponAplicado);
-        console.log('[BookingPage] typeof setErrorCupon:', typeof setErrorCupon, setErrorCupon);
-        console.log('[BookingPage] typeof setValidandoCupon:', typeof setValidandoCupon, setValidandoCupon);
-        // --- FIN LOGS DE DEPURACIÓN EN BOOKINGPAGE ---
+        // Se eliminan los logs de depuración de BookingPage antes de pasar props
         return (
           <Paso4_DatosYResumen
             salonSeleccionado={salonSeleccionado}
