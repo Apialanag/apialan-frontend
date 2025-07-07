@@ -1,0 +1,12 @@
+.reservas-table td.email-cell {
+  max-width: 200px; /* Ajusta este valor según sea necesario */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Opcional: Estilo para el tooltip si se quiere personalizar más allá del title nativo */
+.reservas-table td.email-cell:hover {
+  /* Podrías añadir estilos aquí si usas un tooltip personalizado,
+     o si quieres que el texto se expanda al hacer hover (aunque puede ser complicado con text-overflow) */
+}

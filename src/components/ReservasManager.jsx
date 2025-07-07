@@ -8,6 +8,7 @@ import { parse, format, parseISO, format as formatDateFns } from 'date-fns'; // 
 import 'react-datepicker/dist/react-datepicker.css';
 import useDebounce from '../hooks/useDebounce';
 import { CSVLink } from 'react-csv'; // Importar CSVLink
+import './ReservasManager.css'; // Importar el CSS específico
 
 registerLocale('es', es);
 
@@ -25,6 +26,7 @@ function ReservasManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState(null);
   const [modalInitialMode, setModalInitialMode] = useState('view'); // 'view' o 'edit'
+  const [showDetailedCols, setShowDetailedCols] = useState(false); // Nuevo estado para columnas detalladas
   // const [csvData, setCsvData] = useState([]); // Se generarán al momento
   // const [csvHeaders, setCsvHeaders] = useState([]); // Se definirán en la función de exportación
 
@@ -304,6 +306,9 @@ function ReservasManager() {
             >
               Exportar a CSV
             </button>
+            <button onClick={() => setShowDetailedCols(!showDetailedCols)} className="boton-secundario">
+              {showDetailedCols ? 'Ocultar Detalles' : 'Mostrar Detalles'}
+            </button>
           </div>
       </div>
       <div className="reservas-table-container">
@@ -316,12 +321,12 @@ function ReservasManager() {
                 <th>Email</th>
                 <th>Fecha</th>
                 <th>Horario</th>
-                <th>Subtotal Neto</th>
-                <th>Descuento Cupón</th>
+                {showDetailedCols && <th>Subtotal Neto</th>}
+                {showDetailedCols && <th>Descuento Cupón</th>}
                 <th>Neto Final</th>
-                <th>IVA (19%)</th>
+                {showDetailedCols && <th>IVA (19%)</th>}
                 <th>Total General</th>
-                <th>Tipo Doc.</th>
+                {showDetailedCols && <th>Tipo Doc.</th>}
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -333,17 +338,21 @@ function ReservasManager() {
                     <td>{reserva.id}</td>
                     <td>{reserva.nombre_espacio}</td>
                     <td>{reserva.cliente_nombre}</td>
-                    <td>{reserva.cliente_email}</td>
+                    <td className="email-cell" title={reserva.cliente_email}>
+                      {reserva.cliente_email}
+                    </td>
                     <td>{formatearFecha(reserva.fecha_reserva)}</td>
                     <td>{reserva.hora_inicio.substring(0, 5)} - {reserva.hora_termino.substring(0, 5)}</td>
                     {/* Subtotal Neto */}
-                    <td>{formatearMonedaRedondeada(reserva.costo_neto_historico)}</td>
+                    {showDetailedCols && <td>{formatearMonedaRedondeada(reserva.costo_neto_historico)}</td>}
                     {/* Descuento Cupón */}
-                    <td>
-                      {parseFloat(reserva.monto_descuento_aplicado || 0) !== 0 ?
-                        formatearMonedaRedondeada(reserva.monto_descuento_aplicado) :
-                        '-'}
-                    </td>
+                    {showDetailedCols && (
+                      <td>
+                        {parseFloat(reserva.monto_descuento_aplicado || 0) !== 0 ?
+                          formatearMonedaRedondeada(reserva.monto_descuento_aplicado) :
+                          '-'}
+                      </td>
+                    )}
                     {/* Neto Final */}
                     <td>
                       {formatearMonedaRedondeada(
@@ -351,10 +360,10 @@ function ReservasManager() {
                       )}
                     </td>
                     {/* IVA (19%) */}
-                    <td>{formatearMonedaRedondeada(reserva.costo_iva_historico)}</td>
+                    {showDetailedCols && <td>{formatearMonedaRedondeada(reserva.costo_iva_historico)}</td>}
                     {/* Total General */}
                     <td>{formatearMonedaRedondeada(reserva.costo_total_historico)}</td>
-                    <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>
+                    {showDetailedCols && <td>{reserva.tipo_documento ? reserva.tipo_documento.charAt(0).toUpperCase() + reserva.tipo_documento.slice(1) : 'N/A'}</td>}
                     <td><span className={`status-badge status-${reserva.estado_reserva}`}>{reserva.estado_reserva.replace(/_/g, ' ')}</span></td>
                     <td className="actions-cell">
                       <button onClick={() => handleOpenViewModal(reserva)} className="action-button view">Ver</button>
@@ -364,7 +373,7 @@ function ReservasManager() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="12" style={{ textAlign: 'center', padding: '20px' }}>No hay reservas que coincidan con los filtros seleccionados.</td></tr>
+                <tr><td colSpan={showDetailedCols ? "14" : "10"} style={{ textAlign: 'center', padding: '20px' }}>No hay reservas que coincidan con los filtros seleccionados.</td></tr>
               )}
             </tbody>
           </table>
