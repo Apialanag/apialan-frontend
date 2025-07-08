@@ -3,18 +3,18 @@ import React, { useState } from 'react';
 import ReservasManager from '../components/ReservasManager';
 import SociosManager from '../components/SociosManager';
 import DashboardView from '../components/DashboardView';
-import CuponesManager from '../components/CuponesManager'; // Importar CuponesManager
+import CuponesManager from '../components/CuponesManager';
+import BlockedDatesManager from '../components/BlockedDatesManager'; // Importar BlockedDatesManager
 import './AdminDashboardPage.css';
 
 function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState('dashboard'); // Mantener dashboard como inicial si se prefiere
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <div className="admin-dashboard">
       <h2>Panel de Administración</h2>
       
       <div className="tabs-container">
-        {/* 3. Botón para la nueva pestaña de Estadísticas */}
         <button
           className={`tab-button ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
@@ -39,6 +39,12 @@ function AdminDashboardPage() {
         >
           Gestión de Cupones
         </button>
+        <button
+          className={`tab-button ${activeTab === 'blockedDates' ? 'active' : ''}`}
+          onClick={() => setActiveTab('blockedDates')}
+        >
+          Gestión Días Bloqueados
+        </button>
       </div>
 
       <div className="tab-content">
@@ -46,6 +52,7 @@ function AdminDashboardPage() {
         {activeTab === 'reservas' && <ReservasManager />}
         {activeTab === 'socios' && <SociosManager />}
         {activeTab === 'cupones' && <CuponesManager />}
+        {activeTab === 'blockedDates' && <BlockedDatesManager />}
       </div>
     </div>
   );

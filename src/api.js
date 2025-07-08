@@ -41,4 +41,20 @@ export const updateCupon = (id, cuponData) => {
 //   return api.get(`/cupones/${id}`);
 // };
 
+// Funciones específicas para BlockedDates
+export const getBlockedDates = () => {
+  return api.get('/blocked-dates');
+};
+
+export const addBlockedDate = (date, reason) => {
+  // Asegurarse de que la fecha se envía en formato YYYY-MM-DD
+  // El backend esperará este formato.
+  return api.post('/blocked-dates', { date, reason });
+};
+
+export const deleteBlockedDate = (dateString) => {
+  // dateString debe estar en formato YYYY-MM-DD
+  return api.delete(`/blocked-dates/${dateString}`);
+};
+
 export default api;
