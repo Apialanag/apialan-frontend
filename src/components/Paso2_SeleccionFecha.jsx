@@ -1,16 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api';
+import React, { useState, useEffect, useCallback } from 'react';
+import api, { getBlockedDates } from '../api'; // Importar getBlockedDates
 import CustomCalendar from './CustomCalendar';
 import './Paso2_SeleccionFecha.css';
-import { parse as parseDate, format as formatDate } from 'date-fns'; // Renamed to avoid conflict
+import { parse as parseDate, format as formatDate, parseISO, isSameDay } from 'date-fns'; // Añadir isSameDay
 
-function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSeleccionada, nextStep, prevStep }) {
+function Paso2_SeleccionFecha({ salonSeleccionado, rangoSeleccionado, setRangoSeleccionado, nextStep, prevStep }) {
   const [disponibilidadMensual, setDisponibilidadMensual] = useState({});
-  const [mesCalendario, setMesCalendario] = useState(fechaSeleccionada || new Date());
+  const [blockedDates, setBlockedDates] = useState([]); // Estado para fechas bloqueadas
+  // mesCalendario se basará en startDate del rango, o la fecha actual si no hay startDate
+  const [mesCalendario, setMesCalendario] = useState(rangoSeleccionado?.startDate || new Date());
+  const [isLoadingBlockedDates, setIsLoadingBlockedDates] = useState(false);
+  const [currentSelectionMode, setCurrentSelectionMode] = useState('single'); // 'single', 'range', 'multiple-discrete'
 
-  // Updated to use date-fns
   const formatearFechaParaAPI = (date) => date ? formatDate(date, 'yyyy-MM-dd') : '';
+
+  const fetchBlockedDatesForCalendar = useCallback(async () => {
+    setIsLoadingBlockedDates(true);
+    try {
+      const response = await getBlockedDates();
+      // Almacenamos las fechas como strings 'yyyy-MM-dd' que es lo que CustomCalendar espera
+      setBlockedDates(response.data.map(bd => formatDate(parseISO(bd.date), 'yyyy-MM-dd')));
+    } catch (error) {
+      console.error("Error fetching blocked dates for calendar:", error);
+      // Manejar el error como sea apropiado, quizás mostrar un mensaje al usuario
+    } finally {
+      setIsLoadingBlockedDates(false);
+    }
+  }, []);
   
+  useEffect(() => {
+    fetchBlockedDatesForCalendar(); // Cargar fechas bloqueadas al montar o cambiar dependencias
+  }, [fetchBlockedDatesForCalendar]);
+
   useEffect(() => {
     if (salonSeleccionado) {
       const anio = mesCalendario.getFullYear();
@@ -64,28 +85,113 @@ function Paso2_SeleccionFecha({ salonSeleccionado, fechaSeleccionada, setFechaSe
     }
   }, [salonSeleccionado, mesCalendario]);
 
+  // Ajustar mes del calendario si cambia la fecha de inicio de la selección
+  useEffect(() => {
+    if (rangoSeleccionado?.startDate && mesCalendario.getMonth() !== rangoSeleccionado.startDate.getMonth()) {
+      setMesCalendario(new Date(rangoSeleccionado.startDate));
+    } else if (!rangoSeleccionado?.startDate && mesCalendario.getMonth() !== new Date().getMonth()) {
+      setMesCalendario(new Date()); // Volver al mes actual si no hay selección
+    }
+  }, [rangoSeleccionado?.startDate, mesCalendario]);
+
+  // Ajustar mes del calendario si cambia la fecha de inicio de la selección
+  useEffect(() => {
+    if (rangoSeleccionado?.startDate && mesCalendario.getMonth() !== rangoSeleccionado.startDate.getMonth()) {
+      setMesCalendario(new Date(rangoSeleccionado.startDate));
+    } else if (!rangoSeleccionado?.startDate && mesCalendario.getMonth() !== new Date().getMonth()) {
+      setMesCalendario(new Date()); // Volver al mes actual si no hay selección
+    }
+  }, [rangoSeleccionado?.startDate, mesCalendario]);
+
+  const handleModeChange = (mode) => {
+    setCurrentSelectionMode(mode);
+    setRangoSeleccionado(null); // Resetear selección al cambiar de modo
+    // TODO: Si se usa un estado separado para 'multiple-discrete', resetearlo también.
+  };
+
   return (
     <div className="paso-container">
-      <h2>Paso 2: Seleccione una Fecha</h2>
+      <h2>Paso 2: {currentSelectionMode === 'single' ? 'Seleccione una Fecha' : currentSelectionMode === 'range' ? 'Seleccione un Rango de Fechas' : 'Seleccione Días'}</h2>
+
+      <div className="modo-seleccion-container">
+        <button
+          onClick={() => handleModeChange('single')}
+          className={currentSelectionMode === 'single' ? 'active' : ''}
+        >
+          Un solo día
+        </button>
+        <button
+          onClick={() => handleModeChange('range')}
+          className={currentSelectionMode === 'range' ? 'active' : ''}
+        >
+          Rango de días
+        </button>
+        <button
+          onClick={() => handleModeChange('multiple-discrete')}
+          className={currentSelectionMode === 'multiple-discrete' ? 'active' : ''}
+          // Habilitar cuando CustomCalendar esté listo para multiple-discrete
+        >
+          Varios días (no consecutivos)
+        </button>
+      </div>
+
       <div className="calendario-wrapper">
         <CustomCalendar 
-          selectedDate={fechaSeleccionada}
-          onDateSelect={setFechaSeleccionada}
+          selection={rangoSeleccionado} // rangoSeleccionado ahora es { startDate, endDate, discreteDates }
+          onSelectionChange={setRangoSeleccionado} // setRangoSeleccionado recibe el objeto completo
           onMonthChange={setMesCalendario}
           disponibilidadMensual={disponibilidadMensual}
           formatearFechaParaAPI={formatearFechaParaAPI}
+          blockedDatesList={blockedDates}
+          selectionMode={currentSelectionMode}
         />
       </div>
       
-      {fechaSeleccionada && (
+      {isLoadingBlockedDates && <p>Cargando información de disponibilidad...</p>}
+
+      {((currentSelectionMode === 'single' || currentSelectionMode === 'range') && rangoSeleccionado?.startDate) ||
+       (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0) ? (
         <div className="fecha-seleccionada-info">
-          Fecha seleccionada: <strong>{fechaSeleccionada.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
+          {currentSelectionMode === 'single' && rangoSeleccionado?.startDate &&
+            `Fecha seleccionada: <strong>${rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>`
+          }
+          {currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate && !isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate) &&
+            <>
+              Fecha de inicio: <strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
+              <br />
+              Fecha de fin: <strong>{rangoSeleccionado.endDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
+            </>
+          }
+          {currentSelectionMode === 'range' && rangoSeleccionado?.startDate && (!rangoSeleccionado?.endDate || isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) &&
+            `Día de inicio seleccionado: <strong>${rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong> (Seleccione día de fin)`
+          }
+          {currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0 &&
+            <>
+              Días seleccionados:
+              <ul>
+                {rangoSeleccionado.discreteDates.map(date => (
+                  <li key={date.toISOString()}><strong>{date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}</strong></li>
+                ))}
+              </ul>
+            </>
+          }
         </div>
-      )}
+      ) : null}
 
       <div className="navegacion-pasos">
         <button onClick={prevStep} className="boton-volver">← Volver</button>
-        <button onClick={nextStep} disabled={!fechaSeleccionada} className="boton-principal">Continuar →</button>
+        <button
+          onClick={nextStep}
+          disabled={
+            isLoadingBlockedDates ||
+            (currentSelectionMode === 'single' && !rangoSeleccionado?.startDate) ||
+            (currentSelectionMode === 'range' && (!rangoSeleccionado?.startDate || !rangoSeleccionado?.endDate || isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate))) || // Para rango, se requieren inicio y fin distintos
+            (currentSelectionMode === 'multiple-discrete' && (!rangoSeleccionado?.discreteDates || rangoSeleccionado.discreteDates.length === 0))
+          }
+          className="boton-principal"
+        >
+          Continuar →
+        </button>
       </div>
     </div>
   );

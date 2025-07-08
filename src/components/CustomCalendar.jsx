@@ -2,25 +2,54 @@
 import React, { useState, useEffect } from 'react';
 import './CustomCalendar.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { isSameDay, isBefore, isAfter } from 'date-fns'; // Necesitaremos utilidades de fecha
 
 function CustomCalendar({ 
-  selectedDate, 
-  onDateSelect, 
+  selection, // Objeto: { startDate: Date|null, endDate: Date|null }
+  onSelectionChange, // Función: (newSelection) => void
   onMonthChange,
   disponibilidadMensual,
-  formatearFechaParaAPI 
+  formatearFechaParaAPI,
+  blockedDatesList,
+  selectionMode = 'single' // Nueva prop con valor por defecto
 }) {
-  const [displayDate, setDisplayDate] = useState(selectedDate || new Date());
+  // currentSelection interno para manejar el proceso de selección
+  const initialSelection = selection || { startDate: null, endDate: null, discreteDates: [] };
+  const [currentSelection, setCurrentSelection] = useState(initialSelection);
+  const [hoveredDate, setHoveredDate] = useState(null); // Para visualización de rango mientras se selecciona
+
+  // displayDate se basa en la fecha de inicio de la selección o la fecha actual
+  const [displayDate, setDisplayDate] = useState(initialSelection?.startDate || initialSelection?.discreteDates?.[0] || new Date());
 
   useEffect(() => {
-    if (selectedDate) {
-      if (selectedDate.getMonth() !== displayDate.getMonth() || selectedDate.getFullYear() !== displayDate.getFullYear()) {
-        setDisplayDate(new Date(selectedDate));
+    // Sincronizar el estado interno si la prop 'selection' cambia desde fuera
+    // Asegurar que discreteDates siempre sea un array
+    const newSelection = selection || { startDate: null, endDate: null, discreteDates: [] };
+    if (!Array.isArray(newSelection.discreteDates)) {
+      newSelection.discreteDates = [];
+    }
+    setCurrentSelection(newSelection);
+  }, [selection]);
+
+  useEffect(() => {
+    // Actualizar displayDate si el mes de startDate (o la primera fecha de discreteDates) cambia
+    let DDate = null;
+    if (selectionMode === 'multiple-discrete' && currentSelection?.discreteDates?.length > 0) {
+        DDate = currentSelection.discreteDates[0];
+    } else if (currentSelection?.startDate) {
+        DDate = currentSelection.startDate;
+    }
+
+    if (DDate) {
+      if (DDate.getMonth() !== displayDate.getMonth() ||
+          DDate.getFullYear() !== displayDate.getFullYear()) {
+        setDisplayDate(new Date(DDate));
       }
     } else if (displayDate.getMonth() !== new Date().getMonth()) {
-        setDisplayDate(new Date());
+      // Si no hay selección, volver al mes actual si displayDate se quedó en otro mes
+      setDisplayDate(new Date());
     }
-  }, [selectedDate]);
+  }, [currentSelection, selectionMode, displayDate]);
 
   const daysOfWeek = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
   const monthNames = [
@@ -57,22 +86,65 @@ function CustomCalendar({
     let isDisabled = false;
 
     const dayOfWeek = currentDate.getDay();
+    // Deshabilitar fechas pasadas y fines de semana (Domingo=0, Sábado=6)
     if (currentDate < today || dayOfWeek === 0 || dayOfWeek === 6) {
       dayClass += ' disabled';
       isDisabled = true;
     }
 
-    const infoDia = disponibilidadMensual[dateString];
-    if (!isDisabled && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
-      dayClass += ' unavailable';
+    // Comprobar si la fecha está en la lista de blockedDatesList
+    // Asegurarse de que blockedDatesList es un array antes de usar .includes()
+    if (!isDisabled && Array.isArray(blockedDatesList) && blockedDatesList.includes(dateString)) {
+      dayClass += ' blocked-by-admin'; // Clase específica para días bloqueados por admin
       isDisabled = true;
     }
-    
-    if (selectedDate && formatearFechaParaAPI(selectedDate) === dateString) {
-      dayClass += ' selected';
+
+    // Comprobar disponibilidad por ocupación (si no está ya deshabilitado por otra razón)
+    const infoDia = disponibilidadMensual ? disponibilidadMensual[dateString] : null;
+    if (!isDisabled && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
+      dayClass += ' unavailable'; // Día completo por reservas normales
+      isDisabled = true;
     }
-    
-    if (formatearFechaParaAPI(today) === dateString && !dayClass.includes('selected')) {
+
+    // Lógica de clases para selección
+    const { startDate, endDate } = currentSelection;
+
+    if (selectionMode === 'single') {
+      if (startDate && isSameDay(currentDate, startDate)) {
+        dayClass += ' selected';
+      }
+    } else if (selectionMode === 'range') {
+      if (startDate && isSameDay(currentDate, startDate)) {
+        dayClass += ' selected start-date';
+      }
+      if (endDate && isSameDay(currentDate, endDate)) {
+        dayClass += ' selected end-date';
+      }
+      if (startDate && endDate && isAfter(currentDate, startDate) && isBefore(currentDate, endDate)) {
+        dayClass += ' in-range';
+      }
+      // Visualización de pre-selección con hover para rango
+      if (startDate && !endDate && hoveredDate && isAfter(hoveredDate, startDate) &&
+          (isSameDay(currentDate, hoveredDate) || (isAfter(currentDate, startDate) && isBefore(currentDate, hoveredDate)))) {
+        if (!isDisabled) dayClass += ' in-hover-range';
+      }
+       // Caso especial hover para seleccionar un solo día en modo rango (hover sobre el mismo start date)
+      if (startDate && !endDate && hoveredDate && isSameDay(hoveredDate, startDate) && isSameDay(currentDate, startDate)) {
+        if (!isDisabled && !dayClass.includes('in-hover-range')) dayClass += ' in-hover-range';
+      }
+    } else if (selectionMode === 'multiple-discrete') {
+      const { discreteDates = [] } = currentSelection || { discreteDates: [] };
+      if (discreteDates.some(d => isSameDay(d, currentDate))) {
+        dayClass += ' selected';
+      }
+    }
+
+    // Clase 'today' si no está ya seleccionada o es parte de un rango visualmente activo de otra manera
+    // Para modo 'multiple-discrete', 'selected' ya cubre el caso.
+    if (formatearFechaParaAPI(today) === dateString &&
+        !dayClass.includes('selected') &&
+        !(selectionMode === 'range' && (dayClass.includes('start-date') || dayClass.includes('in-range') || dayClass.includes('in-hover-range')))
+      ) {
       dayClass += ' today';
     }
     
@@ -80,13 +152,84 @@ function CustomCalendar({
       <button 
         key={day} 
         className={dayClass}
-        onClick={() => !isDisabled && onDateSelect(currentDate)}
+        onClick={() => !isDisabled && handleDayClick(currentDate)}
+        onMouseEnter={() => !isDisabled && setHoveredDate(currentDate)}
+        onMouseLeave={() => setHoveredDate(null)}
         disabled={isDisabled}
       >
         {day}
       </button>
     );
   }
+
+  const handleDayClick = (date) => {
+    if (selectionMode === 'single') {
+      const newSelection = { startDate: date, endDate: date };
+      setCurrentSelection(newSelection);
+      onSelectionChange(newSelection);
+    } else if (selectionMode === 'range') {
+      const { startDate, endDate } = currentSelection || {};
+
+      if (!startDate || (startDate && endDate)) {
+        setCurrentSelection({ startDate: date, endDate: null, discreteDates: [] });
+        onSelectionChange({ startDate: date, endDate: null, discreteDates: [] });
+      } else if (startDate && !endDate) {
+        if (isBefore(date, startDate) || isSameDay(date, startDate)) {
+          setCurrentSelection({ startDate: date, endDate: null, discreteDates: [] });
+          onSelectionChange({ startDate: date, endDate: null, discreteDates: [] });
+        } else {
+          // Nueva fecha es posterior a startDate, se completa el rango (solo para modo 'range').
+          // Validar que no haya días deshabilitados en el medio
+          let tempDate = new Date(startDate);
+          let rangeIsValid = true;
+          // Avanzar día por día desde el día DESPUÉS de startDate hasta el día ANTES de 'date' (la nueva endDate)
+          tempDate.setDate(tempDate.getDate() + 1);
+          while (isBefore(tempDate, date)) {
+            const tempDateString = formatearFechaParaAPI(tempDate);
+            const dayOfWeek = tempDate.getDay();
+            let dayIsDisabled = tempDate < today || dayOfWeek === 0 || dayOfWeek === 6;
+
+            if (!dayIsDisabled && Array.isArray(blockedDatesList) && blockedDatesList.includes(tempDateString)) {
+              dayIsDisabled = true;
+            }
+            const infoDia = disponibilidadMensual ? disponibilidadMensual[tempDateString] : null;
+            if (!dayIsDisabled && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
+              dayIsDisabled = true;
+            }
+            if (dayIsDisabled) {
+              rangeIsValid = false;
+              break;
+            }
+            tempDate.setDate(tempDate.getDate() + 1);
+          }
+
+          if (rangeIsValid) {
+            setCurrentSelection({ ...currentSelection, endDate: date });
+            onSelectionChange({ ...currentSelection, endDate: date });
+          } else {
+            // Si el rango no es válido (contiene días deshabilitados), reiniciar la selección con la fecha clickeada como nueva startDate.
+            setCurrentSelection({ startDate: date, endDate: null });
+            onSelectionChange({ startDate: date, endDate: null });
+            alert("El rango seleccionado contiene días no disponibles. Por favor, elija otro rango.");
+          }
+        }
+      }
+    } else if (selectionMode === 'multiple-discrete') {
+      const { discreteDates = [] } = currentSelection || { discreteDates: [] }; // Inicializar si currentSelection es null
+      const dateIndex = discreteDates.findIndex(d => isSameDay(d, date));
+      let newDiscreteDates;
+
+      if (dateIndex > -1) { // Ya seleccionada, quitarla
+        newDiscreteDates = [...discreteDates.slice(0, dateIndex), ...discreteDates.slice(dateIndex + 1)];
+      } else { // No seleccionada, añadirla
+        newDiscreteDates = [...discreteDates, date].sort((a,b) => a - b); // Mantener ordenado
+      }
+      const newSelection = { startDate: null, endDate: null, discreteDates: newDiscreteDates };
+      setCurrentSelection(newSelection);
+      onSelectionChange(newSelection);
+    }
+    setHoveredDate(null); // Limpiar hoveredDate después del click
+  };
 
   const handlePrevMonth = () => {
     const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1);

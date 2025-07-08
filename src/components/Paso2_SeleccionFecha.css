@@ -9,12 +9,46 @@
 }
 .paso-container h2 {
   font-size: 1.8em;
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reducido para dar espacio a los botones de modo */
 }
 
+.modo-seleccion-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modo-seleccion-container button {
+  padding: 8px 15px;
+  border: 1px solid var(--color-indigo-300);
+  background-color: var(--color-white);
+  color: var(--color-indigo-600);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  font-size: 0.9em;
+}
+
+.modo-seleccion-container button:hover:not(:disabled) {
+  background-color: var(--color-indigo-50);
+}
+
+.modo-seleccion-container button.active {
+  background-color: var(--color-indigo-600);
+  color: var(--color-white);
+  border-color: var(--color-indigo-600);
+}
+
+.modo-seleccion-container button:disabled {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-400);
+  border-color: var(--color-gray-300);
+  cursor: not-allowed;
+}
+
+
 .calendario-wrapper {
-  /* *** CORRECCIÓN AQUÍ *** */
-  /* Usaremos flexbox para centrar perfectamente el calendario */
   display: flex;
   justify-content: center;
   margin-top: 20px;
@@ -68,4 +102,3 @@
 .boton-volver:hover {
   text-decoration: underline;
 }
-
