@@ -308,7 +308,9 @@ function Paso4_DatosYResumen(props) {
     }
 
     // Se podría dejar este log si aún se está depurando la interacción con el backend.
-    console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva);
+    // console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva); // Comentado el log anterior
+    console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
+
 
     try {
       const responseReserva = await api.post('/reservas', datosReserva);
