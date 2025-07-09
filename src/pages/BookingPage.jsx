@@ -132,7 +132,7 @@ function BookingPage() {
           total: totalCalculado,
         };
         // console.log('[BookingPage] setDesglosePrecio con:', nuevoDesglose);
-        setDuracionCalculada(duracion);
+        setDuracionCalculada(duracionPorDia); // CORRECCIÓN AQUÍ
         setDesglosePrecio(nuevoDesglose);
 
       } else { // Duración inválida
