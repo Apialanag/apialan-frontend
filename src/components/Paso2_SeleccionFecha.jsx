@@ -4,13 +4,21 @@ import CustomCalendar from './CustomCalendar';
 import './Paso2_SeleccionFecha.css';
 import { parse as parseDate, format as formatDate, parseISO, isSameDay } from 'date-fns'; // Añadir isSameDay
 
-function Paso2_SeleccionFecha({ salonSeleccionado, rangoSeleccionado, setRangoSeleccionado, nextStep, prevStep }) {
+function Paso2_SeleccionFecha({
+  salonSeleccionado,
+  rangoSeleccionado,
+  setRangoSeleccionado,
+  currentSelectionMode, // Recibir como prop
+  setCurrentSelectionMode, // Recibir como prop
+  nextStep,
+  prevStep
+}) {
   const [disponibilidadMensual, setDisponibilidadMensual] = useState({});
   const [blockedDates, setBlockedDates] = useState([]); // Estado para fechas bloqueadas
-  // mesCalendario se basará en startDate del rango, o la fecha actual si no hay startDate
   const [mesCalendario, setMesCalendario] = useState(rangoSeleccionado?.startDate || new Date());
   const [isLoadingBlockedDates, setIsLoadingBlockedDates] = useState(false);
-  const [currentSelectionMode, setCurrentSelectionMode] = useState('single'); // 'single', 'range', 'multiple-discrete'
+  // EL ESTADO LOCAL currentSelectionMode SE ELIMINA. Se usarán las props.
+  // const [currentSelectionMode, setCurrentSelectionMode] = useState('single');
 
   const formatearFechaParaAPI = (date) => date ? formatDate(date, 'yyyy-MM-dd') : '';
 
