@@ -1,6 +1,6 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
-import { differenceInCalendarDays, isAfter } from 'date-fns'; // Importar para cálculo de numDias
+import { differenceInCalendarDays, isAfter, isSameDay } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
 import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
@@ -73,14 +73,52 @@ function BookingPage() {
   };
 
   // Calcular numDias aquí para que esté disponible en el scope de renderStep y useEffect de precios
-  let numDias = 1;
-  if (rangoSeleccionado && currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
-    numDias = differenceInCalendarDays(rangoSeleccionado.endDate, rangoSeleccionado.startDate) + 1;
-  } else if (rangoSeleccionado && currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
-    numDias = rangoSeleccionado.discreteDates.length;
-  } else if (rangoSeleccionado?.startDate) { // Cubre 'single' o rango de un día si startDate está definido
-    numDias = 1;
+  let numDias = 0; // Iniciar en 0, se calculará correctamente.
+  if (rangoSeleccionado) {
+    if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
+      const dayOfWeek = rangoSeleccionado.startDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // No contar si es finde (aunque no debería poder seleccionarse)
+        numDias = 1;
+      }
+    } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
+      let count = 0;
+      let currentDateIter = new Date(rangoSeleccionado.startDate);
+      while (currentDateIter <= rangoSeleccionado.endDate) {
+        const dayOfWeek = currentDateIter.getDay(); // 0 (Dom) a 6 (Sáb)
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Excluir Domingo y Sábado
+          count++;
+        }
+        currentDateIter.setDate(currentDateIter.getDate() + 1);
+      }
+      numDias = count;
+    } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
+      // Rango de un solo día
+      const dayOfWeek = rangoSeleccionado.startDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        numDias = 1;
+      }
+    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
+      // Para multiple-discrete, ya se asume que CustomCalendar no permite seleccionar fines de semana.
+      numDias = rangoSeleccionado.discreteDates.length;
+    }
   }
+  if (numDias === 0 && rangoSeleccionado?.startDate) {
+    // Fallback: si después de los cálculos numDias es 0 pero hay alguna fecha de inicio,
+    // es probable que sea una selección de un solo día que es fin de semana (no debería ocurrir)
+    // o un rango inválido. Para evitar división por cero o precio cero incorrecto,
+    // podría ser mejor dejarlo en 0 y que el precio sea 0, o forzar a 1 si hay startDate.
+    // Por seguridad en el cálculo de precio, si hay startDate, asumimos al menos 1 día (aunque no sea facturable).
+    // La validación de si la selección es facturable es más compleja.
+    // Por ahora, si hay una fecha de inicio, numDias será al menos 1 para evitar errores de cálculo,
+    // aunque el precio de un día no facturable sería 0 si el salón no tiene precio para ese día.
+    // La lógica actual de precio no distingue días no facturables.
+    // Esto es un parche temporal para el cálculo de numDias.
+      const startDayOfWeek = rangoSeleccionado.startDate.getDay();
+      if (startDayOfWeek !== 0 && startDayOfWeek !== 6) numDias = 1; // Solo si el primer día es hábil.
+      else numDias = 0; // Si el único día es finde, 0 días facturables.
+  }
+  // Asegurar que numDias no sea 0 si se va a proceder con un cálculo, para evitar división por cero si se usara numDias en denominador en otro lado.
+  // Sin embargo, para multiplicación está bien si es 0.
 
 
   useEffect(() => {
