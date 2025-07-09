@@ -20,24 +20,28 @@
 }
 
 .modo-seleccion-container button {
-  padding: 8px 15px;
-  border: 1px solid var(--color-indigo-300);
-  background-color: var(--color-white);
+  padding: 10px 18px; /* Aumentar padding para mejor apariencia */
+  border: 1px solid var(--color-indigo-500); /* Borde más oscuro para inactivos */
+  background-color: transparent; /* Fondo transparente para inactivos */
   color: var(--color-indigo-600);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg); /* Más redondeado */
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  font-size: 0.9em;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  font-size: 0.95em; /* Ligeramente más grande */
+  font-weight: 500; /* Un poco más de peso */
+  line-height: 1; /* Para asegurar que el texto no cause saltos de altura */
 }
 
-.modo-seleccion-container button:hover:not(:disabled) {
+.modo-seleccion-container button:hover:not(:disabled):not(.active) { /* Hover solo para inactivos */
   background-color: var(--color-indigo-50);
+  border-color: var(--color-indigo-600); /* Borde más oscuro en hover */
 }
 
 .modo-seleccion-container button.active {
   background-color: var(--color-indigo-600);
   color: var(--color-white);
-  border-color: var(--color-indigo-600);
+  border-color: var(--color-indigo-600); /* Asegurar que el borde coincida */
+  font-weight: 600; /* Más peso para el activo */
 }
 
 .modo-seleccion-container button:disabled {
