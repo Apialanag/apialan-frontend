@@ -93,8 +93,7 @@ function BookingPage() {
         const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
 
         // El neto original es por la duración total de todos los días.
-        // TEMPORALMENTE: Se calcula como si fuera un solo día hasta que se implemente bien el desglose multi-día
-        const netoOriginalCalculadoParaCupon = duracionPorDia * precioNetoHora; // * numDias; // <-- Multiplicar por numDias cuando se ajuste el desglose
+        const netoOriginalCalculadoParaCupon = duracionPorDia * precioNetoHora * numDias;
 
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
@@ -144,7 +143,8 @@ function BookingPage() {
       setDuracionCalculada(0);
       setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, setCuponAplicado, setErrorCupon]);
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, setCuponAplicado, setErrorCupon]);
+  // Añadidas rangoSeleccionado y currentSelectionMode a las dependencias
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio);
@@ -264,8 +264,9 @@ function BookingPage() {
         return (
           <Paso4_DatosYResumen
             salonSeleccionado={salonSeleccionado}
-            fechaSeleccionada={rangoSeleccionado?.startDate} // Temporal: Pasar solo startDate como 'fechaSeleccionada'
-            // Se necesitará pasar rangoSeleccionado y currentSelectionMode a Paso4 para lógica de múltiples días
+            rangoSeleccionado={rangoSeleccionado} // Pasar el objeto completo
+            currentSelectionMode={currentSelectionMode} // Pasar el modo
+            numDias={numDias} // Pasar el número de días calculado
             horaInicio={horaInicio}
             horaTermino={horaTermino}
             desglosePrecio={desglosePrecio}

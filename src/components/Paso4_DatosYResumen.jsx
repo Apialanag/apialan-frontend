@@ -6,10 +6,13 @@ function Paso4_DatosYResumen(props) {
   // Desestructurar todas las props necesarias del objeto props
   const {
     salonSeleccionado,
-    fechaSeleccionada,
+    // fechaSeleccionada, // Ya no se usa directamente, se deriva de rangoSeleccionado
+    rangoSeleccionado, // Nueva prop
+    currentSelectionMode, // Nueva prop
+    numDias, // Nueva prop
     horaInicio,
     horaTermino,
-    duracionCalculada,
+    duracionCalculada, // Sigue siendo duración por día
     desglosePrecio,
     onReservationSuccess,
     prevStep,
@@ -255,15 +258,28 @@ function Paso4_DatosYResumen(props) {
     datosReserva.cliente_nombre = clienteNombre;
     datosReserva.cliente_email = clienteEmail;
     datosReserva.cliente_telefono = clienteTelefono;
-    // console.log('[Paso4] datosReserva después de datos cliente:', datosReserva);
 
-    datosReserva.fecha_reserva = formatearFechaParaAPI(fechaSeleccionada);
+    // Asignar fechas según el modo de selección
+    if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
+      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
+      // datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate); // Opcional si backend lo asume
+    } else if (currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate) {
+      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
+      datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.endDate);
+    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
+      // Para múltiples días discretos, la especificación para Jules sugiere enviar un array `dias_discretos`.
+      // Si el backend espera una reserva por cada día, esta parte necesitaría un bucle y múltiples llamadas a la API,
+      // o el backend debe manejar la creación de múltiples reservas a partir de este array.
+      // Por ahora, enviaremos el array `dias_discretos` y la primera fecha como `fecha_reserva` principal si es necesario.
+      datosReserva.dias_discretos = rangoSeleccionado.discreteDates.map(date => formatearFechaParaAPI(date));
+      if (rangoSeleccionado.discreteDates.length > 0) {
+         datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.discreteDates[0]); // Backend podría necesitar una fecha principal
+      }
+    }
+
     datosReserva.hora_inicio = horaInicio;
     datosReserva.hora_termino = horaTermino;
-    // console.log('[Paso4] datosReserva después de fecha y hora:', datosReserva, 'fechaSeleccionada:', fechaSeleccionada);
-
-    datosReserva.costo_total = desglosePrecio?.total;
-    // console.log('[Paso4] datosReserva después de costo_total:', datosReserva, 'desglosePrecio:', desglosePrecio);
+    datosReserva.costo_total = desglosePrecio?.total; // Esto ya está calculado con numDias en BookingPage
 
     datosReserva.notas_adicionales = notasAdicionales;
     datosReserva.tipo_documento = tipoDocumento;
@@ -487,9 +503,39 @@ function Paso4_DatosYResumen(props) {
         <div className="panel-resumen">
           <h3>Resumen de tu Reserva</h3>
           <div className="resumen-fila"><span>Espacio:</span><strong>{salonSeleccionado?.nombre}</strong></div>
-          <div className="resumen-fila"><span>Fecha:</span><strong>{fechaSeleccionada?.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</strong></div>
+
+          {/* Lógica para mostrar Fecha(s) */}
+          {currentSelectionMode === 'single' && rangoSeleccionado?.startDate && (
+            <div className="resumen-fila"><span>Fecha:</span><strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+          )}
+          {currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate && (
+            <>
+              <div className="resumen-fila"><span>Desde:</span><strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+              <div className="resumen-fila"><span>Hasta:</span><strong>{rangoSeleccionado.endDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+            </>
+          )}
+          {currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0 && (
+            <div className="resumen-fila">
+              <span>Días:</span>
+              <ul className="resumen-lista-dias">
+                {rangoSeleccionado.discreteDates.map(date => (
+                  <li key={date.toISOString()}><strong>{date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}</strong></li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="resumen-fila"><span>Horario:</span><strong>{horaInicio} - {horaTermino}</strong></div>
-          <div className="resumen-fila"><span>Duración:</span><strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></div>
+
+          {/* Lógica para mostrar Duración */}
+          {numDias > 1 ? (
+            <>
+              <div className="resumen-fila"><span>Duración por día:</span><strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></div>
+              <div className="resumen-fila"><span>Número de días:</span><strong>{numDias}</strong></div>
+            </>
+          ) : (
+            <div className="resumen-fila"><span>Duración:</span><strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></div>
+          )}
 
           <div className="resumen-desglose-precio">
             <div className="resumen-fila">
