@@ -186,17 +186,29 @@ function CustomCalendar({
           tempDate.setDate(tempDate.getDate() + 1);
           while (isBefore(tempDate, date)) {
             const tempDateString = formatearFechaParaAPI(tempDate);
-            const dayOfWeek = tempDate.getDay();
-            let dayIsDisabled = tempDate < today || dayOfWeek === 0 || dayOfWeek === 6;
+            // const dayOfWeek = tempDate.getDay(); // No necesitamos dayOfWeek para esta validación específica.
 
-            if (!dayIsDisabled && Array.isArray(blockedDatesList) && blockedDatesList.includes(tempDateString)) {
-              dayIsDisabled = true;
+            // Un día intermedio en un rango es inválido SI Y SOLO SI:
+            // 1. Es una fecha pasada.
+            // 2. Está en la lista de blockedDatesList (bloqueado por admin).
+            // 3. Está completamente ocupado según disponibilidadMensual.
+            // NO consideramos si es fin de semana para la validez del *rango intermedio*.
+            let dayInMiddleIsInvalid = false;
+
+            if (tempDate < today) {
+              dayInMiddleIsInvalid = true;
             }
+
+            if (!dayInMiddleIsInvalid && Array.isArray(blockedDatesList) && blockedDatesList.includes(tempDateString)) {
+              dayInMiddleIsInvalid = true;
+            }
+
             const infoDia = disponibilidadMensual ? disponibilidadMensual[tempDateString] : null;
-            if (!dayIsDisabled && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
-              dayIsDisabled = true;
+            if (!dayInMiddleIsInvalid && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
+              dayInMiddleIsInvalid = true;
             }
-            if (dayIsDisabled) {
+
+            if (dayInMiddleIsInvalid) {
               rangeIsValid = false;
               break;
             }

@@ -32,8 +32,10 @@ function Paso3_SeleccionHorario({
   const BUFFER_SLOTS = 1;
 
   useEffect(() => {
+    console.log('[Paso3] useEffect - Props recibidas: currentSelectionMode:', currentSelectionMode, 'rangoSeleccionado:', rangoSeleccionado);
+
     let fechasAProcesar = [];
-    let esMultiplesDias = false; // Para el mensaje al usuario
+    let esMultiplesDias = false;
 
     if (salonSeleccionado && rangoSeleccionado) {
       if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
@@ -44,18 +46,22 @@ function Paso3_SeleccionHorario({
           fechasAProcesar = eachDayOfInterval({ start: rangoSeleccionado.startDate, end: rangoSeleccionado.endDate });
           esMultiplesDias = fechasAProcesar.length > 1;
         } else if (isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
-          // Considerar rango de un solo día como 'single' en términos de procesamiento aquí
           fechasAProcesar = [rangoSeleccionado.startDate];
           esMultiplesDias = false;
         } else {
-          console.warn("Paso3: En modo rango, fecha de fin es anterior a fecha de inicio.");
-          fechasAProcesar = []; // No procesar si el rango es inválido
+          console.warn("[Paso3] En modo rango, fecha de fin es anterior a fecha de inicio.");
+          fechasAProcesar = [];
         }
-      } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
-        fechasAProcesar = [...rangoSeleccionado.discreteDates].sort((a,b) => a - b); // Usar copia ordenada
+      } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && Array.isArray(rangoSeleccionado.discreteDates) && rangoSeleccionado.discreteDates.length > 0) {
+        fechasAProcesar = [...rangoSeleccionado.discreteDates].sort((a,b) => a - b);
         esMultiplesDias = fechasAProcesar.length > 1;
+      } else if (currentSelectionMode === 'multiple-discrete' && (!rangoSeleccionado.discreteDates || rangoSeleccionado.discreteDates.length === 0)) {
+        console.log('[Paso3] Modo multiple-discrete pero discreteDates está vacío o no es un array.');
+        fechasAProcesar = [];
       }
     }
+
+    console.log('[Paso3] Fechas a procesar:', fechasAProcesar);
 
     if (salonSeleccionado && fechasAProcesar.length > 0) {
       const fetchDisponibilidadParaFechas = async () => {
