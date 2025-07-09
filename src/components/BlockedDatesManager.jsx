@@ -35,8 +35,15 @@ function BlockedDatesManager() {
 
   const formatearFechaParaAPI = (date) => date ? formatDate(date, 'yyyy-MM-dd') : '';
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
+  // Nueva función para manejar el objeto de selección del CustomCalendar
+  const handleCalendarSelection = (selectionObject) => {
+    // Para bloquear días, solo nos interesa startDate, y como el modo será 'single',
+    // startDate y endDate serán la misma.
+    if (selectionObject && selectionObject.startDate) {
+      setSelectedDate(selectionObject.startDate);
+    } else {
+      setSelectedDate(null); // Si por alguna razón no hay startDate (ej. al deseleccionar)
+    }
   };
 
   const handleBlockDate = async () => {
@@ -96,16 +103,14 @@ function BlockedDatesManager() {
       <div className="block-date-form">
         <div className="calendar-section">
           <CustomCalendar
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            onMonthChange={setCalendarMonth} // Para que el calendario pueda cambiar de mes
-            // Pasaremos las fechas bloqueadas para que el calendario pueda, opcionalmente, marcarlas.
-            // Necesitaremos modificar CustomCalendar para usar esta prop.
+            // Para modo 'single', selection espera { startDate, endDate } donde ambos son la misma fecha
+            selection={selectedDate ? { startDate: selectedDate, endDate: selectedDate, discreteDates: [] } : null}
+            onSelectionChange={handleCalendarSelection}
+            onMonthChange={setCalendarMonth}
             blockedDatesList={blockedDates.map(bd => bd.date)}
             formatearFechaParaAPI={formatearFechaParaAPI}
-            // Pasamos una disponibilidad mensual vacía o nula ya que este calendario
-            // no se usa para mostrar ocupación, solo para seleccionar fechas.
-            disponibilidadMensual={{}}
+            disponibilidadMensual={{}} // No se usa para mostrar ocupación, solo para seleccionar
+            selectionMode='single' // Especificar el modo de selección
           />
         </div>
         <div className="form-section">
