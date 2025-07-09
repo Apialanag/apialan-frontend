@@ -1,5 +1,6 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
+import { differenceInCalendarDays, isAfter } from 'date-fns'; // Importar para cálculo de numDias
 import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
@@ -13,16 +14,19 @@ function BookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const [salonSeleccionado, setSalonSeleccionado] = useState(null);
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
+  // Nuevo estado para la selección de fechas y modo
+  const [rangoSeleccionado, setRangoSeleccionado] = useState(null); // Será { startDate, endDate, discreteDates } o null
+  const [currentSelectionMode, setCurrentSelectionMode] = useState('single'); // 'single', 'range', 'multiple-discrete'
+  // fechaSeleccionada (estado antiguo) se elimina o se deriva de rangoSeleccionado si es necesario en otro lugar.
+  // Por ahora, lo eliminaremos y los componentes hijos usarán rangoSeleccionado.
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
   const [socioData, setSocioData] = useState(null);
   // nombreSocio se puede derivar de socioData.nombre_completo, así que no necesitamos un estado separado.
   // const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [costoCalculado, setCostoCalculado] = useState(0); // Reemplazado por desglosePrecio
   const [desglosePrecio, setDesglosePrecio] = useState({
-    netoOriginal: 0, // Neto antes de cualquier cupón, pero después de descuento de socio
+    netoOriginal: 0,
     montoDescuentoCupon: 0,
     netoConDescuento: 0, // Neto final después de cupón (sobre este se calcula el IVA)
     iva: 0,
@@ -70,13 +74,27 @@ function BookingPage() {
 
   useEffect(() => {
     // console.log('[BookingPage] useEffect triggered. Deps:', { salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado });
+    // TODO: El cálculo de precio debe ajustarse para múltiples días.
+    // Por ahora, se basa en la duración de un solo día.
+    // Se necesitará determinar el número de días seleccionados desde rangoSeleccionado y currentSelectionMode.
+    let numDias = 1;
+    if (rangoSeleccionado && currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
+      numDias = differenceInCalendarDays(rangoSeleccionado.endDate, rangoSeleccionado.startDate) + 1;
+    } else if (rangoSeleccionado && currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates) {
+      numDias = rangoSeleccionado.discreteDates.length > 0 ? rangoSeleccionado.discreteDates.length : 1;
+    }
+    // La variable numDias no se usa aun en el calculo, pero está lista para cuando se implemente.
+
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
       if (hTerminoNum > hInicioNum) {
-        const duracion = hTerminoNum - hInicioNum;
+        const duracionPorDia = hTerminoNum - hInicioNum; // Duración de la reserva en un día
         const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
-        const netoOriginalCalculadoParaCupon = duracion * precioNetoHora; // Este es el neto post-socio, base para el cupón
+
+        // El neto original es por la duración total de todos los días.
+        // TEMPORALMENTE: Se calcula como si fuera un solo día hasta que se implemente bien el desglose multi-día
+        const netoOriginalCalculadoParaCupon = duracionPorDia * precioNetoHora; // * numDias; // <-- Multiplicar por numDias cuando se ajuste el desglose
 
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
@@ -153,10 +171,11 @@ function BookingPage() {
   
   const handleSelectSalon = (salon) => {
     setSalonSeleccionado(salon);
-    setFechaSeleccionada(null);
+    setRangoSeleccionado(null); // Resetear la selección de fechas
+    setCurrentSelectionMode('single'); // Volver al modo por defecto
     setHoraInicio('');
     setHoraTermino('');
-    setCuponAplicado(null); // Resetear cupón si cambia el salón
+    setCuponAplicado(null);
     setErrorCupon('');
     setCodigoCuponInput('');
     if(salon){
@@ -168,10 +187,11 @@ function BookingPage() {
 
   const handleReservationSuccess = () => {
     setSalonSeleccionado(null);
-    setFechaSeleccionada(null);
+    setRangoSeleccionado(null);
+    setCurrentSelectionMode('single');
     setHoraInicio('');
     setHoraTermino('');
-    setCuponAplicado(null); // Limpiar cupón después de una reserva exitosa
+    setCuponAplicado(null);
     setErrorCupon('');
     setCodigoCuponInput('');
     // No limpiar socioData aquí, podría querer hacer otra reserva como socio.
@@ -217,18 +237,37 @@ function BookingPage() {
           </div>
         );
       case 2:
-        return <Paso2_SeleccionFecha salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} setFechaSeleccionada={setFechaSeleccionada} nextStep={nextStep} prevStep={() => handleSelectSalon(null)} />;
+        return <Paso2_SeleccionFecha
+                  salonSeleccionado={salonSeleccionado}
+                  rangoSeleccionado={rangoSeleccionado}
+                  setRangoSeleccionado={setRangoSeleccionado}
+                  currentSelectionMode={currentSelectionMode}
+                  setCurrentSelectionMode={setCurrentSelectionMode}
+                  nextStep={nextStep}
+                  prevStep={() => handleSelectSalon(null)}
+                />;
       case 3:
-        return <Paso3_SeleccionHorario salonSeleccionado={salonSeleccionado} fechaSeleccionada={fechaSeleccionada} horaInicio={horaInicio} setHoraInicio={setHoraInicio} horaTermino={horaTermino} setHoraTermino={setHoraTermino} desglosePrecio={desglosePrecio} duracionCalculada={duracionCalculada} nextStep={nextStep} prevStep={prevStep} />;
+        return <Paso3_SeleccionHorario
+                  salonSeleccionado={salonSeleccionado}
+                  rangoSeleccionado={rangoSeleccionado}
+                  currentSelectionMode={currentSelectionMode}
+                  horaInicio={horaInicio} setHoraInicio={setHoraInicio}
+                  horaTermino={horaTermino} setHoraTermino={setHoraTermino}
+                  desglosePrecio={desglosePrecio}
+                  duracionCalculada={duracionCalculada}
+                  nextStep={nextStep}
+                  prevStep={prevStep}
+                />;
       case 4:
         // Se eliminan los logs de depuración de BookingPage antes de pasar props
+        // TODO: Paso4_DatosYResumen necesitará también rangoSeleccionado y currentSelectionMode para mostrar resumen y calcular precio final.
         return (
           <Paso4_DatosYResumen
             salonSeleccionado={salonSeleccionado}
-            fechaSeleccionada={fechaSeleccionada}
+            fechaSeleccionada={rangoSeleccionado?.startDate} // Temporal: Pasar solo startDate como 'fechaSeleccionada'
+            // Se necesitará pasar rangoSeleccionado y currentSelectionMode a Paso4 para lógica de múltiples días
             horaInicio={horaInicio}
             horaTermino={horaTermino}
-            // costoCalculado={costoCalculado} // Reemplazado por desglosePrecio
             desglosePrecio={desglosePrecio}
             duracionCalculada={duracionCalculada}
             onReservationSuccess={handleReservationSuccess}
