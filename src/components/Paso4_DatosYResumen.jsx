@@ -279,7 +279,8 @@ function Paso4_DatosYResumen(props) {
 
     datosReserva.hora_inicio = horaInicio;
     datosReserva.hora_termino = horaTermino;
-    datosReserva.costo_total = desglosePrecio?.total; // Esto ya está calculado con numDias en BookingPage
+    // datosReserva.costo_total = desglosePrecio?.total; // Nombre anterior
+    datosReserva.precio_total_enviado_cliente = desglosePrecio?.total; // Nuevo nombre del campo
 
     datosReserva.notas_adicionales = notasAdicionales;
     datosReserva.tipo_documento = tipoDocumento;
