@@ -104,9 +104,15 @@ function Paso2_SeleccionFecha({ salonSeleccionado, rangoSeleccionado, setRangoSe
   }, [rangoSeleccionado?.startDate, mesCalendario]);
 
   const handleModeChange = (mode) => {
+    console.log('[Paso2] handleModeChange - Nuevo modo:', mode);
     setCurrentSelectionMode(mode);
-    setRangoSeleccionado(null); // Resetear selección al cambiar de modo
-    // TODO: Si se usa un estado separado para 'multiple-discrete', resetearlo también.
+    setRangoSeleccionado(null);
+    console.log('[Paso2] handleModeChange - rangoSeleccionado reseteado a null');
+  };
+
+  const handleCalendarSelectionChange = (newSelection) => {
+    console.log('[Paso2] handleCalendarSelectionChange - Recibido de CustomCalendar:', newSelection);
+    setRangoSeleccionado(newSelection);
   };
 
   return (
@@ -137,8 +143,8 @@ function Paso2_SeleccionFecha({ salonSeleccionado, rangoSeleccionado, setRangoSe
 
       <div className="calendario-wrapper">
         <CustomCalendar 
-          selection={rangoSeleccionado} // rangoSeleccionado ahora es { startDate, endDate, discreteDates }
-          onSelectionChange={setRangoSeleccionado} // setRangoSeleccionado recibe el objeto completo
+          selection={rangoSeleccionado}
+          onSelectionChange={handleCalendarSelectionChange} // Usar el nuevo manejador
           onMonthChange={setMesCalendario}
           disponibilidadMensual={disponibilidadMensual}
           formatearFechaParaAPI={formatearFechaParaAPI}
@@ -153,27 +159,26 @@ function Paso2_SeleccionFecha({ salonSeleccionado, rangoSeleccionado, setRangoSe
        (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0) ? (
         <div className="fecha-seleccionada-info">
           {currentSelectionMode === 'single' && rangoSeleccionado?.startDate &&
-            `Fecha seleccionada: <strong>${rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>`
+            <p>Fecha seleccionada: <strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></p>
           }
           {currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate && !isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate) &&
-            <>
-              Fecha de inicio: <strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
-              <br />
-              Fecha de fin: <strong>{rangoSeleccionado.endDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
-            </>
+            <div>
+              <p>Fecha de inicio: <strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></p>
+              <p>Fecha de fin: <strong>{rangoSeleccionado.endDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></p>
+            </div>
           }
           {currentSelectionMode === 'range' && rangoSeleccionado?.startDate && (!rangoSeleccionado?.endDate || isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) &&
-            `Día de inicio seleccionado: <strong>${rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong> (Seleccione día de fin)`
+            <p>Día de inicio seleccionado: <strong>{rangoSeleccionado.startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong> (Seleccione día de fin)</p>
           }
           {currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0 &&
-            <>
-              Días seleccionados:
+            <div>
+              <p>Días seleccionados:</p>
               <ul>
                 {rangoSeleccionado.discreteDates.map(date => (
                   <li key={date.toISOString()}><strong>{date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}</strong></li>
                 ))}
               </ul>
-            </>
+            </div>
           }
         </div>
       ) : null}
