@@ -314,10 +314,14 @@ function Paso4_DatosYResumen(props) {
 
     try {
       const responseReserva = await api.post('/reservas', datosReserva);
-      const backendResponse = responseReserva.data; // Renamed for clarity
-      const reservaData = backendResponse.reserva; // Access the nested 'reserva' object
+      const backendResponse = responseReserva.data;
 
-      if (reservaData && reservaData.id) { // Check for reservaData and reservaData.id
+      // Adaptar a la estructura de respuesta del backend: un array 'reservas'
+      const reservaPrincipal = backendResponse.reservas && backendResponse.reservas.length > 0
+        ? backendResponse.reservas[0]
+        : null;
+
+      if (reservaPrincipal && reservaPrincipal.id) {
         // setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
 
         // --- Inicio: Modificación para manejo temporal sin pasarela de pago ---
@@ -329,7 +333,7 @@ function Paso4_DatosYResumen(props) {
         // Comentado: Bloque de inicio de pago
         // // Iniciar el proceso de pago
         // try {
-        //   const responseInicioPago = await api.post(`/reservas/${reservaData.id}/iniciar-pago`); // Use reservaData.id
+        //   const responseInicioPago = await api.post(`/reservas/${reservaPrincipal.id}/iniciar-pago`); // Use reservaPrincipal.id
         //   if (responseInicioPago.data && responseInicioPago.data.url_pago) {
         //     window.location.href = responseInicioPago.data.url_pago;
         //     // No llamar a onReservationSuccess aquí, la redirección se encarga.
