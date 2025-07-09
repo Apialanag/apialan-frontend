@@ -72,18 +72,20 @@ function BookingPage() {
     return Math.round(precioTotalFallback / (1 + IVA_RATE));
   };
 
+  // Calcular numDias aquí para que esté disponible en el scope de renderStep y useEffect de precios
+  let numDias = 1;
+  if (rangoSeleccionado && currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
+    numDias = differenceInCalendarDays(rangoSeleccionado.endDate, rangoSeleccionado.startDate) + 1;
+  } else if (rangoSeleccionado && currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
+    numDias = rangoSeleccionado.discreteDates.length;
+  } else if (rangoSeleccionado?.startDate) { // Cubre 'single' o rango de un día si startDate está definido
+    numDias = 1;
+  }
+
+
   useEffect(() => {
-    // console.log('[BookingPage] useEffect triggered. Deps:', { salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado });
-    // TODO: El cálculo de precio debe ajustarse para múltiples días.
-    // Por ahora, se basa en la duración de un solo día.
-    // Se necesitará determinar el número de días seleccionados desde rangoSeleccionado y currentSelectionMode.
-    let numDias = 1;
-    if (rangoSeleccionado && currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
-      numDias = differenceInCalendarDays(rangoSeleccionado.endDate, rangoSeleccionado.startDate) + 1;
-    } else if (rangoSeleccionado && currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates) {
-      numDias = rangoSeleccionado.discreteDates.length > 0 ? rangoSeleccionado.discreteDates.length : 1;
-    }
-    // La variable numDias no se usa aun en el calculo, pero está lista para cuando se implemente.
+    // Este useEffect ahora usará la variable 'numDias' calculada arriba.
+    // No es necesario recalcularla aquí.
 
     if (salonSeleccionado && horaInicio && horaTermino) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
@@ -143,8 +145,8 @@ function BookingPage() {
       setDuracionCalculada(0);
       setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, setCuponAplicado, setErrorCupon]);
-  // Añadidas rangoSeleccionado y currentSelectionMode a las dependencias
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, numDias, setCuponAplicado, setErrorCupon]);
+  // Añadido numDias a las dependencias
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio);
