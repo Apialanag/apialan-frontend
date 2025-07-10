@@ -1,74 +1,66 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import api, { getBlockedDates } from '../api'; // Importar getBlockedDates
+import api, { getBlockedDates } from '../api';
 import CustomCalendar from './CustomCalendar';
 import './Paso2_SeleccionFecha.css';
-import { parse as parseDate, format as formatDate, parseISO, isSameDay } from 'date-fns'; // Añadir isSameDay
+import { parse as parseDate, format as formatDate, parseISO, isSameDay } from 'date-fns';
 
 function Paso2_SeleccionFecha({
   salonSeleccionado,
   rangoSeleccionado,
   setRangoSeleccionado,
-  currentSelectionMode, // Recibir como prop
-  setCurrentSelectionMode, // Recibir como prop
+  currentSelectionMode,
+  setCurrentSelectionMode,
   nextStep,
   prevStep
 }) {
   const [disponibilidadMensual, setDisponibilidadMensual] = useState({});
-  const [blockedDates, setBlockedDates] = useState([]); // Estado para fechas bloqueadas
+  const [blockedDates, setBlockedDates] = useState([]);
   const [mesCalendario, setMesCalendario] = useState(rangoSeleccionado?.startDate || new Date());
   const [isLoadingBlockedDates, setIsLoadingBlockedDates] = useState(false);
-  // EL ESTADO LOCAL currentSelectionMode SE ELIMINA. Se usarán las props.
-  // const [currentSelectionMode, setCurrentSelectionMode] = useState('single');
 
-  const formatearFechaParaAPI = (date) => date ? formatDate(date, 'yyyy-MM-dd') : '';
+  const formatearFechaParaAPI = useCallback((date) => date ? formatDate(date, 'yyyy-MM-dd') : '', []);
 
   const fetchBlockedDatesForCalendar = useCallback(async () => {
     setIsLoadingBlockedDates(true);
     try {
       const response = await getBlockedDates();
-      // Almacenamos las fechas como strings 'yyyy-MM-dd' que es lo que CustomCalendar espera
       setBlockedDates(response.data.map(bd => formatDate(parseISO(bd.date), 'yyyy-MM-dd')));
     } catch (error) {
       console.error("Error fetching blocked dates for calendar:", error);
-      // Manejar el error como sea apropiado, quizás mostrar un mensaje al usuario
     } finally {
       setIsLoadingBlockedDates(false);
     }
   }, []);
   
   useEffect(() => {
-    fetchBlockedDatesForCalendar(); // Cargar fechas bloqueadas al montar o cambiar dependencias
+    fetchBlockedDatesForCalendar();
   }, [fetchBlockedDatesForCalendar]);
 
+  // useEffect para cargar disponibilidad mensual (TEMPORALMENTE SIMPLIFICADO PARA DEBUG)
   useEffect(() => {
+    console.log('[Paso2] DEBUG: useEffect de carga de disponibilidad disparado. Salon:', salonSeleccionado, 'Mes:', mesCalendario, 'FormatearFn:', typeof formatearFechaParaAPI);
+    // El cuerpo original de este useEffect se comenta temporalmente:
+    /*
+    console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
     if (salonSeleccionado) {
       const anio = mesCalendario.getFullYear();
       const mesNum = mesCalendario.getMonth() + 1;
       const mesFormateado = `${anio}-${mesNum < 10 ? `0${mesNum}` : mesNum}`;
+      console.log('[Paso2] useEffect[salonSeleccionado, mesCalendario] - Cargando disponibilidad para mes:', mesFormateado);
 
-      // --- LA CORRECCIÓN CLAVE ---
-      // Usamos 'api.get' y pasamos los parámetros. La URL base ya está configurada.
       api.get(`/reservas`, {
         params: { espacio_id: salonSeleccionado.id, mes: mesFormateado }
       }).then(response => {
         const disponibilidadProcesada = {};
         const totalBloquesPorDia = 9;
         response.data.forEach(reserva => {
-          // --- COMIENZO DE LA MODIFICACIÓN ---
-          // Verificar que reserva.fecha_reserva sea un string válido y no esté vacío
-          // y que tenga un formato que se asemeje a YYYY-MM-DD antes de parsear.
-          // Esto es una heurística simple; una validación más robusta podría usar regex.
           if (typeof reserva.fecha_reserva === 'string' && reserva.fecha_reserva.trim() !== '' && reserva.fecha_reserva.includes('-')) {
-            // Parse reserva.fecha_reserva (e.g., '2023-10-26') as a local date
             const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
-
-            // Verificar si la fecha parseada es válida antes de continuar
             if (fechaDateObj instanceof Date && !isNaN(fechaDateObj)) {
-              const fecha = formatearFechaParaAPI(fechaDateObj); // Convert back to 'yyyy-MM-dd' string for key
+              const fecha = formatearFechaParaAPI(fechaDateObj);
               if (!disponibilidadProcesada[fecha]) {
                 disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
               }
-              // Asegurarse de que hora_inicio y hora_termino también son válidos antes de parsear
               if (reserva.hora_inicio && reserva.hora_termino && reserva.hora_inicio.includes(':') && reserva.hora_termino.includes(':')) {
                 const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
                 const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
@@ -86,61 +78,34 @@ function Paso2_SeleccionFecha({
           } else {
             console.warn(`Valor de fecha_reserva inválido o ausente: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
           }
-          // --- FIN DE LA MODIFICACIÓN ---
         });
-        setDisponibilidadMensual(disponibilidadProcesada);
-      }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
-    }
-  }, [salonSeleccionado, mesCalendario]); // Este es el que carga la disponibilidad, se mantiene.
-
-  // useEffect para sincronizar mesCalendario si rangoSeleccionado.startDate cambia.
-  // Este es el que se modifica para evitar la reversión no deseada.
-  useEffect(() => {
-    // Si el usuario selecciona una fecha de inicio (startDate) y esa fecha
-    // pertenece a un mes diferente al que está mostrando el mesCalendario,
-    // entonces actualizamos mesCalendario para que coincida con el mes de startDate.
-    if (rangoSeleccionado?.startDate) {
-      const nuevaStartDate = rangoSeleccionado.startDate;
-      if (mesCalendario.getFullYear() !== nuevaStartDate.getFullYear() ||
-          mesCalendario.getMonth() !== nuevaStartDate.getMonth()) {
-        // Verificar que el cambio no sea simplemente por la normalización de la hora en mesCalendario
-        // (que siempre es el día 1 del mes) vs la hora de nuevaStartDate.
-        // Solo cambiar si realmente son meses/años diferentes.
-        const mesCalendarioNormalizado = new Date(mesCalendario.getFullYear(), mesCalendario.getMonth(), 1);
-        const nuevaStartDateNormalizada = new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1);
-
-        if (mesCalendarioNormalizado.getTime() !== nuevaStartDateNormalizada.getTime()) {
-          console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> Sincronizando mesCalendario con nueva startDate:', nuevaStartDate);
-          setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
-        }
-      }
-    }
-    // No se revierte a new Date() si !rangoSeleccionado.startDate para permitir navegación libre.
-  }, [rangoSeleccionado?.startDate]); // Solo depende de rangoSeleccionado.startDate
-
-
-  // El siguiente useEffect que estaba duplicado y que también dependía de [rangoSeleccionado?.startDate, mesCalendario] se elimina.
-  // El log de "[Paso2] Estado mesCalendario ha cambiado a:" se puede poner en el useEffect que carga disponibilidad.
-  // El useEffect que carga disponibilidad (arriba) ya tiene un log similar.
-  // useEffect(() => {
-  //   // Log para cuando mesCalendario realmente cambia su valor en el estado
-  //   console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
-    if (salonSeleccionado) {
-      const anio = mesCalendario.getFullYear();
-      const mesNum = mesCalendario.getMonth() + 1;
-      const mesFormateado = `${anio}-${mesNum < 10 ? `0${mesNum}` : mesNum}`;
-      console.log('[Paso2] useEffect[salonSeleccionado, mesCalendario] - Cargando disponibilidad para mes:', mesFormateado);
-
-      api.get(`/reservas`, {
-        params: { espacio_id: salonSeleccionado.id, mes: mesFormateado }
-      }).then(response => {
-        const disponibilidadProcesada = {};
-        // ... (resto de la lógica de procesamiento)
         console.log('[Paso2] Disponibilidad mensual recibida y procesada:', disponibilidadProcesada);
         setDisponibilidadMensual(disponibilidadProcesada);
       }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
     }
-  }, [salonSeleccionado, mesCalendario]); // Este useEffect ya existe y es el correcto para loguear el cambio de mesCalendario
+    */
+  }, [salonSeleccionado, mesCalendario, formatearFechaParaAPI]);
+
+  // useEffect para sincronizar mesCalendario si rangoSeleccionado.startDate cambia.
+  useEffect(() => {
+    if (rangoSeleccionado?.startDate) {
+      const nuevaStartDate = rangoSeleccionado.startDate;
+      if (mesCalendario instanceof Date && !isNaN(mesCalendario)) {
+        if (mesCalendario.getFullYear() !== nuevaStartDate.getFullYear() ||
+            mesCalendario.getMonth() !== nuevaStartDate.getMonth()) {
+          const mesCalendarioNormalizado = new Date(mesCalendario.getFullYear(), mesCalendario.getMonth(), 1);
+          const nuevaStartDateNormalizada = new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1);
+          if (mesCalendarioNormalizado.getTime() !== nuevaStartDateNormalizada.getTime()) {
+            console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> Sincronizando mesCalendario con nueva startDate:', nuevaStartDate);
+            setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
+          }
+        }
+      } else if (nuevaStartDate instanceof Date && !isNaN(nuevaStartDate)) {
+        console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> mesCalendario inválido, inicializando con nueva startDate:', nuevaStartDate);
+        setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
+      }
+    }
+  }, [rangoSeleccionado?.startDate, mesCalendario]);
 
   const handlePaso2MonthChange = (newDisplayMonthDate) => {
     console.log('[Paso2] handlePaso2MonthChange (onMonthChange de CustomCalendar) llamado con:', newDisplayMonthDate);
@@ -149,7 +114,7 @@ function Paso2_SeleccionFecha({
 
   const handleModeChange = (mode) => {
     console.log('[Paso2] handleModeChange - Nuevo modo:', mode);
-    setCurrentSelectionMode(mode); // Usar la prop setCurrentSelectionMode
+    setCurrentSelectionMode(mode);
     setRangoSeleccionado(null);
     console.log('[Paso2] handleModeChange - rangoSeleccionado reseteado a null');
   };
@@ -179,7 +144,6 @@ function Paso2_SeleccionFecha({
         <button
           onClick={() => handleModeChange('multiple-discrete')}
           className={currentSelectionMode === 'multiple-discrete' ? 'active' : ''}
-          // Habilitar cuando CustomCalendar esté listo para multiple-discrete
         >
           Varios días (no consecutivos)
         </button>
@@ -189,7 +153,7 @@ function Paso2_SeleccionFecha({
         <CustomCalendar 
           selection={rangoSeleccionado}
           onSelectionChange={handleCalendarSelectionChange}
-          onMonthChange={handlePaso2MonthChange} // Usar el nuevo manejador con log
+          onMonthChange={handlePaso2MonthChange}
           disponibilidadMensual={disponibilidadMensual}
           formatearFechaParaAPI={formatearFechaParaAPI}
           blockedDatesList={blockedDates}
@@ -234,7 +198,7 @@ function Paso2_SeleccionFecha({
           disabled={
             isLoadingBlockedDates ||
             (currentSelectionMode === 'single' && !rangoSeleccionado?.startDate) ||
-            (currentSelectionMode === 'range' && (!rangoSeleccionado?.startDate || !rangoSeleccionado?.endDate || isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate))) || // Para rango, se requieren inicio y fin distintos
+            (currentSelectionMode === 'range' && (!rangoSeleccionado?.startDate || !rangoSeleccionado?.endDate || isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate))) ||
             (currentSelectionMode === 'multiple-discrete' && (!rangoSeleccionado?.discreteDates || rangoSeleccionado.discreteDates.length === 0))
           }
           className="boton-principal"
