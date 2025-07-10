@@ -111,9 +111,34 @@ function Paso2_SeleccionFecha({
     }
   }, [rangoSeleccionado?.startDate, mesCalendario]);
 
+  useEffect(() => {
+    // Log para cuando mesCalendario realmente cambia su valor en el estado
+    console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
+    if (salonSeleccionado) {
+      const anio = mesCalendario.getFullYear();
+      const mesNum = mesCalendario.getMonth() + 1;
+      const mesFormateado = `${anio}-${mesNum < 10 ? `0${mesNum}` : mesNum}`;
+      console.log('[Paso2] useEffect[salonSeleccionado, mesCalendario] - Cargando disponibilidad para mes:', mesFormateado);
+
+      api.get(`/reservas`, {
+        params: { espacio_id: salonSeleccionado.id, mes: mesFormateado }
+      }).then(response => {
+        const disponibilidadProcesada = {};
+        // ... (resto de la lógica de procesamiento)
+        console.log('[Paso2] Disponibilidad mensual recibida y procesada:', disponibilidadProcesada);
+        setDisponibilidadMensual(disponibilidadProcesada);
+      }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
+    }
+  }, [salonSeleccionado, mesCalendario]); // Este useEffect ya existe y es el correcto para loguear el cambio de mesCalendario
+
+  const handlePaso2MonthChange = (newDisplayMonthDate) => {
+    console.log('[Paso2] handlePaso2MonthChange (onMonthChange de CustomCalendar) llamado con:', newDisplayMonthDate);
+    setMesCalendario(newDisplayMonthDate);
+  };
+
   const handleModeChange = (mode) => {
     console.log('[Paso2] handleModeChange - Nuevo modo:', mode);
-    setCurrentSelectionMode(mode);
+    setCurrentSelectionMode(mode); // Usar la prop setCurrentSelectionMode
     setRangoSeleccionado(null);
     console.log('[Paso2] handleModeChange - rangoSeleccionado reseteado a null');
   };
@@ -152,8 +177,8 @@ function Paso2_SeleccionFecha({
       <div className="calendario-wrapper">
         <CustomCalendar 
           selection={rangoSeleccionado}
-          onSelectionChange={handleCalendarSelectionChange} // Usar el nuevo manejador
-          onMonthChange={setMesCalendario}
+          onSelectionChange={handleCalendarSelectionChange}
+          onMonthChange={handlePaso2MonthChange} // Usar el nuevo manejador con log
           disponibilidadMensual={disponibilidadMensual}
           formatearFechaParaAPI={formatearFechaParaAPI}
           blockedDatesList={blockedDates}

@@ -244,16 +244,79 @@ function CustomCalendar({
   };
 
   const handlePrevMonth = () => {
-    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1);
-    setDisplayDate(newDate);
-    if(onMonthChange) onMonthChange(newDate);
+    const newDisplayMonthDate = new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1);
+    console.log('[CustomCalendar] handlePrevMonth - Cambiando displayDate a:', newDisplayMonthDate);
+    setDisplayDate(newDisplayMonthDate);
+    if (onMonthChange) {
+      console.log('[CustomCalendar] handlePrevMonth - Llamando a onMonthChange con:', newDisplayMonthDate);
+      onMonthChange(newDisplayMonthDate);
+    }
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1);
-    setDisplayDate(newDate);
-    if(onMonthChange) onMonthChange(newDate);
+    const newDisplayMonthDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1);
+    console.log('[CustomCalendar] handleNextMonth - Cambiando displayDate a:', newDisplayMonthDate);
+    setDisplayDate(newDisplayMonthDate);
+    if (onMonthChange) {
+      console.log('[CustomCalendar] handleNextMonth - Llamando a onMonthChange con:', newDisplayMonthDate);
+      onMonthChange(newDisplayMonthDate);
+    }
   };
+
+  // Re-calcular 'today' cada vez que el componente renderiza para asegurar que es la fecha actual real,
+  // aunque para la comparación de < today, solo la parte de la fecha importa.
+  const todayForComparison = new Date();
+  todayForComparison.setHours(0, 0, 0, 0);
+
+
+  // Bucle de renderizado de días - añadir log aquí
+  for (let day = 1; day <= daysInMonth; day++) {
+    const currentDate = new Date(year, month, day);
+    currentDate.setHours(0,0,0,0); // Normalizar para comparación con todayForComparison
+    const dateString = formatearFechaParaAPI(currentDate);
+
+    let dayClass = 'day-cell';
+    let isDisabled = false;
+
+    const dayOfWeek = currentDate.getDay();
+    let isPastDate = currentDate < todayForComparison;
+
+    if (isPastDate || dayOfWeek === 0 || dayOfWeek === 6) {
+      dayClass += ' disabled';
+      isDisabled = true;
+    }
+
+    // ... (resto de la lógica de isDisabled y dayClass) ...
+
+    // Log ANTES de isDisabled por disponibilidad o admin block, para ver el efecto de la fecha pasada / finde
+    // console.log(`[CustomCalendar] Pre-check Día: ${dateString}, esPasado: ${isPastDate}, esFinDe: ${dayOfWeek === 0 || dayOfWeek === 6}, isDisabledInicial: ${isDisabled}`);
+
+
+    if (!isDisabled && Array.isArray(blockedDatesList) && blockedDatesList.includes(dateString)) {
+      dayClass += ' blocked-by-admin';
+      isDisabled = true;
+    }
+
+    const infoDia = disponibilidadMensual ? disponibilidadMensual[dateString] : null;
+    if (!isDisabled && infoDia && infoDia.ocupados >= infoDia.totalBloques) {
+      dayClass += ' unavailable';
+      isDisabled = true;
+    }
+
+    // ... (lógica de clases de selección) ...
+
+    if (formatearFechaParaAPI(todayForComparison) === dateString &&
+        !dayClass.includes('selected') &&
+        !(selectionMode === 'range' && (dayClass.includes('start-date') || dayClass.includes('in-range') || dayClass.includes('in-hover-range')))
+      ) {
+      dayClass += ' today';
+    }
+
+    console.log(`[CustomCalendar] Render Día: ${dateString}, esPasado: ${isPastDate}, esFinDe: ${dayOfWeek === 0 || dayOfWeek === 6}, infoDiaOcupado: ${infoDia ? (infoDia.ocupados >= infoDia.totalBloques) : 'N/A'}, esBloqueadoAdmin: ${Array.isArray(blockedDatesList) && blockedDatesList.includes(dateString)}, isDisabledFinal: ${isDisabled}, Clases: ${dayClass}`);
+
+    calendarDays.push( /* ... */ );
+  }
+
 
   return (
     <div className="calendar-container">
