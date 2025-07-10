@@ -331,6 +331,13 @@ function Paso4_DatosYResumen(props) {
           tipo: 'exito' // Asegúrate de tener un estilo para 'exito' o usa 'info'/'success'
         });
 
+        // Guardar en localStorage si NO es socio
+        if (!esSocio) {
+          localStorage.setItem('lastBookingName', clienteNombre);
+          localStorage.setItem('lastBookingEmail', clienteEmail);
+          localStorage.setItem('lastBookingPhone', clienteTelefono);
+        }
+
         // Comentado: Bloque de inicio de pago
         // // Iniciar el proceso de pago
         // try {
@@ -366,18 +373,9 @@ function Paso4_DatosYResumen(props) {
         setMensajeReserva({ texto: 'Error al procesar la reserva. No se obtuvo ID.', tipo: 'error' });
         setIsSubmitting(false);
       }
-
-      // Guardar en localStorage si NO es socio (esto podría moverse a onReservationSuccess si se decide usar)
-      // if (!esSocio) {
-      //   localStorage.setItem('lastBookingName', clienteNombre);
-      //   localStorage.setItem('lastBookingEmail', clienteEmail);
-      //   localStorage.setItem('lastBookingPhone', clienteTelefono);
-      // }
       
-      // Comentado: onReservationSuccess limpia el estado y vuelve al paso 1.
-      // Esto ahora se manejará por las páginas de redirección de la pasarela.
-      // El setTimeout de arriba ahora llama a onReservationSuccess.
-
+      // El bloque de guardado se movió más arriba, para que ocurra DESPUÉS de una reserva exitosa (reservaPrincipal.id existe)
+      // y ANTES del setTimeout que llama a onReservationSuccess.
 
     } catch (error) {
       console.error("Error al crear reserva:", error.response || error);
