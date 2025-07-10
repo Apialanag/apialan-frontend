@@ -1,5 +1,5 @@
 // src/components/CustomCalendar.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './CustomCalendar.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { isSameDay, isBefore, isAfter } from 'date-fns'; // Necesitaremos utilidades de fecha
@@ -17,6 +17,7 @@ function CustomCalendar({
   const initialSelection = selection || { startDate: null, endDate: null, discreteDates: [] };
   const [currentSelection, setCurrentSelection] = useState(initialSelection);
   const [hoveredDate, setHoveredDate] = useState(null); // Para visualización de rango mientras se selecciona
+  const userInitiatedMonthChangeRef = useRef(false);
 
   // displayDate se basa en la fecha de inicio de la selección o la fecha actual
   const [displayDate, setDisplayDate] = useState(initialSelection?.startDate || initialSelection?.discreteDates?.[0] || new Date());
@@ -32,6 +33,12 @@ function CustomCalendar({
   }, [selection]);
 
   useEffect(() => {
+    // Si el cambio de mes fue iniciado por el usuario, no hacer nada aquí y resetear la ref.
+    if (userInitiatedMonthChangeRef.current) {
+      userInitiatedMonthChangeRef.current = false;
+      return;
+    }
+
     // Actualizar displayDate si el mes de startDate (o la primera fecha de discreteDates) cambia
     let DDate = null;
     if (selectionMode === 'multiple-discrete' && currentSelection?.discreteDates?.length > 0) {
@@ -47,7 +54,10 @@ function CustomCalendar({
       }
     } else if (displayDate.getMonth() !== new Date().getMonth()) {
       // Si no hay selección, volver al mes actual si displayDate se quedó en otro mes
-      setDisplayDate(new Date());
+      // Solo si no hay una selección activa que deba mantener el mes.
+      if (!currentSelection?.startDate && (!currentSelection?.discreteDates || currentSelection.discreteDates.length === 0)) {
+        setDisplayDate(new Date());
+      }
     }
   }, [currentSelection, selectionMode, displayDate]);
 
@@ -244,6 +254,7 @@ function CustomCalendar({
   };
 
   const handlePrevMonth = () => {
+    userInitiatedMonthChangeRef.current = true;
     const newDisplayMonthDate = new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1);
     console.log('[CustomCalendar] handlePrevMonth - Cambiando displayDate a:', newDisplayMonthDate);
     setDisplayDate(newDisplayMonthDate);
@@ -254,6 +265,7 @@ function CustomCalendar({
   };
 
   const handleNextMonth = () => {
+    userInitiatedMonthChangeRef.current = true;
     const newDisplayMonthDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1);
     console.log('[CustomCalendar] handleNextMonth - Cambiando displayDate a:', newDisplayMonthDate);
     setDisplayDate(newDisplayMonthDate);
