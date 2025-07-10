@@ -65,6 +65,7 @@ function Paso4_DatosYResumen(props) {
   const [rutLocal, setRutLocal] = useState(rutSocio || '');
   const [mensajeSocio, setMensajeSocio] = useState('');
   const [reservaConfirmadaId, setReservaConfirmadaId] = useState(null); // Para mostrar el botón de calendario
+  const [isCalendarMenuOpen, setIsCalendarMenuOpen] = useState(false); // Para el menú de opciones de calendario
 
   // Nuevos estados para facturación
   const [tipoDocumento, setTipoDocumento] = useState('boleta'); // 'boleta' o 'factura'
@@ -186,6 +187,54 @@ function Paso4_DatosYResumen(props) {
     return icsContent;
   };
 
+  const generateGoogleCalendarUrl = () => {
+    if (!reservaConfirmadaId || !salonSeleccionado || !rangoSeleccionado || !horaInicio || !horaTermino) {
+      console.error("Faltan datos para generar la URL de Google Calendar.");
+      return null;
+    }
+
+    let startDateForEvent;
+    let endDateForEvent; // Necesitamos una fecha de fin para Google Calendar también
+    let descriptionText = notasAdicionales || '';
+
+    if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
+      startDateForEvent = rangoSeleccionado.discreteDates[0];
+      // Para Google Calendar, el evento solo durará para el primer día con la hora especificada
+      endDateForEvent = rangoSeleccionado.discreteDates[0];
+      if (rangoSeleccionado.discreteDates.length > 1) {
+        const otrasFechas = rangoSeleccionado.discreteDates.slice(1).map(d => d.toLocaleDateString('es-ES')).join(', ');
+        descriptionText += `\n\nEsta reserva es para múltiples días. Fechas adicionales: ${otrasFechas}. Por favor, consulte su email o la plataforma para más detalles.`;
+      }
+    } else if (rangoSeleccionado.startDate) {
+      startDateForEvent = rangoSeleccionado.startDate;
+      // Si es un rango, Google Calendar puede manejar un evento que abarque varios días si DTEND es diferente de DTSTART.
+      // Sin embargo, nuestras horas de inicio/fin son por día.
+      // Por simplicidad y consistencia con el .ics, crearemos un evento para el primer día del rango.
+      // Opcionalmente, si el modo es 'range' y endDate es diferente, podríamos hacer que el evento dure hasta endDate + horaTermino.
+      // Por ahora, evento de un solo día:
+      endDateForEvent = rangoSeleccionado.startDate;
+      if (currentSelectionMode === 'range' && rangoSeleccionado.endDate && !isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
+        descriptionText += `\n\nReserva de rango desde ${rangoSeleccionado.startDate.toLocaleDateString('es-ES')} hasta ${rangoSeleccionado.endDate.toLocaleDateString('es-ES')}. Evento de calendario para el día de inicio.`;
+      }
+    } else {
+      console.error("No hay fecha de inicio válida para la URL de Google Calendar.");
+      return null;
+    }
+
+    const googleDates = `${toICSDate(startDateForEvent, horaInicio)}/${toICSDate(endDateForEvent, horaTermino)}`;
+    const title = `Reserva: ${salonSeleccionado.nombre}`;
+    const location = salonSeleccionado.nombre; // O dirección más específica
+
+    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeURIComponent(title)}` +
+      `&dates=${googleDates}` +
+      `&details=${encodeURIComponent(descriptionText)}` +
+      `&location=${encodeURIComponent(location)}` +
+      `&sf=true&output=xml`;
+
+    return googleCalendarUrl;
+  };
+
   // Props para cupones (setters que vienen de BookingPage)
   // Estas props ya están desestructuradas en la definición del componente:
   // setCodigoCuponInput, cuponAplicado, setCuponAplicado, errorCupon, setErrorCupon,
@@ -276,6 +325,20 @@ function Paso4_DatosYResumen(props) {
     }
   };
 
+  const toggleCalendarMenu = () => {
+    setIsCalendarMenuOpen(prev => !prev);
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    const googleUrl = generateGoogleCalendarUrl();
+    if (googleUrl) {
+      window.open(googleUrl, '_blank');
+    } else {
+      alert("No se pudo generar el enlace para Google Calendar. Por favor, verifica los detalles de la reserva.");
+    }
+    setIsCalendarMenuOpen(false); // Cerrar el menú
+  };
+
   const handleDownloadICS = () => {
     const icsString = generateICSContent();
     if (icsString) {
@@ -343,6 +406,7 @@ function Paso4_DatosYResumen(props) {
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
     setReservaConfirmadaId(null); // Reiniciar para que no se muestre de intentos previos
+    setIsCalendarMenuOpen(false); // Asegurar que el menú esté cerrado al iniciar/reintentar
     // console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
 
     const datosReserva = {};
@@ -679,10 +743,29 @@ function Paso4_DatosYResumen(props) {
       )}
 
       {reservaConfirmadaId && mensajeReserva.tipo === 'exito' && (
-        <div className="accion-post-reserva">
-          <button onClick={handleDownloadICS} className="boton-secundario">
-            Añadir a Calendario
+        <div className="accion-post-reserva"> {/* Contenedor para posicionamiento relativo del menú */}
+          <button onClick={toggleCalendarMenu} className="boton-principal-calendario"> {/* Estilo a definir/ajustar */}
+            Añadir a Calendario 📅
           </button>
+          {isCalendarMenuOpen && (
+            <div className="calendario-opciones-menu"> {/* Estilo a definir */}
+              <button
+                onClick={handleAddToGoogleCalendar}
+                className="opcion-calendario" /* Estilo a definir */
+              >
+                Google Calendar
+              </button>
+              <button
+                onClick={() => {
+                  handleDownloadICS();
+                  setIsCalendarMenuOpen(false); // Asegurar que el menú se cierre
+                }}
+                className="opcion-calendario" /* Estilo a definir */
+              >
+                Otros Calendarios (.ics)
+              </button>
+            </div>
+          )}
         </div>
       )}
 
