@@ -36,13 +36,10 @@ function Paso2_SeleccionFecha({
     fetchBlockedDatesForCalendar();
   }, [fetchBlockedDatesForCalendar]);
 
-  // useEffect para cargar disponibilidad mensual (TEMPORALMENTE SIMPLIFICADO PARA DEBUG)
+  // useEffect para cargar disponibilidad mensual (RESTAURADO)
   useEffect(() => {
-    console.log('[Paso2] DEBUG: useEffect de carga de disponibilidad disparado. Salon:', salonSeleccionado, 'Mes:', mesCalendario, 'FormatearFn:', typeof formatearFechaParaAPI);
-    // El cuerpo original de este useEffect se comenta temporalmente:
-    /*
     console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
-    if (salonSeleccionado) {
+    if (salonSeleccionado && (mesCalendario instanceof Date && !isNaN(mesCalendario))) { // Asegurar que mesCalendario sea válido
       const anio = mesCalendario.getFullYear();
       const mesNum = mesCalendario.getMonth() + 1;
       const mesFormateado = `${anio}-${mesNum < 10 ? `0${mesNum}` : mesNum}`;
@@ -53,59 +50,71 @@ function Paso2_SeleccionFecha({
       }).then(response => {
         const disponibilidadProcesada = {};
         const totalBloquesPorDia = 9;
-        response.data.forEach(reserva => {
-          if (typeof reserva.fecha_reserva === 'string' && reserva.fecha_reserva.trim() !== '' && reserva.fecha_reserva.includes('-')) {
-            const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
-            if (fechaDateObj instanceof Date && !isNaN(fechaDateObj)) {
-              const fecha = formatearFechaParaAPI(fechaDateObj);
-              if (!disponibilidadProcesada[fecha]) {
-                disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
-              }
-              if (reserva.hora_inicio && reserva.hora_termino && reserva.hora_inicio.includes(':') && reserva.hora_termino.includes(':')) {
-                const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
-                const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
-                if (!isNaN(hInicio) && !isNaN(hTermino)) {
-                  disponibilidadProcesada[fecha].ocupados += (hTermino - hInicio);
+        if (Array.isArray(response.data)) { // Asegurarse que response.data es un array
+          response.data.forEach(reserva => {
+            if (typeof reserva.fecha_reserva === 'string' && reserva.fecha_reserva.trim() !== '' && reserva.fecha_reserva.includes('-')) {
+              const fechaDateObj = parseDate(reserva.fecha_reserva, 'yyyy-MM-dd', new Date());
+              if (fechaDateObj instanceof Date && !isNaN(fechaDateObj)) {
+                const fecha = formatearFechaParaAPI(fechaDateObj);
+                if (!disponibilidadProcesada[fecha]) {
+                  disponibilidadProcesada[fecha] = { ocupados: 0, totalBloques: totalBloquesPorDia };
+                }
+                if (reserva.hora_inicio && reserva.hora_termino && reserva.hora_inicio.includes(':') && reserva.hora_termino.includes(':')) {
+                  const hInicio = parseInt(reserva.hora_inicio.split(':')[0]);
+                  const hTermino = parseInt(reserva.hora_termino.split(':')[0]);
+                  if (!isNaN(hInicio) && !isNaN(hTermino)) {
+                    disponibilidadProcesada[fecha].ocupados += (hTermino - hInicio);
+                  } else {
+                    console.warn(`Horas inválidas para la reserva con fecha ${reserva.fecha_reserva}: inicio='${reserva.hora_inicio}', termino='${reserva.hora_termino}'`);
+                  }
                 } else {
-                  console.warn(`Horas inválidas para la reserva con fecha ${reserva.fecha_reserva}: inicio='${reserva.hora_inicio}', termino='${reserva.hora_termino}'`);
+                  console.warn(`Horas faltantes o en formato incorrecto para la reserva con fecha ${reserva.fecha_reserva}`);
                 }
               } else {
-                console.warn(`Horas faltantes o en formato incorrecto para la reserva con fecha ${reserva.fecha_reserva}`);
+                console.warn(`Fecha inválida encontrada en reserva: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
               }
             } else {
-              console.warn(`Fecha inválida encontrada en reserva: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
+              console.warn(`Valor de fecha_reserva inválido o ausente: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
             }
-          } else {
-            console.warn(`Valor de fecha_reserva inválido o ausente: ${reserva.fecha_reserva}. Esta reserva será omitida.`);
-          }
-        });
+          });
+        } else {
+          console.warn('[Paso2] response.data no es un array:', response.data);
+        }
         console.log('[Paso2] Disponibilidad mensual recibida y procesada:', disponibilidadProcesada);
         setDisponibilidadMensual(disponibilidadProcesada);
-      }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
+      }).catch(err => {
+        console.error("Error cargando disponibilidad mensual:", err);
+        setDisponibilidadMensual({}); // En caso de error, setear a objeto vacío
+      });
+    } else if (!salonSeleccionado) {
+        console.log('[Paso2] useEffect[salonSeleccionado, mesCalendario] - No hay salón seleccionado, limpiando disponibilidad.');
+        setDisponibilidadMensual({});
     }
-    */
   }, [salonSeleccionado, mesCalendario, formatearFechaParaAPI]);
 
-  // useEffect para sincronizar mesCalendario si rangoSeleccionado.startDate cambia.
+  // useEffect para sincronizar mesCalendario si rangoSeleccionado.startDate cambia. (TEMPORALMENTE COMENTADO PARA DEBUG DE NAVEGACIÓN)
+  /*
   useEffect(() => {
     if (rangoSeleccionado?.startDate) {
       const nuevaStartDate = rangoSeleccionado.startDate;
+      // Asegurarse que mesCalendario sea una instancia de Date válida antes de usar sus métodos
       if (mesCalendario instanceof Date && !isNaN(mesCalendario)) {
         if (mesCalendario.getFullYear() !== nuevaStartDate.getFullYear() ||
             mesCalendario.getMonth() !== nuevaStartDate.getMonth()) {
-          const mesCalendarioNormalizado = new Date(mesCalendario.getFullYear(), mesCalendario.getMonth(), 1);
-          const nuevaStartDateNormalizada = new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1);
-          if (mesCalendarioNormalizado.getTime() !== nuevaStartDateNormalizada.getTime()) {
-            console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> Sincronizando mesCalendario con nueva startDate:', nuevaStartDate);
-            setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
-          }
+          // Solo actualiza si el mes/año de la nueva startDate es diferente al mes/año actual del calendario.
+          // Esto se activa cuando el usuario HACE CLIC en una fecha de un mes diferente.
+          console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> Sincronizando mesCalendario con nueva startDate:', nuevaStartDate);
+          setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
         }
       } else if (nuevaStartDate instanceof Date && !isNaN(nuevaStartDate)) {
-        console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> mesCalendario inválido, inicializando con nueva startDate:', nuevaStartDate);
+         // Si mesCalendario no es válido (ej. al inicio porque rangoSeleccionado no tenía startDate),
+         // pero nuevaStartDate sí (porque se acaba de seleccionar), inicializar mesCalendario.
+        console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> mesCalendario era inválido o nulo, inicializando con nueva startDate:', nuevaStartDate);
         setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
       }
     }
-  }, [rangoSeleccionado?.startDate, mesCalendario]);
+  }, [rangoSeleccionado?.startDate]);
+  */
 
   const handlePaso2MonthChange = (newDisplayMonthDate) => {
     console.log('[Paso2] handlePaso2MonthChange (onMonthChange de CustomCalendar) llamado con:', newDisplayMonthDate);
