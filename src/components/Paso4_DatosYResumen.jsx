@@ -527,7 +527,7 @@ function Paso4_DatosYResumen(props) {
           }
           // setIsSubmitting(false); // onReservationSuccess navega, por lo que el estado de este componente se pierde.
                               // Si no navegara, sería necesario.
-        }, 4000); // 4 segundos para leer el mensaje
+        }, 6000); // 6 segundos para leer el mensaje y usar "Añadir a Calendario"
         // --- Fin: Modificación para manejo temporal sin pasarela de pago ---
 
       } else {
