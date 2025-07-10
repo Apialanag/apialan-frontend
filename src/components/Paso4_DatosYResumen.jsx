@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api';
+import { isSameDay } from 'date-fns'; // Importar isSameDay
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen(props) {
@@ -63,6 +64,7 @@ function Paso4_DatosYResumen(props) {
 
   const [rutLocal, setRutLocal] = useState(rutSocio || '');
   const [mensajeSocio, setMensajeSocio] = useState('');
+  const [reservaConfirmadaId, setReservaConfirmadaId] = useState(null); // Para mostrar el botón de calendario
 
   // Nuevos estados para facturación
   const [tipoDocumento, setTipoDocumento] = useState('boleta'); // 'boleta' o 'factura'
@@ -104,6 +106,85 @@ function Paso4_DatosYResumen(props) {
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- Funciones para generar ICS ---
+  const toICSDate = (date, timeString = "00:00") => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    // Crear la fecha en la zona horaria local del usuario
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+
+    // Convertir a string UTC YYYYMMDDTHHMMSSZ
+    const year = localDate.getUTCFullYear();
+    const month = (localDate.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = localDate.getUTCDate().toString().padStart(2, '0');
+    const h = localDate.getUTCHours().toString().padStart(2, '0');
+    const m = localDate.getUTCMinutes().toString().padStart(2, '0');
+    const s = localDate.getUTCSeconds().toString().padStart(2, '0');
+    return `${year}${month}${day}T${h}${m}${s}Z`;
+  };
+
+  const generateICSContent = () => {
+    if (!reservaConfirmadaId || !salonSeleccionado || !rangoSeleccionado || !horaInicio || !horaTermino) {
+      console.error("Faltan datos para generar el archivo .ics");
+      return null;
+    }
+
+    let startDateForICS;
+    let descriptionNotes = notasAdicionales || '';
+
+    if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
+      startDateForICS = rangoSeleccionado.discreteDates[0];
+      if (rangoSeleccionado.discreteDates.length > 1) {
+        const otrasFechas = rangoSeleccionado.discreteDates.slice(1).map(d => d.toLocaleDateString('es-ES')).join(', ');
+        descriptionNotes += `\n\nEsta reserva es para múltiples días. Fechas adicionales: ${otrasFechas}. Por favor, consulte su email o la plataforma para más detalles.`;
+      }
+    } else if (rangoSeleccionado.startDate) {
+      startDateForICS = rangoSeleccionado.startDate;
+      // Si es un rango, la descripción podría indicar el rango completo si se desea,
+      // pero el evento .ics se creará para el startDate con la duración de un día.
+      // Para una implementación simple, nos enfocamos en el primer día.
+      if (currentSelectionMode === 'range' && rangoSeleccionado.endDate && !isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
+          descriptionNotes += `\n\nReserva de rango desde ${rangoSeleccionado.startDate.toLocaleDateString('es-ES')} hasta ${rangoSeleccionado.endDate.toLocaleDateString('es-ES')}. Evento de calendario para el día de inicio.`;
+      }
+    } else {
+      console.error("No hay fecha de inicio válida para el .ics");
+      return null;
+    }
+
+    const uid = `${reservaConfirmadaId}@tuempresa.com`; // Reemplazar tuempresa.com con tu dominio real
+    const dtstamp = toICSDate(new Date());
+    const dtstart = toICSDate(startDateForICS, horaInicio);
+    const dtend = toICSDate(startDateForICS, horaTermino); // Asume que horaTermino es para el mismo día.
+
+    const summary = `Reserva: ${salonSeleccionado.nombre}`;
+    const location = salonSeleccionado.nombre; // O una dirección más específica si la tienes
+
+    // Escapar caracteres especiales para ICS (nueva línea, coma, punto y coma, barra invertida)
+    const escapeICS = (text) => {
+      if (typeof text !== 'string') return '';
+      return text.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+    }
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      `PRODID:-//TuEmpresa//TuApp//ES`, // Reemplazar con datos de tu empresa/app
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${dtstamp}`,
+      `DTSTART:${dtstart}`,
+      `DTEND:${dtend}`,
+      `SUMMARY:${escapeICS(summary)}`,
+      `DESCRIPTION:${escapeICS(descriptionNotes)}`,
+      `LOCATION:${escapeICS(location)}`,
+      'STATUS:CONFIRMED', // Asumimos que si se descarga es porque está confirmada (o al menos solicitada firmemente)
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n'); // Usar CRLF para saltos de línea en .ics
+
+    return icsContent;
+  };
 
   // Props para cupones (setters que vienen de BookingPage)
   // Estas props ya están desestructuradas en la definición del componente:
@@ -195,6 +276,22 @@ function Paso4_DatosYResumen(props) {
     }
   };
 
+  const handleDownloadICS = () => {
+    const icsString = generateICSContent();
+    if (icsString) {
+      const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `reserva_salon_${reservaConfirmadaId || 'evento'}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } else {
+      alert("No se pudo generar el archivo de calendario. Por favor, verifica los detalles de la reserva.");
+    }
+  };
+
   const handleRemoverCuponLocal = () => {
     // console.log('[Paso4] Inicio handleRemoverCuponLocal.');
     // console.log('[Paso4] typeof setCuponAplicado (remover):', typeof setCuponAplicado, setCuponAplicado);
@@ -245,6 +342,7 @@ function Paso4_DatosYResumen(props) {
     
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
+    setReservaConfirmadaId(null); // Reiniciar para que no se muestre de intentos previos
     // console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
 
     const datosReserva = {};
@@ -330,6 +428,7 @@ function Paso4_DatosYResumen(props) {
           texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago y los detalles de tu reserva.',
           tipo: 'exito' // Asegúrate de tener un estilo para 'exito' o usa 'info'/'success'
         });
+        setReservaConfirmadaId(reservaPrincipal.id); // Mostrar botón de calendario
 
         // Guardar en localStorage si NO es socio
         if (!esSocio) {
@@ -371,6 +470,7 @@ function Paso4_DatosYResumen(props) {
         // La creación de la reserva no devolvió un ID válido
         console.error("Error: La creación de la reserva no devolvió un ID válido o la estructura esperada.", backendResponse);
         setMensajeReserva({ texto: 'Error al procesar la reserva. No se obtuvo ID.', tipo: 'error' });
+        setReservaConfirmadaId(null); // Asegurarse de que no se muestre el botón de calendario
         setIsSubmitting(false);
       }
       
@@ -380,6 +480,7 @@ function Paso4_DatosYResumen(props) {
     } catch (error) {
       console.error("Error al crear reserva:", error.response || error);
       setMensajeReserva({ texto: `Error al crear la reserva: ${error.response?.data?.error || 'No se pudo procesar la solicitud.'}`, tipo: 'error' });
+      setReservaConfirmadaId(null); // Asegurarse de que no se muestre el botón de calendario
       setIsSubmitting(false);
     }
   };
@@ -574,6 +675,14 @@ function Paso4_DatosYResumen(props) {
       {mensajeReserva.texto && (
         <div className={`mensaje-reserva ${mensajeReserva.tipo}`}>
           {mensajeReserva.texto}
+        </div>
+      )}
+
+      {reservaConfirmadaId && mensajeReserva.tipo === 'exito' && (
+        <div className="accion-post-reserva">
+          <button onClick={handleDownloadICS} className="boton-secundario">
+            Añadir a Calendario
+          </button>
         </div>
       )}
 
