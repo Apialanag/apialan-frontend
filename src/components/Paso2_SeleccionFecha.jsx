@@ -91,29 +91,40 @@ function Paso2_SeleccionFecha({
         setDisponibilidadMensual(disponibilidadProcesada);
       }).catch(err => console.error("Error cargando disponibilidad mensual:", err));
     }
-  }, [salonSeleccionado, mesCalendario]);
+  }, [salonSeleccionado, mesCalendario]); // Este es el que carga la disponibilidad, se mantiene.
 
-  // Ajustar mes del calendario si cambia la fecha de inicio de la selección
+  // useEffect para sincronizar mesCalendario si rangoSeleccionado.startDate cambia.
+  // Este es el que se modifica para evitar la reversión no deseada.
   useEffect(() => {
-    if (rangoSeleccionado?.startDate && mesCalendario.getMonth() !== rangoSeleccionado.startDate.getMonth()) {
-      setMesCalendario(new Date(rangoSeleccionado.startDate));
-    } else if (!rangoSeleccionado?.startDate && mesCalendario.getMonth() !== new Date().getMonth()) {
-      setMesCalendario(new Date()); // Volver al mes actual si no hay selección
+    // Si el usuario selecciona una fecha de inicio (startDate) y esa fecha
+    // pertenece a un mes diferente al que está mostrando el mesCalendario,
+    // entonces actualizamos mesCalendario para que coincida con el mes de startDate.
+    if (rangoSeleccionado?.startDate) {
+      const nuevaStartDate = rangoSeleccionado.startDate;
+      if (mesCalendario.getFullYear() !== nuevaStartDate.getFullYear() ||
+          mesCalendario.getMonth() !== nuevaStartDate.getMonth()) {
+        // Verificar que el cambio no sea simplemente por la normalización de la hora en mesCalendario
+        // (que siempre es el día 1 del mes) vs la hora de nuevaStartDate.
+        // Solo cambiar si realmente son meses/años diferentes.
+        const mesCalendarioNormalizado = new Date(mesCalendario.getFullYear(), mesCalendario.getMonth(), 1);
+        const nuevaStartDateNormalizada = new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1);
+
+        if (mesCalendarioNormalizado.getTime() !== nuevaStartDateNormalizada.getTime()) {
+          console.log('[Paso2] useEffect [rangoSeleccionado?.startDate] -> Sincronizando mesCalendario con nueva startDate:', nuevaStartDate);
+          setMesCalendario(new Date(nuevaStartDate.getFullYear(), nuevaStartDate.getMonth(), 1));
+        }
+      }
     }
-  }, [rangoSeleccionado?.startDate, mesCalendario]);
+    // No se revierte a new Date() si !rangoSeleccionado.startDate para permitir navegación libre.
+  }, [rangoSeleccionado?.startDate]); // Solo depende de rangoSeleccionado.startDate
 
-  // Ajustar mes del calendario si cambia la fecha de inicio de la selección
-  useEffect(() => {
-    if (rangoSeleccionado?.startDate && mesCalendario.getMonth() !== rangoSeleccionado.startDate.getMonth()) {
-      setMesCalendario(new Date(rangoSeleccionado.startDate));
-    } else if (!rangoSeleccionado?.startDate && mesCalendario.getMonth() !== new Date().getMonth()) {
-      setMesCalendario(new Date()); // Volver al mes actual si no hay selección
-    }
-  }, [rangoSeleccionado?.startDate, mesCalendario]);
 
-  useEffect(() => {
-    // Log para cuando mesCalendario realmente cambia su valor en el estado
-    console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
+  // El siguiente useEffect que estaba duplicado y que también dependía de [rangoSeleccionado?.startDate, mesCalendario] se elimina.
+  // El log de "[Paso2] Estado mesCalendario ha cambiado a:" se puede poner en el useEffect que carga disponibilidad.
+  // El useEffect que carga disponibilidad (arriba) ya tiene un log similar.
+  // useEffect(() => {
+  //   // Log para cuando mesCalendario realmente cambia su valor en el estado
+  //   console.log('[Paso2] Estado mesCalendario ha cambiado a:', mesCalendario);
     if (salonSeleccionado) {
       const anio = mesCalendario.getFullYear();
       const mesNum = mesCalendario.getMonth() + 1;
