@@ -1,6 +1,6 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
-import { differenceInCalendarDays, isAfter, isSameDay, format } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
+import { differenceInCalendarDays, isAfter, isSameDay } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
 import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
@@ -8,117 +8,69 @@ import Paso2_SeleccionFecha from '../components/Paso2_SeleccionFecha';
 import Paso3_SeleccionHorario from '../components/Paso3_SeleccionHorario';
 import Paso4_DatosYResumen from '../components/Paso4_DatosYResumen';
 import SocioValidationModal from '../components/SocioValidationModal';
-import { getPrecioDetallado } from '../api'; // Importar la nueva función de API
-import useDebounce from '../hooks/useDebounce'; // Importar el hook de debounce
 
 function BookingPage() {
   // --- Estados y lógica se mantienen igual que en tu versión ---
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const [salonSeleccionado, setSalonSeleccionado] = useState(null);
-  const [rangoSeleccionado, setRangoSeleccionado] = useState(null);
-  const [currentSelectionMode, setCurrentSelectionMode] = useState('single');
+  // Nuevo estado para la selección de fechas y modo
+  const [rangoSeleccionado, setRangoSeleccionado] = useState(null); // Será { startDate, endDate, discreteDates } o null
+  const [currentSelectionMode, setCurrentSelectionMode] = useState('single'); // 'single', 'range', 'multiple-discrete'
+  // fechaSeleccionada (estado antiguo) se elimina o se deriva de rangoSeleccionado si es necesario en otro lugar.
+  // Por ahora, lo eliminaremos y los componentes hijos usarán rangoSeleccionado.
   const [horaInicio, setHoraInicio] = useState('');
   const [horaTermino, setHoraTermino] = useState('');
   const [socioData, setSocioData] = useState(null);
+  // nombreSocio se puede derivar de socioData.nombre_completo, así que no necesitamos un estado separado.
+  // const [nombreSocio, setNombreSocio] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [desglosePrecio, setDesglosePrecio] = useState({
     netoOriginal: 0,
     montoDescuentoCupon: 0,
-    netoConDescuento: 0,
+    netoConDescuento: 0, // Neto final después de cupón (sobre este se calcula el IVA)
     iva: 0,
-    total: 0,
+    total: 0
   });
   const [duracionCalculada, setDuracionCalculada] = useState(0);
 
   // Estados para cupones
-  const [codigoCuponInput, setCodigoCuponInput] = useState('');
-  const [cuponAplicado, setCuponAplicado] = useState(null);
+  const [codigoCuponInput, setCodigoCuponInput] = useState(''); // Para el input en Paso4
+  const [cuponAplicado, setCuponAplicado] = useState(null); // { codigo, montoDescontado, mensaje, netoOriginalParaCalculo }
   const [errorCupon, setErrorCupon] = useState('');
   const [validandoCupon, setValidandoCupon] = useState(false);
 
-  // --- NUEVOS ESTADOS PARA LA LLAMADA API DE PRECIOS ---
-  const [isPrecioLoading, setIsPrecioLoading] = useState(false);
-  const [precioError, setPrecioError] = useState(null);
 
-  // Objeto de dependencias para el cálculo de precio
-  const detallesParaCalculo = {
-    salonId: salonSeleccionado?.id,
-    // Formatear las fechas a YYYY-MM-DD si existen
-    fechaInicio: rangoSeleccionado?.startDate ? format(rangoSeleccionado.startDate, 'yyyy-MM-dd') : null,
-    fechaTermino: rangoSeleccionado?.endDate ? format(rangoSeleccionado.endDate, 'yyyy-MM-dd') : null,
-    horaInicio,
-    horaTermino,
-    esSocio: !!socioData,
-    codigoCupon: cuponAplicado?.codigo || codigoCuponInput, // Enviar el código del cupón aplicado o el que se está intentando aplicar
-    currentSelectionMode,
-    discreteDates: currentSelectionMode === 'multiple-discrete' ? rangoSeleccionado?.discreteDates?.map(d => format(d, 'yyyy-MM-dd')) : undefined,
-  };
+  const IVA_RATE = 0.19; // Definir la tasa de IVA globalmente aquí o importarla
 
-  const debouncedDetallesParaCalculo = useDebounce(detallesParaCalculo, 500);
+  const getPrecioNetoPorHora = (salon, esSocioParam) => {
+    if (!salon) return 0;
 
-  // --- REEMPLAZO DEL USEEFFECT DE CÁLCULO DE PRECIO ---
-  useEffect(() => {
-    // Extraer las dependencias del objeto debounced
-    const { salonId, fechaInicio, horaInicio, horaTermino, currentSelectionMode } = debouncedDetallesParaCalculo;
-
-    // Condición para ejecutar la llamada: deben estar todos los datos mínimos necesarios.
-    const puedeCalcular = salonId && fechaInicio && horaInicio && horaTermino && parseInt(horaTermino.split(':')[0]) > parseInt(horaInicio.split(':')[0]);
-
-    if (!puedeCalcular) {
-      setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
-      setDuracionCalculada(0);
-      setPrecioError(null); // Limpiar errores si los datos son inválidos para calcular
-      return;
+    // Usar precio_neto_socio_por_hora si es socio y esa propiedad existe
+    if (esSocioParam && salon.precio_neto_socio_por_hora) {
+      return parseFloat(salon.precio_neto_socio_por_hora);
+    }
+    // Usar precio_neto_por_hora si no es socio o si no hay precio específico de socio
+    if (salon.precio_neto_por_hora) {
+      return parseFloat(salon.precio_neto_por_hora);
     }
 
-    const fetchPrecio = async () => {
-      setIsPrecioLoading(true);
-      setPrecioError(null);
-      try {
-        const response = await getPrecioDetallado(debouncedDetallesParaCalculo);
-        const { data } = response;
-
-        // El backend ahora devuelve el desglose completo y redondeado
-        setDesglosePrecio({
-          netoOriginal: data.netoOriginal,
-          montoDescuentoCupon: data.montoDescuentoCupon,
-          netoConDescuento: data.netoConDescuento,
-          iva: data.iva,
-          total: data.total,
-        });
-
-        // La duración también podría venir del backend si la lógica es compleja,
-        // pero por ahora la calculamos como antes.
-        const hInicioNum = parseInt(horaInicio.split(':')[0]);
-        const hTerminoNum = parseInt(horaTermino.split(':')[0]);
-        setDuracionCalculada(hTerminoNum - hInicioNum);
-
-        // Si la respuesta del backend sobre el cupón indica un error, lo mostramos
-        if (data.errorCupon) {
-          setErrorCupon(data.errorCupon);
-          setCuponAplicado(null); // Limpiar el cupón aplicado en el frontend
-        } else {
-          setErrorCupon(''); // Limpiar errores si el cupón fue exitoso
-          // Opcional: actualizar el estado del cupón aplicado con datos del backend
-          if (data.cuponAplicado) {
-            setCuponAplicado(data.cuponAplicado);
-          }
-        }
-
-      } catch (error) {
-        console.error("Error al obtener el precio detallado:", error);
-        setPrecioError("No se pudo calcular el precio. Intente de nuevo.");
-        // Mantener el precio en 0 si hay un error
-        setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
-      } finally {
-        setIsPrecioLoading(false);
-      }
-    };
-
-    fetchPrecio();
-
-  }, [debouncedDetallesParaCalculo]); // La única dependencia es el objeto debounced
+    // Lógica de fallback MUY BÁSICA si los campos netos no vienen de la API (esto debería evitarse)
+    // Esto asume que los precios hardcodeados (5000, 4000, 3000) eran precios TOTALES.
+    // Y que salon.precio_por_hora también era TOTAL.
+    // ESTA LÓGICA DE FALLBACK DEBERÍA SER REVISADA O ELIMINADA SI LA API YA ENVÍA LOS NETOS CORRECTAMENTE.
+    console.warn("Usando lógica de fallback para precios netos. Asegúrate que la API envíe precios netos.");
+    let precioTotalFallback = 0;
+    if (esSocioParam) {
+      if (salon.nombre.includes('Grande')) precioTotalFallback = 5000;
+      else if (salon.nombre.includes('Mediana')) precioTotalFallback = 4000;
+      else if (salon.nombre.includes('Pequeña')) precioTotalFallback = 3000;
+      else precioTotalFallback = parseFloat(salon.precio_por_hora || 0); // Asume que precio_por_hora es el total normal
+    } else {
+      precioTotalFallback = parseFloat(salon.precio_por_hora || 0); // Asume que precio_por_hora es el total normal
+    }
+    return Math.round(precioTotalFallback / (1 + IVA_RATE));
+  };
 
   // Calcular numDias aquí para que esté disponible en el scope de renderStep y useEffect de precios
   let numDias = 0; // Iniciar en 0, se calculará correctamente.
@@ -167,6 +119,72 @@ function BookingPage() {
   }
   // Asegurar que numDias no sea 0 si se va a proceder con un cálculo, para evitar división por cero si se usara numDias en denominador en otro lado.
   // Sin embargo, para multiplicación está bien si es 0.
+
+
+  useEffect(() => {
+    // Este useEffect ahora usará la variable 'numDias' calculada arriba.
+    // No es necesario recalcularla aquí.
+
+    if (salonSeleccionado && horaInicio && horaTermino) {
+      const hInicioNum = parseInt(horaInicio.split(':')[0]);
+      const hTerminoNum = parseInt(horaTermino.split(':')[0]);
+      if (hTerminoNum > hInicioNum) {
+        const duracionPorDia = hTerminoNum - hInicioNum; // Duración de la reserva en un día
+        const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
+
+        // El neto original es por la duración total de todos los días.
+        const netoOriginalCalculadoParaCupon = duracionPorDia * precioNetoHora * numDias;
+
+        let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
+        let montoDescuentoCuponActual = 0;
+
+        // console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
+
+        if (cuponAplicado && cuponAplicado.montoDescontado > 0) {
+          // console.log('[BookingPage] Dentro if cuponAplicado. netoOriginalAlAplicar vs netoOriginalCalculadoParaCupon:', cuponAplicado.netoOriginalAlAplicar, netoOriginalCalculadoParaCupon);
+          if (cuponAplicado.netoOriginalAlAplicar !== netoOriginalCalculadoParaCupon) {
+            console.warn("[BookingPage] Neto original de la reserva cambió desde que se aplicó el cupón. Invalidando cupón.");
+            setCuponAplicado(null); // Invalida el cupón
+            setErrorCupon("El total de la reserva cambió. Por favor, aplica el cupón nuevamente si corresponde.");
+            // montoDescuentoCuponActual es 0 (ya inicializado)
+            // netoFinalTrasCupon es netoOriginalCalculadoParaCupon (ya inicializado)
+          } else {
+            // console.log('[BookingPage] Cupón sigue válido. Aplicando descuento del backend.');
+            netoFinalTrasCupon = cuponAplicado.netoConDescuentoDelCupon;
+            montoDescuentoCuponActual = cuponAplicado.montoDescontado;
+            setErrorCupon(''); // Limpiar cualquier error de cupón anterior si ahora es válido
+          }
+        }
+
+        netoFinalTrasCupon = Math.max(0, netoFinalTrasCupon);
+        // console.log('[BookingPage] Valores calculados:', { netoOriginalCalculadoParaCupon, montoDescuentoCuponActual, netoFinalTrasCupon });
+
+        const ivaCalculado = Math.round(netoFinalTrasCupon * IVA_RATE);
+        const totalCalculado = netoFinalTrasCupon + ivaCalculado;
+        // console.log('[BookingPage] IVA y Total:', { ivaCalculado, totalCalculado });
+
+        const nuevoDesglose = {
+          netoOriginal: netoOriginalCalculadoParaCupon,
+          montoDescuentoCupon: montoDescuentoCuponActual,
+          netoConDescuento: netoFinalTrasCupon,
+          iva: ivaCalculado,
+          total: totalCalculado,
+        };
+        // console.log('[BookingPage] setDesglosePrecio con:', nuevoDesglose);
+        setDuracionCalculada(duracionPorDia); // CORRECCIÓN AQUÍ
+        setDesglosePrecio(nuevoDesglose);
+
+      } else { // Duración inválida
+        // console.log('[BookingPage] Duración inválida o datos incompletos. Reseteando desglose.');
+        setDuracionCalculada(0);
+        setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
+      }
+    } else { // Faltan datos para calcular
+      setDuracionCalculada(0);
+      setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
+    }
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, numDias, setCuponAplicado, setErrorCupon]);
+  // Añadido numDias a las dependencias
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio);
@@ -279,8 +297,6 @@ function BookingPage() {
                   duracionCalculada={duracionCalculada}
                   nextStep={nextStep}
                   prevStep={prevStep}
-                  isPrecioLoading={isPrecioLoading}
-                  precioError={precioError}
                 />;
       case 4:
         // Se eliminan los logs de depuración de BookingPage antes de pasar props
