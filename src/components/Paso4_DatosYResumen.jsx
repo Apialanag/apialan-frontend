@@ -724,13 +724,13 @@ function Paso4_DatosYResumen(props) {
             </div>
             <div className="resumen-fila">
               <span>IVA (19%):</span>
-              <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong>
+              <strong>${Math.round(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong>
             </div>
           </div>
           <hr className="resumen-separador" />
           <div className="resumen-total">
             <span>Total Final:</span>
-            <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
+            <strong>${Math.round(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
           </div>
           <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
         </div>
