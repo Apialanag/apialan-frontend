@@ -15,7 +15,31 @@ function SalonList({ onSalonSelect, esSocio }) {
     const fetchSalones = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/espacios');
+        // MOCK API CALL
+        const mockSalones = [
+          {
+            id: 1,
+            nombre: 'Salón Grande',
+            capacidad: 10,
+            comodidades: ['Wi-Fi', 'Pizarra', 'Cafetera'],
+            fotos: [{ url: 'https://via.placeholder.com/400x200.png?text=Salon+Grande' }],
+            precio_neto_por_hora: '10000',
+            precio_neto_socio_por_hora: '8000'
+          },
+          {
+            id: 2,
+            nombre: 'Salón Mediano',
+            capacidad: 6,
+            comodidades: ['Wi-Fi', 'Pizarra'],
+            fotos: [{ url: 'https://via.placeholder.com/400x200.png?text=Salon+Mediano' }],
+            precio_neto_por_hora: '7000',
+            precio_neto_socio_por_hora: '5000'
+          }
+        ];
+
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+        const response = { data: mockSalones };
         setSalones(response.data);
         setError(null);
       } catch (err) {
