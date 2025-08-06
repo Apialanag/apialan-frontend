@@ -230,8 +230,8 @@ function Paso3_SeleccionHorario({
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
           {/* Mostrar el desglose del precio */}
           <p>Subtotal (Neto): <strong>${(desglosePrecio.netoOriginal || 0).toLocaleString('es-CL')}</strong></p>
-          <p>IVA (19%): <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong></p>
-          <p>Total Estimado: <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong></p>
+          <p>IVA (19%): <strong>${Math.round(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong></p>
+          <p>Total Estimado: <strong>${Math.round(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong></p>
         </div>
       )}
 
