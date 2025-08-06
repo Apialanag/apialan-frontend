@@ -57,32 +57,4 @@ export const deleteBlockedDate = (dateString) => {
   return api.delete(`/blocked-dates/${dateString}`);
 };
 
-// --- NUEVA FUNCIÓN (MOCKEADA) ---
-// Función para obtener el desglose de precios calculado desde el backend
-export const getPrecioDetallado = (params) => {
-  console.log("Mock getPrecioDetallado called with:", params);
-  // Simular la respuesta del backend
-  const mockResponse = {
-    data: {
-      netoOriginal: 20000,
-      montoDescuentoCupon: 0,
-      netoConDescuento: 20000,
-      iva: 3800, // Ya redondeado por el backend
-      total: 23800, // Ya redondeado por el backend
-      // No hay error de cupón en este mock
-      errorCupon: null,
-      // Opcional: devolver el estado del cupón si fue válido
-      cuponAplicado: null
-    }
-  };
-
-  // Simular un retraso de red
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(mockResponse);
-    }, 300); // 300ms de retraso
-  });
-};
-
-
 export default api;
