@@ -16,7 +16,9 @@ function Paso3_SeleccionHorario({
   desglosePrecio, // Recibe el objeto de desglose en lugar de costoCalculado
   duracionCalculada,
   nextStep,
-  prevStep
+  prevStep,
+  isPrecioLoading, // Nueva prop
+  precioError // Nueva prop
 }) {
   const [horariosDelDia, setHorariosDelDia] = useState([]);
   const [cargandoHorarios, setCargandoHorarios] = useState(true);
@@ -225,13 +227,25 @@ function Paso3_SeleccionHorario({
         </div>
       </div>
 
-      {horaTermino && desglosePrecio && (
+      {horaTermino && (
         <div className="resumen-horario">
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
-          {/* Mostrar el desglose del precio */}
-          <p>Subtotal (Neto): <strong>${(desglosePrecio.netoOriginal || 0).toLocaleString('es-CL')}</strong></p>
-          <p>IVA (19%): <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong></p>
-          <p>Total Estimado: <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong></p>
+          {isPrecioLoading ? (
+            <p>Calculando precio...</p>
+          ) : precioError ? (
+            <p className="mensaje-error">{precioError}</p>
+          ) : desglosePrecio.total > 0 ? (
+            <>
+              <p>Subtotal (Neto): <strong>${(desglosePrecio.netoConDescuento || 0).toLocaleString('es-CL')}</strong></p>
+              {desglosePrecio.montoDescuentoCupon > 0 && (
+                <p className="descuento-cupon">Descuento Cupón: <strong>-${(desglosePrecio.montoDescuentoCupon || 0).toLocaleString('es-CL')}</strong></p>
+              )}
+              <p>IVA (19%): <strong>${(desglosePrecio.iva || 0).toLocaleString('es-CL')}</strong></p>
+              <p>Total Estimado: <strong>${(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong></p>
+            </>
+          ) : (
+            <p>Seleccione un horario para ver el precio.</p>
+          )}
         </div>
       )}
 
