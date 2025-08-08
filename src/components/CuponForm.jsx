@@ -18,6 +18,7 @@ function CuponForm({ initialData, onSubmit, onCancel, isLoading = false }) {
     monto_minimo_reserva_neto: '', // number or '' for null
     descripcion: '',
     activo: true,
+    un_solo_uso_por_socio: false,
   });
   const [errors, setErrors] = useState({});
 
@@ -33,6 +34,7 @@ function CuponForm({ initialData, onSubmit, onCancel, isLoading = false }) {
         monto_minimo_reserva_neto: initialData.monto_minimo_reserva_neto === null ? '' : initialData.monto_minimo_reserva_neto || '',
         descripcion: initialData.descripcion || '',
         activo: initialData.activo === undefined ? true : initialData.activo,
+        un_solo_uso_por_socio: initialData.un_solo_uso_por_socio || false,
       });
     } else {
       // Reset a estado inicial si no hay initialData (ej. para creación)
@@ -46,6 +48,7 @@ function CuponForm({ initialData, onSubmit, onCancel, isLoading = false }) {
         monto_minimo_reserva_neto: '',
         descripcion: '',
         activo: true,
+        un_solo_uso_por_socio: false,
       });
     }
   }, [initialData]);
@@ -237,6 +240,19 @@ function CuponForm({ initialData, onSubmit, onCancel, isLoading = false }) {
             onChange={handleChange}
           />
           Cupón Activo
+        </label>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="un_solo_uso_por_socio" className="checkbox-label">
+          <input
+            type="checkbox"
+            id="un_solo_uso_por_socio"
+            name="un_solo_uso_por_socio"
+            checked={formData.un_solo_uso_por_socio}
+            onChange={handleChange}
+          />
+          Limitar a un solo uso por socio
         </label>
       </div>
 
