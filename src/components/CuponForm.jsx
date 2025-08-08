@@ -94,10 +94,15 @@ function CuponForm({ initialData, onSubmit, onCancel, isLoading = false }) {
     e.preventDefault();
     if (!validate()) return;
 
+    // Construir el objeto a enviar de forma explícita
+    // para asegurar que todos los campos necesarios estén y tengan el formato correcto.
     const dataToSubmit = {
-      ...formData,
+      codigo: formData.codigo,
+      tipo_descuento: formData.tipo_descuento,
       valor_descuento: parseFloat(formData.valor_descuento),
-      // Formatear fechas a YYYY-MM-DD o enviar null
+      descripcion: formData.descripcion,
+      activo: formData.activo,
+      un_solo_uso_por_socio: formData.un_solo_uso_por_socio,
       fecha_validez_desde: formData.fecha_validez_desde
         ? formData.fecha_validez_desde.toISOString().split('T')[0]
         : null,
