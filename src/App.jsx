@@ -7,6 +7,7 @@ import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import logo from './assets/logoapialan.png';
 
 function App() {
   const { authToken, logout } = useAuth();
@@ -27,7 +28,7 @@ function App() {
       <header className="App-header">
         {/* 3. El logo ahora es un div interactivo que llama a la función de reinicio. */}
         <div onClick={handleResetBooking} style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
-          <h1>APIALAN AG</h1>
+          <img src={logo} alt="Logo de Apialan AG" className="app-logo" />
         </div>
         <nav>
           {authToken ? (
