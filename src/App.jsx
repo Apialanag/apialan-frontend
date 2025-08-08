@@ -7,7 +7,7 @@ import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import logo from './assets/logoapialan.png';
+import logo from './assets/logoapialan2.png';
 
 function App() {
   const { authToken, logout } = useAuth();
