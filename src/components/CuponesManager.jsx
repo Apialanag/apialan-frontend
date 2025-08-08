@@ -108,6 +108,7 @@ function CuponesManager() {
   };
 
   const handleSaveCupon = async (formData) => {
+    console.log('Enviando datos de cupón:', formData); // <<--- DEBUGGING
     setLoading(true); // Podríamos tener un loading específico para el modal
     setError('');
     try {
