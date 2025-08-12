@@ -4,7 +4,7 @@
    Layout Principal de la Aplicación
    ================================= */
 .App-header {
-  background-color: var(--color-indigo-600);
+  background-color: var(--color-indigo-800);
   color: var(--color-white);
   padding: 15px 30px;
   display: flex;
