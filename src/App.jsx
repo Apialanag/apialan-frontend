@@ -8,6 +8,8 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import logo from './assets/logoapialan6.png';
+import PagoExitoso from './pages/PagoExitoso';
+import PagoFallido from './pages/PagoFallido';
 
 function App() {
   const { authToken, logout } = useAuth();
@@ -61,6 +63,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/pago-exitoso" element={<PagoExitoso />} />
+          <Route path="/pago-fallido" element={<PagoFallido />} />
         </Routes>
       </main>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../api';
+import api, { iniciarPago } from '../api'; // Importar iniciarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import './Paso4_DatosYResumen.css';
 
@@ -485,14 +485,7 @@ function Paso4_DatosYResumen(props) {
         : null;
 
       if (reservaPrincipal && reservaPrincipal.id) {
-        // setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
-
-        // --- Inicio: Modificación para manejo temporal sin pasarela de pago ---
-        setMensajeReserva({
-          texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago y los detalles de tu reserva.',
-          tipo: 'exito' // Asegúrate de tener un estilo para 'exito' o usa 'info'/'success'
-        });
-        setReservaConfirmadaId(reservaPrincipal.id); // Mostrar botón de calendario
+        setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
 
         // Guardar en localStorage si NO es socio
         if (!esSocio) {
@@ -501,34 +494,30 @@ function Paso4_DatosYResumen(props) {
           localStorage.setItem('lastBookingPhone', clienteTelefono);
         }
 
-        // Comentado: Bloque de inicio de pago
-        // // Iniciar el proceso de pago
-        // try {
-        //   const responseInicioPago = await api.post(`/reservas/${reservaPrincipal.id}/iniciar-pago`); // Use reservaPrincipal.id
-        //   if (responseInicioPago.data && responseInicioPago.data.url_pago) {
-        //     window.location.href = responseInicioPago.data.url_pago;
-        //     // No llamar a onReservationSuccess aquí, la redirección se encarga.
-        //     // El estado se limpiará cuando el usuario navegue a una página de éxito/fallo y luego a la home.
-        //   } else {
-        //     // El backend no devolvió una url_pago
-        //     console.error("Error: El backend no proporcionó una URL de pago.", responseInicioPago.data);
-        //     setMensajeReserva({ texto: 'Error al iniciar el proceso de pago. No se obtuvo URL de la pasarela.', tipo: 'error' });
-        //     setIsSubmitting(false); // Permitir al usuario reintentar o ver el error
-        //   }
-        // } catch (errorInicioPago) {
-        //   console.error("Error al iniciar el pago:", errorInicioPago.response || errorInicioPago);
-        //   setMensajeReserva({ texto: `Error al iniciar el pago: ${errorInicioPago.response?.data?.error || 'Servicio no disponible.'}`, tipo: 'error' });
-        //   setIsSubmitting(false); // Permitir reintento
-        // }
+        // Iniciar el proceso de pago con Mercado Pago
+        try {
+          // Preparar los datos para la preferencia de pago
+          const datosParaPago = {
+            reservaId: reservaPrincipal.id,
+            titulo: `Reserva de ${salonSeleccionado.nombre}`,
+            precio: desglosePrecio.total
+          };
 
-        setTimeout(() => {
-          if (typeof onReservationSuccess === 'function') {
-            onReservationSuccess();
+          const responsePago = await iniciarPago(datosParaPago);
+
+          if (responsePago.data && responsePago.data.init_point) {
+            // Redirigir al usuario al checkout de Mercado Pago
+            window.location.href = responsePago.data.init_point;
+          } else {
+            console.error("Error: El backend no proporcionó un init_point de Mercado Pago.", responsePago.data);
+            setMensajeReserva({ texto: 'Error al iniciar el proceso de pago. No se obtuvo URL de la pasarela.', tipo: 'error' });
+            setIsSubmitting(false);
           }
-          // setIsSubmitting(false); // onReservationSuccess navega, por lo que el estado de este componente se pierde.
-                              // Si no navegara, sería necesario.
-        }, 8000); // 8 segundos para leer el mensaje y usar "Añadir a Calendario"
-        // --- Fin: Modificación para manejo temporal sin pasarela de pago ---
+        } catch (errorPago) {
+          console.error("Error al crear la preferencia de pago:", errorPago.response || errorPago);
+          setMensajeReserva({ texto: `Error al contactar la pasarela de pagos: ${errorPago.response?.data?.error || 'Servicio no disponible.'}`, tipo: 'error' });
+          setIsSubmitting(false);
+        }
 
       } else {
         // La creación de la reserva no devolvió un ID válido
