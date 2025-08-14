@@ -1,0 +1,84 @@
+.pago-fallido-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f4f7f6;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pago-fallido-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  border-top: 5px solid #dc3545; /* Borde superior rojo de error */
+}
+
+.pago-fallido-icono-cruz {
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  font-size: 40px;
+  color: #ffffff;
+  background-color: #dc3545; /* Rojo error */
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pago-fallido-card h1 {
+  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.pago-fallido-card p {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.pago-fallido-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.boton-reintentar-pago {
+  background-color: #007bff; /* Azul primario */
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  border: none;
+  width: 80%;
+  max-width: 250px;
+}
+
+.boton-reintentar-pago:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.boton-secundario {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.boton-secundario:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,71 @@
+.pago-exitoso-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh; /* Ocupa casi toda la altura de la vista */
+  background-color: #f4f7f6; /* Un fondo suave */
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pago-exitoso-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  border-top: 5px solid #28a745; /* Borde superior verde de éxito */
+}
+
+.pago-exitoso-icono-check {
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  font-size: 40px;
+  color: #ffffff;
+  background-color: #28a745; /* Verde éxito */
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pago-exitoso-card h1 {
+  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.pago-exitoso-card p {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.pago-exitoso-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.boton-volver-inicio {
+  background-color: #007bff; /* Azul primario */
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  border: none;
+}
+
+.boton-volver-inicio:hover {
+  background-color: #0056b3; /* Azul más oscuro */
+  transform: translateY(-2px);
+}
