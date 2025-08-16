@@ -117,7 +117,7 @@ function Paso4_DatosYResumen(props) {
       const renderPaymentBrick = async () => {
         const settings = {
           initialization: {
-            amount: desglosePrecio.total,
+            amount: Math.round(desglosePrecio.total),
             payer: {
               email: clienteEmail,
             },
