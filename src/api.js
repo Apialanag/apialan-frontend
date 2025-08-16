@@ -65,5 +65,10 @@ export const iniciarPago = (datosReserva) => {
   return axios.post(pagoApiUrl, datosReserva);
 };
 
+export const procesarPago = (datosPago) => {
+  // Este endpoint SÍ es parte de nuestra API, por lo que usamos la instancia 'api'
+  return api.post('/pagos/procesar-pago', datosPago);
+};
+
 
 export default api;
