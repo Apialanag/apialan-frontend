@@ -15,7 +15,6 @@ function Paso4_DatosYResumen(props) {
     horaTermino,
     duracionCalculada, // Sigue siendo duración por día
     desglosePrecio,
-    onReservationSuccess,
     prevStep,
     esSocio,
     rutSocio,
@@ -102,7 +101,7 @@ function Paso4_DatosYResumen(props) {
       // Si no había nada, el campo de teléfono permanecerá como esté.
       setMensajeSocio('');
     }
-  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio]); // Faltaba clienteNombre y clienteEmail en dependencias? No, porque este efecto es para *reaccionar* a cambios de socio.
+  }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio, clienteNombre, clienteEmail]);
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
@@ -395,70 +394,62 @@ function Paso4_DatosYResumen(props) {
   
   const handleSubmit = async () => {
     const formIsValid = isFormValid();
-    // console.log('[Paso4] handleSubmit: isFormValid() resultado:', formIsValid);
-    // console.log('[Paso4] handleSubmit: Valores para validación:', { clienteNombre, clienteEmail, tipoDocumento, facturacionRut, facturacionRazonSocial, facturacionGiro, facturacionDireccion });
-
     if (!formIsValid) {
       setMensajeReserva({ texto: 'Por favor, complete todos los campos requeridos y asegúrese de que el email sea válido.', tipo: 'error' });
       return;
     }
-    
+
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
-    setReservaConfirmadaId(null); // Reiniciar para que no se muestre de intentos previos
-    setIsCalendarMenuOpen(false); // Asegurar que el menú esté cerrado al iniciar/reintentar
-    // console.log('[Paso4] Después de setIsSubmitting y setMensajeReserva');
 
-    const datosReserva = {};
-    // console.log('[Paso4] datosReserva inicializado:', datosReserva);
+    // --- Inicio de la nueva lógica de redirección ---
+    // 1. Abrir una nueva pestaña inmediatamente.
+    const paymentWindow = window.open('', '_blank');
+    if (paymentWindow) {
+      paymentWindow.document.write('<h2>Procesando tu pago...</h2><p>Por favor, no cierres esta ventana. Serás redirigido a Mercado Pago en un momento.</p>');
+    } else {
+      setIsSubmitting(false);
+      setMensajeReserva({ texto: 'No se pudo abrir la ventana de pago. Por favor, deshabilita tu bloqueador de pop-ups para este sitio y vuelve a intentarlo.', tipo: 'error' });
+      return;
+    }
+    // --- Fin de la nueva lógica de redirección ---
 
-    // console.log('[Paso4] handleSubmit - Valores ANTES de construir datosReserva:', { salonSeleccionado, fechaSeleccionada, desglosePrecio, cuponAplicado, clienteNombre, clienteEmail, clienteTelefono, horaInicio, horaTermino, notasAdicionales, tipoDocumento, esSocio, rutLocal });
+    setReservaConfirmadaId(null);
+    setIsCalendarMenuOpen(false);
 
-    datosReserva.espacio_id = salonSeleccionado?.id;
-    // console.log('[Paso4] datosReserva después de espacio_id:', datosReserva, 'salonSeleccionado:', salonSeleccionado);
+    const datosReserva = {
+      espacio_id: salonSeleccionado?.id,
+      cliente_nombre: clienteNombre,
+      cliente_email: clienteEmail,
+      cliente_telefono: clienteTelefono,
+      hora_inicio: horaInicio,
+      hora_termino: horaTermino,
+      precio_total_enviado_cliente: desglosePrecio?.total,
+      notas_adicionales: notasAdicionales,
+      tipo_documento: tipoDocumento,
+    };
 
-    datosReserva.cliente_nombre = clienteNombre;
-    datosReserva.cliente_email = clienteEmail;
-    datosReserva.cliente_telefono = clienteTelefono;
-
-    // Asignar fechas según el modo de selección
     if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
       datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
-      // datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate); // Opcional si backend lo asume
     } else if (currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate) {
       datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
       datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.endDate);
-    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
-      // Para múltiples días discretos, la especificación para Jules sugiere enviar un array `dias_discretos`.
-      // Si el backend espera una reserva por cada día, esta parte necesitaría un bucle y múltiples llamadas a la API,
-      // o el backend debe manejar la creación de múltiples reservas a partir de este array.
-      // Por ahora, enviaremos el array `dias_discretos` y la primera fecha como `fecha_reserva` principal si es necesario.
+    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates?.length > 0) {
       datosReserva.dias_discretos = rangoSeleccionado.discreteDates.map(date => formatearFechaParaAPI(date));
       if (rangoSeleccionado.discreteDates.length > 0) {
-         datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.discreteDates[0]); // Backend podría necesitar una fecha principal
+        datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.discreteDates[0]);
       }
     }
-
-    datosReserva.hora_inicio = horaInicio;
-    datosReserva.hora_termino = horaTermino;
-    // datosReserva.costo_total = desglosePrecio?.total; // Nombre anterior
-    datosReserva.precio_total_enviado_cliente = desglosePrecio?.total; // Nuevo nombre del campo
-
-    datosReserva.notas_adicionales = notasAdicionales;
-    datosReserva.tipo_documento = tipoDocumento;
-    // console.log('[Paso4] datosReserva después de notas y tipoDoc:', datosReserva);
 
     if (tipoDocumento === 'factura') {
       datosReserva.facturacion_rut = facturacionRut;
       datosReserva.facturacion_razon_social = facturacionRazonSocial;
       datosReserva.facturacion_giro = facturacionGiro;
       datosReserva.facturacion_direccion = facturacionDireccion;
-      // console.log('[Paso4] datosReserva después de datos factura:', datosReserva);
     }
 
     if (esSocio && rutLocal) {
       datosReserva.rut_socio = rutLocal;
-      // console.log('[Paso4] datosReserva después de rutSocio:', datosReserva);
     }
 
     if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
@@ -467,75 +458,54 @@ function Paso4_DatosYResumen(props) {
       if (cuponAplicado.cuponId) {
         datosReserva.cupon_id = cuponAplicado.cuponId;
       }
-      // console.log('[Paso4] datosReserva después de datos cupón:', datosReserva, 'cuponAplicado:', cuponAplicado);
     }
 
-    // Se podría dejar este log si aún se está depurando la interacción con el backend.
-    // console.log('[Paso4] Enviando a /reservas FINAL:', datosReserva); // Comentado el log anterior
     console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
 
-
     try {
+      // --- Lógica de dos pasos (crear reserva, luego crear pago) ---
       const responseReserva = await api.post('/reservas', datosReserva);
       const backendResponse = responseReserva.data;
+      const reservaPrincipal = backendResponse.reservas?.[0];
 
-      // Adaptar a la estructura de respuesta del backend: un array 'reservas'
-      const reservaPrincipal = backendResponse.reservas && backendResponse.reservas.length > 0
-        ? backendResponse.reservas[0]
-        : null;
-
-      if (reservaPrincipal && reservaPrincipal.id) {
-        setMensajeReserva({ texto: 'Solicitud de reserva recibida. Redirigiendo al portal de pagos...', tipo: 'info' });
-
-        // Guardar en localStorage si NO es socio
-        if (!esSocio) {
-          localStorage.setItem('lastBookingName', clienteNombre);
-          localStorage.setItem('lastBookingEmail', clienteEmail);
-          localStorage.setItem('lastBookingPhone', clienteTelefono);
-        }
-
-        // Iniciar el proceso de pago con Mercado Pago
-        try {
-          // Preparar los datos para la preferencia de pago
-          const datosParaPago = {
-            reservaId: reservaPrincipal.id,
-            titulo: `Reserva de ${salonSeleccionado.nombre}`,
-            precio: desglosePrecio.total
-          };
-
-          const responsePago = await iniciarPago(datosParaPago);
-
-          if (responsePago.data && responsePago.data.init_point) {
-            // Redirigir al usuario al checkout de Mercado Pago
-            window.location.href = responsePago.data.init_point;
-          } else {
-            console.error("Error: El backend no proporcionó un init_point de Mercado Pago.", responsePago.data);
-            setMensajeReserva({ texto: 'Error al iniciar el proceso de pago. No se obtuvo URL de la pasarela.', tipo: 'error' });
-            setIsSubmitting(false);
-          }
-        } catch (errorPago) {
-          console.error("Error al crear la preferencia de pago:", errorPago.response || errorPago);
-          setMensajeReserva({ texto: `Error al contactar la pasarela de pagos: ${errorPago.response?.data?.error || 'Servicio no disponible.'}`, tipo: 'error' });
-          setIsSubmitting(false);
-        }
-
-      } else {
-        // La creación de la reserva no devolvió un ID válido
-        console.error("Error: La creación de la reserva no devolvió un ID válido o la estructura esperada.", backendResponse);
-        setMensajeReserva({ texto: 'Error al procesar la reserva. No se obtuvo ID.', tipo: 'error' });
-        setReservaConfirmadaId(null); // Asegurarse de que no se muestre el botón de calendario
-        setIsSubmitting(false);
+      if (!reservaPrincipal || !reservaPrincipal.id) {
+        throw new Error('La creación de la reserva no devolvió un ID válido.');
       }
-      
-      // El bloque de guardado se movió más arriba, para que ocurra DESPUÉS de una reserva exitosa (reservaPrincipal.id existe)
-      // y ANTES del setTimeout que llama a onReservationSuccess.
 
+      if (!esSocio) {
+        localStorage.setItem('lastBookingName', clienteNombre);
+        localStorage.setItem('lastBookingEmail', clienteEmail);
+        localStorage.setItem('lastBookingPhone', clienteTelefono);
+      }
+
+      const datosParaPago = {
+        reservaId: reservaPrincipal.id,
+        titulo: `Reserva de ${salonSeleccionado.nombre}`,
+        precio: desglosePrecio.total
+      };
+
+      const responsePago = await iniciarPago(datosParaPago);
+
+      if (responsePago.data && responsePago.data.init_point) {
+        // 2. Redirigir la ventana que ya abrimos.
+        paymentWindow.location.href = responsePago.data.init_point;
+        setMensajeReserva({ texto: 'Has sido redirigido a Mercado Pago para completar tu pago. Por favor, revisa la nueva pestaña.', tipo: 'exito' });
+        // No limpiamos el formulario aquí todavía. Lo haremos cuando el usuario vuelva a la página de éxito.
+      } else {
+        throw new Error('El backend no proporcionó un init_point de Mercado Pago.');
+      }
     } catch (error) {
-      console.error("Error al crear reserva:", error.response || error);
-      setMensajeReserva({ texto: `Error al crear la reserva: ${error.response?.data?.error || 'No se pudo procesar la solicitud.'}`, tipo: 'error' });
-      setReservaConfirmadaId(null); // Asegurarse de que no se muestre el botón de calendario
+      // Si algo falla, cerrar la ventana de pago y mostrar el error en la página principal.
+      if (paymentWindow) {
+        paymentWindow.close();
+      }
+      console.error("Error durante el proceso de reserva y pago:", error);
+      const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
+      setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
       setIsSubmitting(false);
     }
+    // No reseteamos isSubmitting aquí si todo va bien, porque el usuario ya fue redirigido en otra pestaña.
+    // Podríamos querer resetearlo si el usuario cierra la pestaña de pago y vuelve.
   };
 
   return (

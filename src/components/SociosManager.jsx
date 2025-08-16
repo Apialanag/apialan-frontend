@@ -48,8 +48,8 @@ function SociosManager() {
       setRutNuevo('');
       setError('');
       fetchSocios(); // Recargar la lista para mostrar el nuevo socio
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error al añadir socio.');
+    } catch {
+      setError('Error al añadir socio.');
     }
   };
 
@@ -60,7 +60,7 @@ function SociosManager() {
       try {
         await api.delete(`/admin/socios/${id}`);
         fetchSocios(); // Recargar la lista
-      } catch (err) {
+      } catch {
         setError('Error al eliminar socio.');
       }
     }

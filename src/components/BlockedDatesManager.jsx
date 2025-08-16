@@ -10,7 +10,6 @@ function BlockedDatesManager() {
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   const fetchBlockedDates = useCallback(async () => {
     setIsLoading(true);
@@ -106,7 +105,6 @@ function BlockedDatesManager() {
             // Para modo 'single', selection espera { startDate, endDate } donde ambos son la misma fecha
             selection={selectedDate ? { startDate: selectedDate, endDate: selectedDate, discreteDates: [] } : null}
             onSelectionChange={handleCalendarSelection}
-            onMonthChange={setCalendarMonth}
             blockedDatesList={blockedDates.map(bd => bd.date)}
             formatearFechaParaAPI={formatearFechaParaAPI}
             disponibilidadMensual={{}} // No se usa para mostrar ocupación, solo para seleccionar

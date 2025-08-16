@@ -1,6 +1,6 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
-import { differenceInCalendarDays, isAfter, isSameDay } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
+import { isAfter, isSameDay } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
 import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
@@ -225,19 +225,6 @@ function BookingPage() {
     }
   };
 
-  const handleReservationSuccess = () => {
-    setSalonSeleccionado(null);
-    setRangoSeleccionado(null);
-    setCurrentSelectionMode('single');
-    setHoraInicio('');
-    setHoraTermino('');
-    setCuponAplicado(null);
-    setErrorCupon('');
-    setCodigoCuponInput('');
-    // No limpiar socioData aquí, podría querer hacer otra reserva como socio.
-    setCurrentStep(1);
-  };
-  
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -311,7 +298,6 @@ function BookingPage() {
             horaTermino={horaTermino}
             desglosePrecio={desglosePrecio}
             duracionCalculada={duracionCalculada}
-            onReservationSuccess={handleReservationSuccess}
             prevStep={prevStep}
             esSocio={!!socioData}
             rutSocio={socioData ? socioData.rut : null}
