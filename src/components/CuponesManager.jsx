@@ -96,7 +96,7 @@ function CuponesManager() {
     try {
       // Asumiendo que fechaISO ya es YYYY-MM-DD o un formato que Date puede parsear a la fecha correcta localmente
       return new Date(fechaISO).toLocaleDateString('es-CL', { year: 'numeric', month: '2-digit', day: '2-digit'});
-    } catch (e) {
+    } catch {
       return 'Fecha Inválida';
     }
   };
