@@ -124,6 +124,10 @@ function Paso4_DatosYResumen(props) {
           },
           customization: {
             visual: { style: { theme: 'default' } },
+            paymentMethods: {
+              creditCard: "all",
+              debitCard: "all",
+            },
           },
           callbacks: {
             onReady: () => console.log('Payment Brick está listo.'),
