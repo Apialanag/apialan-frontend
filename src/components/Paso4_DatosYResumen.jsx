@@ -118,6 +118,7 @@ function Paso4_DatosYResumen(props) {
         const settings = {
           initialization: {
             amount: Math.round(desglosePrecio.total),
+            locale: 'es-CL',
             payer: {
               email: clienteEmail,
             },
