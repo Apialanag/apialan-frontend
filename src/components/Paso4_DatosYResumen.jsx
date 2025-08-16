@@ -73,6 +73,9 @@ function Paso4_DatosYResumen(props) {
   const [facturacionGiro, setFacturacionGiro] = useState('');
   const [facturacionDireccion, setFacturacionDireccion] = useState('');
 
+  // Nuevo estado para el método de pago
+  const [metodoPago, setMetodoPago] = useState('tarjeta'); // 'tarjeta' o 'transferencia'
+
 
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
   // Este useEffect se encarga de actualizar si el estado de socio cambia DESPUÉS del montaje inicial.
@@ -401,22 +404,10 @@ function Paso4_DatosYResumen(props) {
 
     setIsSubmitting(true);
     setMensajeReserva({ texto: 'Procesando...', tipo: 'info' });
-
-    // --- Inicio de la nueva lógica de redirección ---
-    // 1. Abrir una nueva pestaña inmediatamente.
-    const paymentWindow = window.open('', '_blank');
-    if (paymentWindow) {
-      paymentWindow.document.write('<h2>Procesando tu pago...</h2><p>Por favor, no cierres esta ventana. Serás redirigido a Mercado Pago en un momento.</p>');
-    } else {
-      setIsSubmitting(false);
-      setMensajeReserva({ texto: 'No se pudo abrir la ventana de pago. Por favor, deshabilita tu bloqueador de pop-ups para este sitio y vuelve a intentarlo.', tipo: 'error' });
-      return;
-    }
-    // --- Fin de la nueva lógica de redirección ---
-
     setReservaConfirmadaId(null);
     setIsCalendarMenuOpen(false);
 
+    // --- Construcción del objeto base de la reserva ---
     const datosReserva = {
       espacio_id: salonSeleccionado?.id,
       cliente_nombre: clienteNombre,
@@ -427,8 +418,10 @@ function Paso4_DatosYResumen(props) {
       precio_total_enviado_cliente: desglosePrecio?.total,
       notas_adicionales: notasAdicionales,
       tipo_documento: tipoDocumento,
+      metodo_pago: metodoPago === 'tarjeta' ? 'mercadopago' : 'transferencia', // Añadir método de pago
     };
 
+    // Añadir campos opcionales
     if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
       datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
     } else if (currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate) {
@@ -462,50 +455,73 @@ function Paso4_DatosYResumen(props) {
 
     console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
 
-    try {
-      // --- Lógica de dos pasos (crear reserva, luego crear pago) ---
-      const responseReserva = await api.post('/reservas', datosReserva);
-      const backendResponse = responseReserva.data;
-      const reservaPrincipal = backendResponse.reservas?.[0];
-
-      if (!reservaPrincipal || !reservaPrincipal.id) {
-        throw new Error('La creación de la reserva no devolvió un ID válido.');
+    // --- Lógica condicional basada en el método de pago ---
+    if (metodoPago === 'tarjeta') {
+      // --- Flujo de Pago con Tarjeta (Mercado Pago) ---
+      const paymentWindow = window.open('', '_blank');
+      if (!paymentWindow) {
+        setIsSubmitting(false);
+        setMensajeReserva({ texto: 'No se pudo abrir la ventana de pago. Por favor, deshabilita tu bloqueador de pop-ups y vuelve a intentarlo.', tipo: 'error' });
+        return;
       }
+      paymentWindow.document.write('<h2>Procesando tu pago...</h2><p>Por favor, no cierres esta ventana.</p>');
 
-      if (!esSocio) {
-        localStorage.setItem('lastBookingName', clienteNombre);
-        localStorage.setItem('lastBookingEmail', clienteEmail);
-        localStorage.setItem('lastBookingPhone', clienteTelefono);
-      }
+      try {
+        const responseReserva = await api.post('/reservas', datosReserva);
+        const reservaPrincipal = responseReserva.data?.reservas?.[0];
+        if (!reservaPrincipal || !reservaPrincipal.id) throw new Error('La creación de la reserva no devolvió un ID válido.');
 
-      const datosParaPago = {
-        reservaId: reservaPrincipal.id,
-        titulo: `Reserva de ${salonSeleccionado.nombre}`,
-        precio: desglosePrecio.total
-      };
+        if (!esSocio) {
+          localStorage.setItem('lastBookingName', clienteNombre);
+          localStorage.setItem('lastBookingEmail', clienteEmail);
+          localStorage.setItem('lastBookingPhone', clienteTelefono);
+        }
 
-      const responsePago = await iniciarPago(datosParaPago);
-
-      if (responsePago.data && responsePago.data.init_point) {
-        // 2. Redirigir la ventana que ya abrimos.
-        paymentWindow.location.href = responsePago.data.init_point;
-        setMensajeReserva({ texto: 'Has sido redirigido a Mercado Pago para completar tu pago. Por favor, revisa la nueva pestaña.', tipo: 'exito' });
-        // No limpiamos el formulario aquí todavía. Lo haremos cuando el usuario vuelva a la página de éxito.
-      } else {
-        throw new Error('El backend no proporcionó un init_point de Mercado Pago.');
-      }
-    } catch (error) {
-      // Si algo falla, cerrar la ventana de pago y mostrar el error en la página principal.
-      if (paymentWindow) {
+        const datosParaPago = {
+          reservaId: reservaPrincipal.id,
+          titulo: `Reserva de ${salonSeleccionado.nombre}`,
+          precio: desglosePrecio.total
+        };
+        const responsePago = await iniciarPago(datosParaPago);
+        if (responsePago.data?.init_point) {
+          paymentWindow.location.href = responsePago.data.init_point;
+          setMensajeReserva({ texto: 'Has sido redirigido para completar tu pago. Por favor, revisa la nueva pestaña.', tipo: 'exito' });
+        } else {
+          throw new Error('El backend no proporcionó un link de pago.');
+        }
+      } catch (error) {
         paymentWindow.close();
+        const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
+        setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
+        setIsSubmitting(false);
       }
-      console.error("Error durante el proceso de reserva y pago:", error);
-      const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
-      setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
-      setIsSubmitting(false);
+    } else {
+      // --- Flujo de Pago por Transferencia ---
+      try {
+        const responseReserva = await api.post('/reservas', datosReserva);
+        const reservaPrincipal = responseReserva.data?.reservas?.[0];
+        if (!reservaPrincipal || !reservaPrincipal.id) {
+          throw new Error('La creación de la reserva no devolvió un ID válido.');
+        }
+
+        if (!esSocio) {
+          localStorage.setItem('lastBookingName', clienteNombre);
+          localStorage.setItem('lastBookingEmail', clienteEmail);
+          localStorage.setItem('lastBookingPhone', clienteTelefono);
+        }
+
+        setReservaConfirmadaId(reservaPrincipal.id);
+        setMensajeReserva({ texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago y los detalles de tu reserva.', tipo: 'exito' });
+
+        // Aquí no se limpia el formulario inmediatamente para que el usuario pueda ver el mensaje y usar el botón de calendario.
+        // Se podría añadir un botón para "Hacer otra reserva" que llame a onReservationSuccess si se reintroduce esa prop.
+        setIsSubmitting(false); // Permitir que el usuario interactúe de nuevo (ej. añadir a calendario)
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
+        setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
+        setIsSubmitting(false);
+      }
     }
-    // No reseteamos isSubmitting aquí si todo va bien, porque el usuario ya fue redirigido en otra pestaña.
-    // Podríamos querer resetearlo si el usuario cierra la pestaña de pago y vuelve.
   };
 
   return (
@@ -692,6 +708,33 @@ function Paso4_DatosYResumen(props) {
             <strong>${Math.round(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
           </div>
           <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
+
+          {/* Nueva sección para elegir método de pago */}
+          <div className="metodo-pago-selector">
+            <h3>¿Cómo te gustaría pagar?</h3>
+            <div className="radio-group-pago">
+              <label className={metodoPago === 'tarjeta' ? 'selected' : ''}>
+                <input
+                  type="radio"
+                  name="metodoPago"
+                  value="tarjeta"
+                  checked={metodoPago === 'tarjeta'}
+                  onChange={(e) => setMetodoPago(e.target.value)}
+                />
+                Pagar con Tarjeta
+              </label>
+              <label className={metodoPago === 'transferencia' ? 'selected' : ''}>
+                <input
+                  type="radio"
+                  name="metodoPago"
+                  value="transferencia"
+                  checked={metodoPago === 'transferencia'}
+                  onChange={(e) => setMetodoPago(e.target.value)}
+                />
+                Pagar por Transferencia
+              </label>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -731,7 +774,7 @@ function Paso4_DatosYResumen(props) {
       <div className="navegacion-pasos">
         <button onClick={prevStep} disabled={isSubmitting} className="boton-volver">← Volver</button>
         <button onClick={handleSubmit} disabled={!isFormValid() || isSubmitting} className="boton-principal">
-          {isSubmitting ? 'Procesando...' : 'Confirmar Reserva'}
+          {isSubmitting ? 'Procesando...' : 'Finalizar Reserva'}
         </button>
       </div>
     </div>
