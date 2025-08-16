@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api, { iniciarPago } from '../api'; // Importar iniciarPago
+import api, { iniciarPago, procesarPago } from '../api'; // Importar iniciarPago y procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import './Paso4_DatosYResumen.css';
 
@@ -105,6 +105,99 @@ function Paso4_DatosYResumen(props) {
       setMensajeSocio('');
     }
   }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio, clienteNombre, clienteEmail]);
+
+  // --- Efecto para el Payment Brick de Mercado Pago ---
+  React.useEffect(() => {
+    // Solo ejecutar si el método de pago es tarjeta y tenemos el total
+    if (metodoPago === 'tarjeta' && desglosePrecio.total > 0) {
+      const publicKey = 'APP_USR-f54c0a87-044e-4d93-9ef2-d3d406d99b00';
+      const mp = new window.MercadoPago(publicKey);
+      const bricksBuilder = mp.bricks();
+
+      const renderPaymentBrick = async () => {
+        const settings = {
+          initialization: {
+            amount: desglosePrecio.total,
+            payer: {
+              email: clienteEmail,
+            },
+          },
+          customization: {
+            visual: { style: { theme: 'default' } },
+          },
+          callbacks: {
+            onReady: () => console.log('Payment Brick está listo.'),
+            onError: (error) => {
+              console.error(error);
+              setMensajeReserva({ texto: 'Hubo un error con el formulario de pago. Revisa los datos.', tipo: 'error' });
+            },
+            onSubmit: async (formData) => {
+              setIsSubmitting(true);
+              setMensajeReserva({ texto: 'Procesando pago, por favor espera...', tipo: 'info' });
+
+              try {
+                // 1. Crear la reserva primero
+                const datosReserva = {
+                  espacio_id: salonSeleccionado?.id,
+                  cliente_nombre: clienteNombre,
+                  cliente_email: clienteEmail,
+                  cliente_telefono: clienteTelefono,
+                  hora_inicio: horaInicio,
+                  hora_termino: horaTermino,
+                  precio_total_enviado_cliente: desglosePrecio.total,
+                  notas_adicionales: notasAdicionales,
+                  tipo_documento: tipoDocumento,
+                  metodo_pago: 'mercadopago',
+                  // ...otros datos de reserva...
+                };
+                // (Opcional: añadir otros campos como RUT de socio, etc. si son necesarios)
+
+                const responseReserva = await api.post('/reservas', datosReserva);
+                const reservaPrincipal = responseReserva.data?.reservas?.[0];
+
+                if (!reservaPrincipal || !reservaPrincipal.id) {
+                  throw new Error('No se pudo crear la reserva antes del pago.');
+                }
+
+                // 2. Procesar el pago con el ID de la reserva
+                const datosParaBackend = {
+                  ...formData,
+                  reservaId: reservaPrincipal.id,
+                };
+
+                const responsePago = await procesarPago(datosParaBackend);
+
+                // Si llegamos aquí, el pago fue exitoso (o al menos aceptado para procesar)
+                window.location.href = '/pago-exitoso';
+
+              } catch (error) {
+                const errorMessage = error.response?.data?.error || error.message || 'El pago fue rechazado o hubo un error.';
+                console.error('Error al procesar el pago:', error);
+                setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
+                setIsSubmitting(false); // Reactivar el formulario para reintentar
+              }
+            },
+          },
+        };
+
+        // Renderiza el Brick y guarda la instancia
+        window.paymentBrick = await bricksBuilder.create('payment', 'payment-brick_container', settings);
+      };
+
+      renderPaymentBrick();
+    }
+
+    // --- Función de limpieza del efecto ---
+    return () => {
+      // Si existe una instancia del brick, la desmontamos para limpiar.
+      if (window.paymentBrick) {
+        window.paymentBrick.unmount();
+        window.paymentBrick = null; // Limpiar la referencia
+      }
+    };
+    // Dependencias del efecto: se volverá a ejecutar si cambia el método de pago, el total o el email.
+  }, [metodoPago, desglosePrecio.total, clienteEmail]);
+
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
@@ -455,48 +548,9 @@ function Paso4_DatosYResumen(props) {
 
     console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
 
-    // --- Lógica condicional basada en el método de pago ---
-    if (metodoPago === 'tarjeta') {
-      // --- Flujo de Pago con Tarjeta (Mercado Pago) ---
-      const paymentWindow = window.open('', '_blank');
-      if (!paymentWindow) {
-        setIsSubmitting(false);
-        setMensajeReserva({ texto: 'No se pudo abrir la ventana de pago. Por favor, deshabilita tu bloqueador de pop-ups y vuelve a intentarlo.', tipo: 'error' });
-        return;
-      }
-      paymentWindow.document.write('<h2>Procesando tu pago...</h2><p>Por favor, no cierres esta ventana.</p>');
-
-      try {
-        const responseReserva = await api.post('/reservas', datosReserva);
-        const reservaPrincipal = responseReserva.data?.reservas?.[0];
-        if (!reservaPrincipal || !reservaPrincipal.id) throw new Error('La creación de la reserva no devolvió un ID válido.');
-
-        if (!esSocio) {
-          localStorage.setItem('lastBookingName', clienteNombre);
-          localStorage.setItem('lastBookingEmail', clienteEmail);
-          localStorage.setItem('lastBookingPhone', clienteTelefono);
-        }
-
-        const datosParaPago = {
-          reservaId: reservaPrincipal.id,
-          titulo: `Reserva de ${salonSeleccionado.nombre}`,
-          precio: desglosePrecio.total
-        };
-        const responsePago = await iniciarPago(datosParaPago);
-        if (responsePago.data?.init_point) {
-          paymentWindow.location.href = responsePago.data.init_point;
-          setMensajeReserva({ texto: 'Has sido redirigido para completar tu pago. Por favor, revisa la nueva pestaña.', tipo: 'exito' });
-        } else {
-          throw new Error('El backend no proporcionó un link de pago.');
-        }
-      } catch (error) {
-        paymentWindow.close();
-        const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
-        setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
-        setIsSubmitting(false);
-      }
-    } else {
-      // --- Flujo de Pago por Transferencia ---
+    // La lógica de pago con tarjeta fue movida al `onSubmit` del Payment Brick.
+    // Este `handleSubmit` solo se ejecuta para el pago por transferencia.
+    if (metodoPago === 'transferencia') {
       try {
         const responseReserva = await api.post('/reservas', datosReserva);
         const reservaPrincipal = responseReserva.data?.reservas?.[0];
@@ -511,16 +565,18 @@ function Paso4_DatosYResumen(props) {
         }
 
         setReservaConfirmadaId(reservaPrincipal.id);
-        setMensajeReserva({ texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago y los detalles de tu reserva.', tipo: 'exito' });
+        setMensajeReserva({ texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago.', tipo: 'exito' });
 
-        // Aquí no se limpia el formulario inmediatamente para que el usuario pueda ver el mensaje y usar el botón de calendario.
-        // Se podría añadir un botón para "Hacer otra reserva" que llame a onReservationSuccess si se reintroduce esa prop.
-        setIsSubmitting(false); // Permitir que el usuario interactúe de nuevo (ej. añadir a calendario)
+        setIsSubmitting(false);
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
         setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
         setIsSubmitting(false);
       }
+    } else {
+      // No debería llegar aquí si el botón está deshabilitado para 'tarjeta', pero es una salvaguarda.
+      console.warn('handleSubmit fue llamado con un método de pago no esperado:', metodoPago);
+      setIsSubmitting(false);
     }
   };
 
@@ -735,6 +791,11 @@ function Paso4_DatosYResumen(props) {
               </label>
             </div>
           </div>
+
+          {/* Contenedor para el Payment Brick */}
+          {metodoPago === 'tarjeta' && (
+            <div id="payment-brick_container"></div>
+          )}
         </div>
       </div>
       
@@ -773,7 +834,13 @@ function Paso4_DatosYResumen(props) {
 
       <div className="navegacion-pasos">
         <button onClick={prevStep} disabled={isSubmitting} className="boton-volver">← Volver</button>
-        <button onClick={handleSubmit} disabled={!isFormValid() || isSubmitting} className="boton-principal">
+        {/* El botón principal se deshabilita si se paga con tarjeta, ya que el brick tiene su propio botón */}
+        <button
+          onClick={handleSubmit}
+          disabled={!isFormValid() || isSubmitting || metodoPago === 'tarjeta'}
+          className="boton-principal"
+          title={metodoPago === 'tarjeta' ? 'Utilice el formulario de pago con tarjeta para continuar' : ''}
+        >
           {isSubmitting ? 'Procesando...' : 'Finalizar Reserva'}
         </button>
       </div>
