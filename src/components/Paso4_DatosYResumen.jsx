@@ -839,10 +839,10 @@ function Paso4_DatosYResumen(props) {
 
       <div className="navegacion-pasos">
         <button onClick={prevStep} disabled={isSubmitting} className="boton-volver">← Volver</button>
-        {/* El botón principal se deshabilita si se paga con tarjeta, ya que el brick tiene su propio botón */}
+        {/* El botón principal se deshabilita si se paga con tarjeta, o si ya se confirmó una reserva por transferencia */}
         <button
           onClick={handleSubmit}
-          disabled={!isFormValid() || isSubmitting || metodoPago === 'tarjeta'}
+          disabled={!isFormValid() || isSubmitting || metodoPago === 'tarjeta' || !!reservaConfirmadaId}
           className="boton-principal"
           title={metodoPago === 'tarjeta' ? 'Utilice el formulario de pago con tarjeta para continuar' : ''}
         >
