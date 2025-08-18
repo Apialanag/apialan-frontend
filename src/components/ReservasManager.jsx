@@ -245,17 +245,6 @@ function ReservasManager() {
     }
   };
   
-  const handleCancelReserva = async (reservaId) => {
-    if (!window.confirm(`¿Estás seguro de que deseas cancelar la reserva con ID ${reservaId}?`)) return;
-    try { 
-      await api.delete(`/reservas/${reservaId}`); 
-      fetchReservas(currentPage);
-    } catch (err) { 
-      console.error(`Error al cancelar la reserva ${reservaId}:`, err); 
-      setError(`Error al cancelar la reserva: ${err.response?.data?.error || 'Error del servidor'}`);
-    } 
-  };
-  
   if (loading) return <p>Cargando reservas...</p>;
 
   return (

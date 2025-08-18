@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api, { iniciarPago, procesarPago } from '../api'; // Importar iniciarPago y procesarPago
+import api, { procesarPago } from '../api'; // Importar procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import './Paso4_DatosYResumen.css';
 
@@ -170,7 +170,7 @@ function Paso4_DatosYResumen(props) {
                   reservaId: reservaPrincipal.id,
                 };
 
-                const responsePago = await procesarPago(datosParaBackend);
+                await procesarPago(datosParaBackend);
 
                 // Si llegamos aquí, el pago fue exitoso (o al menos aceptado para procesar)
                 window.location.href = '/pago-exitoso';
