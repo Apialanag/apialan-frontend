@@ -322,6 +322,19 @@
   color: var(--color-indigo-600);
 }
 
+/* Estilos para errores de validación en tiempo real */
+.input-error {
+  border-color: var(--color-red-500) !important; /* Rojo para el borde */
+  box-shadow: 0 0 0 1px var(--color-red-500) !important; /* Sombra roja sutil */
+}
+
+.error-message-text {
+  color: var(--color-red-600);
+  font-size: 0.875em; /* Un poco más pequeño que el texto normal */
+  margin-top: 6px; /* Espacio entre el input y el mensaje */
+  display: block; /* Para que ocupe su propia línea */
+}
+
 /* Estilos para el selector de método de pago */
 .metodo-pago-selector {
   margin-top: 2rem;
