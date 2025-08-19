@@ -205,8 +205,10 @@ function Paso4_DatosYResumen(props) {
         window.paymentBrick = null; // Limpiar la referencia
       }
     };
-    // Dependencias del efecto: se volverá a ejecutar si cambia el método de pago, el total o el email.
-  }, [metodoPago, desglosePrecio.total, clienteEmail]);
+    // Dependencias del efecto: se volverá a ejecutar si cambia el método de pago o el total.
+    // El email se saca de las dependencias para evitar que el brick se re-renderice en cada tipeo.
+    // El email correcto y actualizado se usa en el callback `onSubmit`.
+  }, [metodoPago, desglosePrecio.total]);
 
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
