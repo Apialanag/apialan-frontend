@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api, { procesarPago } from '../api'; // Importar procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
+import Spinner from './Spinner'; // Importar el nuevo componente Spinner
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen(props) {
@@ -587,6 +588,7 @@ function Paso4_DatosYResumen(props) {
 
   return (
     <div className="paso-container">
+      {isSubmitting && metodoPago === 'tarjeta' && <Spinner message="Procesando pago, por favor espera..." />}
       <h2>Paso 4: Completa tu Reserva</h2>
 
       {mensajeSocio && <div className="mensaje-socio-info">{mensajeSocio}</div>}
