@@ -77,6 +77,10 @@ function Paso4_DatosYResumen(props) {
   // Nuevo estado para el método de pago
   const [metodoPago, setMetodoPago] = useState('tarjeta'); // 'tarjeta' o 'transferencia'
 
+  // Estado para los errores de validación del formulario
+  const [formErrors, setFormErrors] = useState({});
+  const [isFormValidState, setIsFormValidState] = useState(false);
+
 
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
   // Este useEffect se encarga de actualizar si el estado de socio cambia DESPUÉS del montaje inicial.
@@ -482,22 +486,67 @@ function Paso4_DatosYResumen(props) {
 
   const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
   
-  const isFormValid = () => {
-    let isValid = clienteNombre.trim() !== '' && clienteEmail.trim() !== '' && /\S+@\S+\.\S+/.test(clienteEmail);
-    if (tipoDocumento === 'factura') {
-      isValid = isValid &&
-                  facturacionRut.trim() !== '' &&
-                  facturacionRazonSocial.trim() !== '' &&
-                  facturacionGiro.trim() !== '' &&
-                  facturacionDireccion.trim() !== '';
+  const validateField = (name, value) => {
+    let error = '';
+    switch (name) {
+      case 'clienteNombre':
+        if (!value) error = 'El nombre es obligatorio.';
+        break;
+      case 'clienteEmail':
+        if (!value) {
+          error = 'El email es obligatorio.';
+        } else if (!/\S+@\S+\.\S+/.test(value)) {
+          error = 'El formato del email no es válido.';
+        }
+        break;
+      case 'facturacionRut':
+      case 'facturacionRazonSocial':
+      case 'facturacionGiro':
+      case 'facturacionDireccion':
+        if (tipoDocumento === 'factura' && !value) {
+          error = 'Este campo es obligatorio para facturas.';
+        }
+        break;
+      default:
+        break;
     }
-    return isValid;
+    return error;
   };
-  
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    setFormErrors(prevErrors => ({ ...prevErrors, [name]: error }));
+  };
+
+  // Efecto para validar el formulario en tiempo real
+  React.useEffect(() => {
+    const validateAllFields = () => {
+      const errors = {};
+      errors.clienteNombre = validateField('clienteNombre', clienteNombre);
+      errors.clienteEmail = validateField('clienteEmail', clienteEmail);
+      if (tipoDocumento === 'factura') {
+        errors.facturacionRut = validateField('facturacionRut', facturacionRut);
+        errors.facturacionRazonSocial = validateField('facturacionRazonSocial', facturacionRazonSocial);
+        errors.facturacionGiro = validateField('facturacionGiro', facturacionGiro);
+        errors.facturacionDireccion = validateField('facturacionDireccion', facturacionDireccion);
+      }
+
+      // El formulario es válido si no hay ningún mensaje de error en el objeto de errores
+      const isValid = Object.values(errors).every(error => !error);
+      setIsFormValidState(isValid);
+    };
+    validateAllFields();
+  }, [clienteNombre, clienteEmail, tipoDocumento, facturacionRut, facturacionRazonSocial, facturacionGiro, facturacionDireccion]);
+
+
   const handleSubmit = async () => {
-    const formIsValid = isFormValid();
-    if (!formIsValid) {
-      setMensajeReserva({ texto: 'Por favor, complete todos los campos requeridos y asegúrese de que el email sea válido.', tipo: 'error' });
+    // La validación ahora se controla con el estado `isFormValidState`
+    // y el botón se deshabilita, por lo que este chequeo es una doble seguridad.
+    if (!isFormValidState) {
+      setMensajeReserva({ texto: 'Por favor, complete todos los campos requeridos correctamente.', tipo: 'error' });
+      // Opcional: forzar la visualización de todos los errores si el usuario intenta enviar
+      // un formulario inválido (ej. usando un hack para habilitar el botón)
       return;
     }
 
@@ -617,11 +666,13 @@ function Paso4_DatosYResumen(props) {
           <p>Completa los siguientes campos para confirmar tu reserva.</p>
           <div className="form-group">
             <label htmlFor="cliente-nombre">Nombre Completo *</label>
-            <input type="text" id="cliente-nombre" placeholder="Tu nombre" value={clienteNombre} onChange={(e) => setClienteNombre(e.target.value)} required />
+            <input type="text" id="cliente-nombre" name="clienteNombre" placeholder="Tu nombre" value={clienteNombre} onChange={(e) => setClienteNombre(e.target.value)} onBlur={handleBlur} required className={formErrors.clienteNombre ? 'input-error' : ''} />
+            {formErrors.clienteNombre && <span className="error-message-text">{formErrors.clienteNombre}</span>}
           </div>
           <div className="form-group">
             <label htmlFor="cliente-email">Email *</label>
-            <input type="email" id="cliente-email" placeholder="tu@email.com" value={clienteEmail} onChange={(e) => setClienteEmail(e.target.value)} required />
+            <input type="email" id="cliente-email" name="clienteEmail" placeholder="tu@email.com" value={clienteEmail} onChange={(e) => setClienteEmail(e.target.value)} onBlur={handleBlur} required className={formErrors.clienteEmail ? 'input-error' : ''} />
+            {formErrors.clienteEmail && <span className="error-message-text">{formErrors.clienteEmail}</span>}
           </div>
           <div className="form-group">
             <label htmlFor="cliente-telefono">Teléfono (opcional)</label>
@@ -691,19 +742,23 @@ function Paso4_DatosYResumen(props) {
               <p>Por favor, completa los datos para la emisión de tu factura.</p>
               <div className="form-group">
                 <label htmlFor="facturacion-rut">RUT Empresa *</label>
-                <input type="text" id="facturacion-rut" placeholder="Ej: 76.123.456-7" value={facturacionRut} onChange={(e) => setFacturacionRut(e.target.value)} required={tipoDocumento === 'factura'} />
+                <input type="text" id="facturacion-rut" name="facturacionRut" placeholder="Ej: 76.123.456-7" value={facturacionRut} onChange={(e) => setFacturacionRut(e.target.value)} onBlur={handleBlur} required={tipoDocumento === 'factura'} className={formErrors.facturacionRut ? 'input-error' : ''} />
+                {formErrors.facturacionRut && <span className="error-message-text">{formErrors.facturacionRut}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="facturacion-razon-social">Razón Social *</label>
-                <input type="text" id="facturacion-razon-social" placeholder="Nombre legal de la empresa" value={facturacionRazonSocial} onChange={(e) => setFacturacionRazonSocial(e.target.value)} required={tipoDocumento === 'factura'} />
+                <input type="text" id="facturacion-razon-social" name="facturacionRazonSocial" placeholder="Nombre legal de la empresa" value={facturacionRazonSocial} onChange={(e) => setFacturacionRazonSocial(e.target.value)} onBlur={handleBlur} required={tipoDocumento === 'factura'} className={formErrors.facturacionRazonSocial ? 'input-error' : ''} />
+                {formErrors.facturacionRazonSocial && <span className="error-message-text">{formErrors.facturacionRazonSocial}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="facturacion-giro">Giro *</label>
-                <input type="text" id="facturacion-giro" placeholder="Actividad económica principal" value={facturacionGiro} onChange={(e) => setFacturacionGiro(e.target.value)} required={tipoDocumento === 'factura'} />
+                <input type="text" id="facturacion-giro" name="facturacionGiro" placeholder="Actividad económica principal" value={facturacionGiro} onChange={(e) => setFacturacionGiro(e.target.value)} onBlur={handleBlur} required={tipoDocumento === 'factura'} className={formErrors.facturacionGiro ? 'input-error' : ''} />
+                {formErrors.facturacionGiro && <span className="error-message-text">{formErrors.facturacionGiro}</span>}
               </div>
               <div className="form-group">
                 <label htmlFor="facturacion-direccion">Dirección Comercial *</label>
-                <textarea id="facturacion-direccion" placeholder="Calle, Número, Comuna, Ciudad" value={facturacionDireccion} onChange={(e) => setFacturacionDireccion(e.target.value)} rows="3" required={tipoDocumento === 'factura'} />
+                <textarea id="facturacion-direccion" name="facturacionDireccion" placeholder="Calle, Número, Comuna, Ciudad" value={facturacionDireccion} onChange={(e) => setFacturacionDireccion(e.target.value)} onBlur={handleBlur} rows="3" required={tipoDocumento === 'factura'} className={formErrors.facturacionDireccion ? 'input-error' : ''} />
+                {formErrors.facturacionDireccion && <span className="error-message-text">{formErrors.facturacionDireccion}</span>}
               </div>
             </div>
           )}
@@ -844,7 +899,7 @@ function Paso4_DatosYResumen(props) {
         {/* El botón principal se deshabilita si se paga con tarjeta, o si ya se confirmó una reserva por transferencia */}
         <button
           onClick={handleSubmit}
-          disabled={!isFormValid() || isSubmitting || metodoPago === 'tarjeta' || !!reservaConfirmadaId}
+          disabled={!isFormValidState || isSubmitting || metodoPago === 'tarjeta' || !!reservaConfirmadaId}
           className="boton-principal"
           title={metodoPago === 'tarjeta' ? 'Utilice el formulario de pago con tarjeta para continuar' : ''}
         >
