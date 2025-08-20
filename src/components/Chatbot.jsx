@@ -1,61 +1,56 @@
 import React from 'react';
-import ChatBot from 'react-simple-chatbot';
-import { ThemeProvider } from 'styled-components';
-import SalonesDisponibles from './SalonesDisponibles';
-
-const theme = {
-  background: '#f5f8fb',
-  fontFamily: 'Helvetica Neue',
-  headerBgColor: '#00bfff',
-  headerFontColor: '#fff',
-  headerFontSize: '15px',
-  botBubbleColor: '#00bfff',
-  botFontColor: '#fff',
-  userBubbleColor: '#fff',
-  userFontColor: '#4a4a4a',
-};
+import ChatBot from 'react-chatbotify';
+import api from '../api';
 
 const Chatbot = () => {
-  const steps = [
-    {
-      id: '1',
-      message: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
-      trigger: '2',
-    },
-    {
-      id: '2',
-      options: [
-        { value: 'reservar', label: 'Quiero ver las salas', trigger: '3' },
-        { value: 'info', label: 'Necesito más información', trigger: '4' },
-      ],
-    },
-    {
-      id: '3',
-      component: <SalonesDisponibles />,
-      waitAction: true, // Espera a que el componente dispare triggerNextStep
-      trigger: '5', // El trigger se define en el componente SalonesDisponibles
-    },
-    {
-      id: '4',
-      message: 'Puedes encontrar toda la información sobre nuestras salas en la página principal. Si tienes alguna pregunta específica, no dudes en consultarme.',
-      end: true,
-    },
-    {
-        id: '5',
-        message: '¡Perfecto! Para continuar con la reserva, por favor usa el formulario de la página. Próximamente podré hacerlo por ti.',
-        end: true,
+  const fetchSalones = async () => {
+    try {
+      const response = await api.get('/espacios');
+      return response.data;
+    } catch (err) {
+      console.error("Error fetching salons for chatbot:", err);
+      return [];
     }
-  ];
+  };
+
+  const flow = {
+    start: {
+      message: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+      options: ['Quiero ver las salas', 'Necesito más información'],
+      path: (params) => {
+        switch (params.userInput) {
+          case 'Quiero ver las salas':
+            return 'show_salones';
+          case 'Necesito más información':
+            return 'info';
+        }
+        return 'start';
+      },
+    },
+    info: {
+        message: 'Puedes encontrar toda la información sobre nuestras salas en la página principal. Si tienes alguna pregunta específica, no dudes en consultarme.',
+        end: true,
+    },
+    show_salones: {
+      message: 'Claro, aquí tienes nuestras salas. Haz clic en la que te interese.',
+      render: async () => {
+        const salones = await fetchSalones();
+        if (salones.length === 0) {
+            return "No hay salones disponibles en este momento.";
+        }
+        const options = salones.map(salon => salon.nombre);
+        return <ChatBot.Options options={options} />;
+      },
+      path: 'selected_salon',
+    },
+    selected_salon: {
+        message: (params) => `Has seleccionado ${params.userInput}. ¡Perfecto! Para continuar con la reserva, por favor usa el formulario de la página. Próximamente podré hacerlo por ti.`,
+        end: true
+    }
+  };
 
   return (
-    <ThemeProvider theme={theme}>
-      <ChatBot
-        steps={steps}
-        floating={true}
-        headerTitle="Asistente Virtual"
-        recognitionEnable={true}
-      />
-    </ThemeProvider>
+      <ChatBot flow={flow} />
   );
 };
 
