@@ -8,6 +8,7 @@ import Paso2_SeleccionFecha from '../components/Paso2_SeleccionFecha';
 import Paso3_SeleccionHorario from '../components/Paso3_SeleccionHorario';
 import Paso4_DatosYResumen from '../components/Paso4_DatosYResumen';
 import SocioValidationModal from '../components/SocioValidationModal';
+import Chatbot from '../components/Chatbot';
 
 function BookingPage() {
   // --- Estados y lógica se mantienen igual que en tu versión ---
@@ -333,6 +334,7 @@ function BookingPage() {
       )}
       {currentStep > 1 && <IndicadorPasos currentStep={currentStep} totalSteps={totalSteps} goToStep={goToStep} />}
       {renderStep()}
+      <Chatbot />
     </>
   );
 }
