@@ -21,11 +21,18 @@ const Chatbot = () => {
     }
 
     try {
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem('authToken');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         // Send both the current message and the transformed history
         body: JSON.stringify({ message: userInput, history: transformedHistory }),
       });

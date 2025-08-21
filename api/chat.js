@@ -8,27 +8,27 @@ const backendApi = axios.create({
 });
 
 // --- Tool Implementations ---
-async function getSalones() {
+// The tool functions now accept an authToken to make authenticated requests.
+async function getSalones(args, authToken) {
   try {
-    console.log("Executing tool: getSalones");
-    const response = await backendApi.get('/espacios');
+    const config = authToken ? { headers: { Authorization: authToken } } : {};
+    const response = await backendApi.get('/espacios', config);
     return response.data;
   } catch (error) {
-    console.error("Error in getSalones tool:", error);
     return { error: `Error al obtener los salones: ${error.message}` };
   }
 }
 
-async function verificarDisponibilidadDiaria({ espacio_id, fecha }) {
+async function verificarDisponibilidadDiaria({ espacio_id, fecha }, authToken) {
   try {
-    console.log(`Executing tool: verificarDisponibilidadDiaria with id=${espacio_id}, fecha=${fecha}`);
-    const response = await backendApi.get('/reservas', { params: { espacio_id, fecha } });
+    const config = authToken ? { headers: { Authorization: authToken } } : {};
+    config.params = { espacio_id, fecha };
+    const response = await backendApi.get('/reservas', config);
     if (response.data.length === 0) {
       return { message: "No hay reservas para este día, por lo tanto todos los horarios de 10:00 a 19:00 están disponibles." };
     }
     return response.data;
   } catch (error) {
-    console.error("Error in verificarDisponibilidadDiaria tool:", error);
     return { error: `Error al obtener la disponibilidad: ${error.message}` };
   }
 }
@@ -51,6 +51,9 @@ export default async function handler(request, response) {
     return response.status(500).json({ error: 'AI or API service not configured.' });
   }
 
+  // Extract the auth token from the request headers
+  const authToken = request.headers.authorization;
+
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
@@ -62,8 +65,6 @@ export default async function handler(request, response) {
     const { message, history = [] } = request.body;
     if (!message) return response.status(400).json({ error: 'Message is required' });
 
-    // The history from the frontend is already in the correct format.
-    // The previous "processHistory" function was flawed and has been removed.
     const chat = model.startChat({ history: history });
     const result = await chat.sendMessage(message);
     const aiResponse = result.response;
@@ -74,7 +75,8 @@ export default async function handler(request, response) {
       for (const call of functionCalls) {
         const handler = functionHandlers[call.name];
         if (handler) {
-          const toolResult = await handler(call.args);
+          // Pass the authToken to the handler
+          const toolResult = await handler(call.args, authToken);
           responses.push({ functionResponse: { name: call.name, response: toolResult } });
         }
       }
