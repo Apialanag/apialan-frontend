@@ -1,18 +1,22 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import backendApi from '../lib/backend_api.js';
+import axios from 'axios';
+
+// --- Backend API Client Setup ---
+// This is now self-contained to avoid import issues in Vercel serverless functions.
+const RENDER_API_URL = process.env.RENDER_API_URL;
+const backendApi = axios.create({
+  baseURL: RENDER_API_URL,
+});
+
 
 // --- Tool Implementations ---
-// These are the actual functions that call our Render API.
-
 async function getSalones() {
   try {
     console.log("Executing tool: getSalones");
     const response = await backendApi.get('/espacios');
-    // We return the data directly. Gemini will format it for the user.
     return response.data;
   } catch (error) {
     console.error("Error in getSalones tool:", error);
-    // Return a descriptive error for the model to interpret.
     return { error: `Error al obtener los salones: ${error.message}` };
   }
 }
@@ -33,17 +37,13 @@ async function verificarDisponibilidadDiaria({ espacio_id, fecha }) {
   }
 }
 
-// --- Tool Definitions for Gemini ---
-// This is the schema we show to the model so it knows what tools it has.
 
+// --- Tool Definitions for Gemini ---
 const toolDefinitions = [
   {
     name: "getSalones",
     description: "Obtiene la lista de todos los salones (salas) disponibles para reservar, junto con sus detalles como id, nombre, descripción y precios.",
-    parameters: {
-      type: "OBJECT",
-      properties: {},
-    }
+    parameters: { type: "OBJECT", properties: {} }
   },
   {
     name: "verificarDisponibilidadDiaria",
@@ -51,14 +51,8 @@ const toolDefinitions = [
     parameters: {
       type: "OBJECT",
       properties: {
-        espacio_id: {
-          type: "STRING",
-          description: "El ID del salón a verificar. Debes obtener este ID primero usando la herramienta getSalones."
-        },
-        fecha: {
-          type: "STRING",
-          description: "La fecha a consultar, en formato YYYY-MM-DD."
-        }
+        espacio_id: { type: "STRING", description: "El ID del salón a verificar. Debes obtener este ID primero usando la herramienta getSalones." },
+        fecha: { type: "STRING", description: "La fecha a consultar, en formato YYYY-MM-DD." }
       },
       required: ["espacio_id", "fecha"]
     }
@@ -70,8 +64,8 @@ const functionHandlers = {
   verificarDisponibilidadDiaria,
 };
 
-// --- Main Handler ---
 
+// --- Main Handler ---
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     return response.status(405).json({ error: 'Method Not Allowed' });
@@ -106,12 +100,7 @@ export default async function handler(request, response) {
         const handler = functionHandlers[call.name];
         if (handler) {
           const toolResult = await handler(call.args);
-          responses.push({
-            functionResponse: {
-              name: call.name,
-              response: toolResult,
-            },
-          });
+          responses.push({ functionResponse: { name: call.name, response: toolResult } });
         }
       }
 
