@@ -10,21 +10,25 @@ const backendApi = axios.create({
 // --- Tool Implementations ---
 async function getSalones() {
   try {
+    console.log("Executing tool: getSalones");
     const response = await backendApi.get('/espacios');
     return response.data;
   } catch (error) {
+    console.error("Error in getSalones tool:", error);
     return { error: `Error al obtener los salones: ${error.message}` };
   }
 }
 
 async function verificarDisponibilidadDiaria({ espacio_id, fecha }) {
   try {
+    console.log(`Executing tool: verificarDisponibilidadDiaria with id=${espacio_id}, fecha=${fecha}`);
     const response = await backendApi.get('/reservas', { params: { espacio_id, fecha } });
     if (response.data.length === 0) {
       return { message: "No hay reservas para este día, por lo tanto todos los horarios de 10:00 a 19:00 están disponibles." };
     }
     return response.data;
   } catch (error) {
+    console.error("Error in verificarDisponibilidadDiaria tool:", error);
     return { error: `Error al obtener la disponibilidad: ${error.message}` };
   }
 }
@@ -36,23 +40,6 @@ const toolDefinitions = [
 ];
 
 const functionHandlers = { getSalones, verificarDisponibilidadDiaria };
-
-// --- Robust History Processing ---
-// This function ensures the history has a strictly alternating user/model structure.
-const processHistory = (history) => {
-  if (!Array.isArray(history)) return [];
-  const processed = [];
-  let lastRole = "model";
-  for (const item of history) {
-    if (!item || !item.role || !item.parts) continue;
-    const currentRole = item.role;
-    if (currentRole === lastRole) continue;
-    processed.push(item);
-    lastRole = currentRole;
-  }
-  return processed;
-};
-
 
 // --- Main Handler ---
 export default async function handler(request, response) {
@@ -75,8 +62,9 @@ export default async function handler(request, response) {
     const { message, history = [] } = request.body;
     if (!message) return response.status(400).json({ error: 'Message is required' });
 
-    const cleanHistory = processHistory(history);
-    const chat = model.startChat({ history: cleanHistory });
+    // The history from the frontend is already in the correct format.
+    // The previous "processHistory" function was flawed and has been removed.
+    const chat = model.startChat({ history: history });
     const result = await chat.sendMessage(message);
     const aiResponse = result.response;
     const functionCalls = aiResponse.functionCalls();
