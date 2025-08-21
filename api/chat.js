@@ -11,10 +11,12 @@ const backendApi = axios.create({
 // --- Tool Implementations ---
 async function getSalones() {
   try {
-    // This is a public endpoint, so we don't send the auth token.
-    const response = await backendApi.get('/espacios');
+    // Final debugging step: Use axios directly with the full URL to rule out base URL/config issues.
+    const response = await axios.get('https://apialan-api.onrender.com/api/espacios');
     return response.data;
   } catch (error) {
+    // Log the full error to see more details if possible
+    console.error("Critical Error in getSalones tool:", error.toJSON ? error.toJSON() : error);
     return { error: `Error al obtener los salones: ${error.message}` };
   }
 }
