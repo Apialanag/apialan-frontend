@@ -3,7 +3,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // --- Tool Implementations using native fetch ---
 async function getSalones() {
   try {
-    const response = await fetch('https://apialan-api.onrender.com/api/espacios');
+    // Corrected to use the base URL from env var and the full path here.
+    const response = await fetch(`${process.env.RENDER_API_URL}/api/espacios`);
     if (!response.ok) {
       throw new Error(`Network response was not ok: ${response.statusText}`);
     }
@@ -16,7 +17,7 @@ async function getSalones() {
 
 async function verificarDisponibilidadDiaria({ espacio_id, fecha }, authToken) {
   try {
-    const url = new URL(`https://apialan-api.onrender.com/api/reservas`);
+    const url = new URL(`${process.env.RENDER_API_URL}/api/reservas`);
     url.searchParams.append('espacio_id', espacio_id);
     url.searchParams.append('fecha', fecha);
 
