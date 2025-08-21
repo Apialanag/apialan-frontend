@@ -9,10 +9,10 @@ const backendApi = axios.create({
 
 
 // --- Tool Implementations ---
-async function getSalones(args, authToken) {
+async function getSalones() {
   try {
-    const config = authToken ? { headers: { Authorization: authToken } } : {};
-    const response = await backendApi.get('/espacios', config);
+    // This is a public endpoint, so we don't send the auth token.
+    const response = await backendApi.get('/espacios');
     return response.data;
   } catch (error) {
     return { error: `Error al obtener los salones: ${error.message}` };
