@@ -1,70 +1,51 @@
 import React from 'react';
 import ChatBot from 'react-chatbotify';
-import api from '../api';
 
 const Chatbot = () => {
-  const fetchSalones = async () => {
+  const callApi = async (message) => {
     try {
-      const response = await api.get('/espacios');
-      return response.data;
-    } catch (err) {
-      console.error("Error fetching salons for chatbot:", err);
-      return [];
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error('Error calling API:', error);
+      return 'Lo siento, estoy teniendo problemas para conectarme. Por favor, intenta de nuevo más tarde.';
     }
   };
 
   const flow = {
     start: {
-      message: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
-      options: ['Quiero ver las salas', 'Necesito más información'],
-      path: (params) => {
-        switch (params.userInput) {
-          case 'Quiero ver las salas':
-            return 'show_salones';
-          case 'Necesito más información':
-            return 'info';
-          default:
-            return 'unrecognized_input';
-        }
+      message: '¡Hola! Soy Al-An, tu asistente virtual para reservas. ¿En qué puedo ayudarte hoy?',
+      path: 'get_ai_response',
+    },
+    get_ai_response: {
+      message: async (params) => {
+        return await callApi(params.userInput);
       },
+      path: 'get_ai_response', // Loop back to here to continue the conversation
     },
-    info: {
-        message: 'Puedes encontrar toda la información sobre nuestras salas en la página principal. Si tienes alguna pregunta específica, no dudes en consultarme.',
-        end: true,
-    },
-    unrecognized_input: {
-        message: "Lo siento, no te he entendido. Por favor, elige una de las opciones.",
-        path: 'start'
-    },
-    show_salones: {
-      message: 'Claro, aquí tienes nuestras salas. Haz clic en la que te interese.',
-      render: async () => {
-        const salones = await fetchSalones();
-        if (salones.length === 0) {
-            return "No hay salones disponibles en este momento.";
-        }
-        const options = salones.map(salon => salon.nombre);
-        return <ChatBot.Options options={options} />;
-      },
-      path: 'selected_salon',
-    },
-    selected_salon: {
-        message: (params) => `Has seleccionado ${params.userInput}. ¡Perfecto! Para continuar con la reserva, por favor usa el formulario de la página. Próximamente podré hacerlo por ti.`,
-        end: true
-    }
   };
 
   const settings = {
     header: {
-      title: "Asistente Virtual",
+      title: "Asistente Virtual Al-An",
     },
     tooltip: {
         text: "¡Hola! ¿Necesitas ayuda?",
     },
     chatInput: {
-        enabledPlaceholderText: "Escribe tu mensaje...",
+        enabledPlaceholderText: "Escribe tu pregunta aquí...",
     }
-  }
+  };
 
   return (
       <ChatBot flow={flow} settings={settings} />
