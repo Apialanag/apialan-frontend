@@ -23,13 +23,18 @@ const Chatbot = () => {
             return 'show_salones';
           case 'Necesito más información':
             return 'info';
+          default:
+            return 'unrecognized_input';
         }
-        return 'start';
       },
     },
     info: {
         message: 'Puedes encontrar toda la información sobre nuestras salas en la página principal. Si tienes alguna pregunta específica, no dudes en consultarme.',
         end: true,
+    },
+    unrecognized_input: {
+        message: "Lo siento, no te he entendido. Por favor, elige una de las opciones.",
+        path: 'start'
     },
     show_salones: {
       message: 'Claro, aquí tienes nuestras salas. Haz clic en la que te interese.',
@@ -49,8 +54,20 @@ const Chatbot = () => {
     }
   };
 
+  const settings = {
+    header: {
+      title: "Asistente Virtual",
+    },
+    tooltip: {
+        text: "¡Hola! ¿Necesitas ayuda?",
+    },
+    chatInput: {
+        enabledPlaceholderText: "Escribe tu mensaje...",
+    }
+  }
+
   return (
-      <ChatBot flow={flow} />
+      <ChatBot flow={flow} settings={settings} />
   );
 };
 
