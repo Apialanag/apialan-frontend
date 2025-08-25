@@ -21,6 +21,11 @@ function Paso4_DatosYResumen(props) {
     rutSocio,
     nombreSocioAutofill,
     emailSocioAutofill,
+    // --- Nuevas props para datos de facturación de socio ---
+    rutEmpresaAutofill,
+    razonSocialAutofill,
+    giroAutofill,
+    direccionComercialAutofill,
     codigoCuponInput,
     setCodigoCuponInput,
     cuponAplicado,
@@ -110,6 +115,20 @@ function Paso4_DatosYResumen(props) {
       setMensajeSocio('');
     }
   }, [nombreSocioAutofill, emailSocioAutofill, rutSocio, esSocio, clienteNombre, clienteEmail]);
+
+  // --- Efecto para autocompletar datos de facturación para socios ---
+  React.useEffect(() => {
+    // Si es socio, se ha seleccionado 'factura' y hay datos de la empresa para autocompletar
+    if (esSocio && tipoDocumento === 'factura' && rutEmpresaAutofill) {
+      setFacturacionRut(rutEmpresaAutofill);
+      setFacturacionRazonSocial(razonSocialAutofill || '');
+      setFacturacionGiro(giroAutofill || '');
+      setFacturacionDireccion(direccionComercialAutofill || '');
+    }
+    // Opcional: ¿Qué hacer si cambian de 'factura' a 'boleta'?
+    // Por ahora, no se limpian los campos para no perder datos si el usuario cambia de opinión.
+    // El backend solo los usará si tipoDocumento es 'factura'.
+  }, [esSocio, tipoDocumento, rutEmpresaAutofill, razonSocialAutofill, giroAutofill, direccionComercialAutofill]);
 
   // --- Efecto para el Payment Brick de Mercado Pago ---
   React.useEffect(() => {

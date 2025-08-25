@@ -303,6 +303,11 @@ function BookingPage() {
             rutSocio={socioData ? socioData.rut : null}
             nombreSocioAutofill={socioData ? socioData.nombre_completo : ''}
             emailSocioAutofill={socioData ? socioData.email : ''}
+            // --- Nuevas props para autocompletar datos de facturación ---
+            rutEmpresaAutofill={socioData ? socioData.rut_empresa : ''}
+            razonSocialAutofill={socioData ? socioData.razon_social : ''}
+            giroAutofill={socioData ? socioData.giro : ''}
+            direccionComercialAutofill={socioData ? socioData.direccion_comercial : ''}
             onSocioDataChange={setSocioData}
             // Props para cupones
             codigoCuponInput={codigoCuponInput}
