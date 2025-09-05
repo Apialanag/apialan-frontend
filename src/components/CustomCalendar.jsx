@@ -96,8 +96,8 @@ function CustomCalendar({
     let isDisabled = false;
 
     const dayOfWeek = currentDate.getDay();
-    // Deshabilitar fechas pasadas y fines de semana (Domingo=0, Sábado=6)
-    if (currentDate < today || dayOfWeek === 0 || dayOfWeek === 6) {
+    // Deshabilitar fechas pasadas y domingos (Domingo=0)
+    if (currentDate < today || dayOfWeek === 0) {
       dayClass += ' disabled';
       isDisabled = true;
     }
@@ -293,7 +293,7 @@ function CustomCalendar({
     const dayOfWeek = currentDate.getDay();
     let isPastDate = currentDate < todayForComparison;
 
-    if (isPastDate || dayOfWeek === 0 || dayOfWeek === 6) {
+    if (isPastDate || dayOfWeek === 0) {
       dayClass += ' disabled';
       isDisabled = true;
     }
