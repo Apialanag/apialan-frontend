@@ -77,7 +77,7 @@ function BookingPage() {
   if (rangoSeleccionado) {
     if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
       const dayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // No contar si es finde (aunque no debería poder seleccionarse)
+      if (dayOfWeek !== 0) { // No contar si es finde (aunque no debería poder seleccionarse)
         numDias = 1;
       }
     } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
@@ -85,7 +85,7 @@ function BookingPage() {
       let currentDateIter = new Date(rangoSeleccionado.startDate);
       while (currentDateIter <= rangoSeleccionado.endDate) {
         const dayOfWeek = currentDateIter.getDay(); // 0 (Dom) a 6 (Sáb)
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Excluir Domingo y Sábado
+        if (dayOfWeek !== 0) { // Excluir Domingo y Sábado
           count++;
         }
         currentDateIter.setDate(currentDateIter.getDate() + 1);
@@ -94,7 +94,7 @@ function BookingPage() {
     } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
       // Rango de un solo día
       const dayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      if (dayOfWeek !== 0) {
         numDias = 1;
       }
     } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
@@ -114,7 +114,7 @@ function BookingPage() {
     // La lógica actual de precio no distingue días no facturables.
     // Esto es un parche temporal para el cálculo de numDias.
       const startDayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (startDayOfWeek !== 0 && startDayOfWeek !== 6) numDias = 1; // Solo si el primer día es hábil.
+      if (startDayOfWeek !== 0) numDias = 1; // Solo si el primer día es hábil.
       else numDias = 0; // Si el único día es finde, 0 días facturables.
   }
   // Asegurar que numDias no sea 0 si se va a proceder con un cálculo, para evitar división por cero si se usara numDias en denominador en otro lado.
