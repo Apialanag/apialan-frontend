@@ -95,7 +95,27 @@ function BookingPage() {
     return Math.round(precioTotalFallback / (1 + IVA_RATE));
   };
 
+  let numDias = 0;
+  if (rangoSeleccionado) {
+      let diasAProcesar = [];
+      if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
+          diasAProcesar = [rangoSeleccionado.startDate];
+      } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate) {
+          let currentDate = new Date(rangoSeleccionado.startDate);
+          while (currentDate <= rangoSeleccionado.endDate) {
+              diasAProcesar.push(new Date(currentDate));
+              currentDate.setDate(currentDate.getDate() + 1);
+          }
+      } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates) {
+          diasAProcesar = rangoSeleccionado.discreteDates;
+      }
 
+      diasAProcesar.forEach(dia => {
+          if (dia.getDay() !== 0) { // Excluir Domingos
+              numDias++;
+          }
+      });
+  }
 
   useEffect(() => {
     if (salonSeleccionado && horaInicio && horaTermino && rangoSeleccionado) {
@@ -135,7 +155,6 @@ function BookingPage() {
         const netoOriginalCalculadoParaCupon = totalNetoCalculado;
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
-        const numDias = diasHabiles;
 
         // console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
 
