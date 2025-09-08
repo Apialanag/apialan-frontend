@@ -189,7 +189,7 @@ function Paso4_DatosYResumen(props) {
 
   // --- Efecto para el Payment Brick de Mercado Pago ---
   React.useEffect(() => {
-    const brickContainerId = `payment-brick-container-${desglosePrecio.total}`;
+    const brickContainerId = "payment-brick_container";
     // Solo ejecutar si el método de pago es tarjeta y tenemos el total
     if (metodoPago === 'tarjeta' && desglosePrecio.total > 0) {
       const publicKey = 'APP_USR-f54c0a87-044e-4d93-9ef2-d3d406d99b00';
@@ -203,6 +203,7 @@ function Paso4_DatosYResumen(props) {
             locale: 'es-CL',
             payer: {
               email: clienteEmail,
+              entity_type: tipoDocumento === 'factura' ? 'association' : 'individual',
             },
           },
           customization: {
@@ -871,7 +872,7 @@ function Paso4_DatosYResumen(props) {
 
           {/* Contenedor para el Payment Brick */}
           {metodoPago === 'tarjeta' && (
-            <div id={`payment-brick-container-${desglosePrecio.total}`}></div>
+            <div id="payment-brick_container"></div>
           )}
         </div>
       </div>
