@@ -85,6 +85,9 @@ function Paso4_DatosYResumen(props) {
   // Estado para los errores de validación del formulario
   const [formErrors, setFormErrors] = useState({});
   const [isFormValidState, setIsFormValidState] = useState(false);
+  const [notasAdicionales, setNotasAdicionales] = useState('');
+  const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
@@ -267,11 +270,6 @@ function Paso4_DatosYResumen(props) {
       }
     };
   }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData]);
-
-
-  const [notasAdicionales, setNotasAdicionales] = useState('');
-  const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- Funciones para generar ICS ---
   const toICSDate = (date, timeString = "00:00") => {
