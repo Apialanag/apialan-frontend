@@ -45,24 +45,21 @@ function BookingPage() {
 
   const getPrecioNetoPorHoraSabado = (salon, esSocioParam) => {
     if (!salon) return 0;
-
-    const preciosSabado = {
-      'Sala Chica': { general: 12000, socio: 8000 },
-      'Sala Mediana': { general: 18000, socio: 10000 },
-      'Salón Grande': { general: 28000, socio: 12000 },
-    };
-
     const nombreSalon = salon.nombre;
     let precioTotal = 0;
 
-    if (preciosSabado[nombreSalon]) {
-      precioTotal = esSocioParam ? preciosSabado[nombreSalon].socio : preciosSabado[nombreSalon].general;
+    // Use .includes() for robust matching
+    if (nombreSalon.includes('Chica') || nombreSalon.includes('Pequeña')) {
+        precioTotal = esSocioParam ? 8000 : 12000;
+    } else if (nombreSalon.includes('Mediana')) {
+        precioTotal = esSocioParam ? 10000 : 18000;
+    } else if (nombreSalon.includes('Grande')) {
+        precioTotal = esSocioParam ? 12000 : 28000;
     } else {
-      // Fallback por si el nombre del salón no coincide
-      return getPrecioNetoPorHora(salon, esSocioParam);
+        // Fallback to normal price if no match
+        return getPrecioNetoPorHora(salon, esSocioParam);
     }
 
-    // Convertir el precio total (IVA incluido) a neto
     return Math.round(precioTotal / (1 + IVA_RATE));
   };
 
