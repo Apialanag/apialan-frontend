@@ -543,8 +543,6 @@ function Paso4_DatosYResumen(props) {
     }
   };
 
-
-  const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
   
   const validateField = (name, value) => {
     let error = '';
