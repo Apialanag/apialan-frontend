@@ -58,13 +58,6 @@ export const deleteBlockedDate = (dateString) => {
 };
 
 // Funciones para la pasarela de pago
-export const iniciarPago = (datosReserva) => {
-  // Este endpoint es externo a nuestra API base, por lo que usamos axios directamente
-  // con la URL completa proporcionada en las instrucciones.
-  const pagoApiUrl = 'https://apialan-api.onrender.com/pagos/crear-preferencia';
-  return axios.post(pagoApiUrl, datosReserva);
-};
-
 export const procesarPago = (datosPago) => {
   // Este endpoint SÍ es parte de nuestra API, por lo que usamos la instancia 'api'
   return api.post('/pagos/procesar-pago', datosPago);
