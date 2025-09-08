@@ -43,6 +43,29 @@ function BookingPage() {
 
   const IVA_RATE = 0.19; // Definir la tasa de IVA globalmente aquí o importarla
 
+  const getPrecioNetoPorHoraSabado = (salon, esSocioParam) => {
+    if (!salon) return 0;
+
+    const preciosSabado = {
+      'Sala Chica': { general: 12000, socio: 8000 },
+      'Sala Mediana': { general: 18000, socio: 10000 },
+      'Salón Grande': { general: 28000, socio: 12000 },
+    };
+
+    const nombreSalon = salon.nombre;
+    let precioTotal = 0;
+
+    if (preciosSabado[nombreSalon]) {
+      precioTotal = esSocioParam ? preciosSabado[nombreSalon].socio : preciosSabado[nombreSalon].general;
+    } else {
+      // Fallback por si el nombre del salón no coincide
+      return getPrecioNetoPorHora(salon, esSocioParam);
+    }
+
+    // Convertir el precio total (IVA incluido) a neto
+    return Math.round(precioTotal / (1 + IVA_RATE));
+  };
+
   const getPrecioNetoPorHora = (salon, esSocioParam) => {
     if (!salon) return 0;
 
@@ -72,71 +95,47 @@ function BookingPage() {
     return Math.round(precioTotalFallback / (1 + IVA_RATE));
   };
 
-  // Calcular numDias aquí para que esté disponible en el scope de renderStep y useEffect de precios
-  let numDias = 0; // Iniciar en 0, se calculará correctamente.
-  if (rangoSeleccionado) {
-    if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
-      const dayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (dayOfWeek !== 0) { // No contar si es finde (aunque no debería poder seleccionarse)
-        numDias = 1;
-      }
-    } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isAfter(rangoSeleccionado.endDate, rangoSeleccionado.startDate)) {
-      let count = 0;
-      let currentDateIter = new Date(rangoSeleccionado.startDate);
-      while (currentDateIter <= rangoSeleccionado.endDate) {
-        const dayOfWeek = currentDateIter.getDay(); // 0 (Dom) a 6 (Sáb)
-        if (dayOfWeek !== 0) { // Excluir Domingo y Sábado
-          count++;
-        }
-        currentDateIter.setDate(currentDateIter.getDate() + 1);
-      }
-      numDias = count;
-    } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate && isSameDay(rangoSeleccionado.startDate, rangoSeleccionado.endDate)) {
-      // Rango de un solo día
-      const dayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (dayOfWeek !== 0) {
-        numDias = 1;
-      }
-    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates && rangoSeleccionado.discreteDates.length > 0) {
-      // Para multiple-discrete, ya se asume que CustomCalendar no permite seleccionar fines de semana.
-      numDias = rangoSeleccionado.discreteDates.length;
-    }
-  }
-  if (numDias === 0 && rangoSeleccionado?.startDate) {
-    // Fallback: si después de los cálculos numDias es 0 pero hay alguna fecha de inicio,
-    // es probable que sea una selección de un solo día que es fin de semana (no debería ocurrir)
-    // o un rango inválido. Para evitar división por cero o precio cero incorrecto,
-    // podría ser mejor dejarlo en 0 y que el precio sea 0, o forzar a 1 si hay startDate.
-    // Por seguridad en el cálculo de precio, si hay startDate, asumimos al menos 1 día (aunque no sea facturable).
-    // La validación de si la selección es facturable es más compleja.
-    // Por ahora, si hay una fecha de inicio, numDias será al menos 1 para evitar errores de cálculo,
-    // aunque el precio de un día no facturable sería 0 si el salón no tiene precio para ese día.
-    // La lógica actual de precio no distingue días no facturables.
-    // Esto es un parche temporal para el cálculo de numDias.
-      const startDayOfWeek = rangoSeleccionado.startDate.getDay();
-      if (startDayOfWeek !== 0) numDias = 1; // Solo si el primer día es hábil.
-      else numDias = 0; // Si el único día es finde, 0 días facturables.
-  }
-  // Asegurar que numDias no sea 0 si se va a proceder con un cálculo, para evitar división por cero si se usara numDias en denominador en otro lado.
-  // Sin embargo, para multiplicación está bien si es 0.
 
 
   useEffect(() => {
-    // Este useEffect ahora usará la variable 'numDias' calculada arriba.
-    // No es necesario recalcularla aquí.
-
-    if (salonSeleccionado && horaInicio && horaTermino) {
+    if (salonSeleccionado && horaInicio && horaTermino && rangoSeleccionado) {
       const hInicioNum = parseInt(horaInicio.split(':')[0]);
       const hTerminoNum = parseInt(horaTermino.split(':')[0]);
+
       if (hTerminoNum > hInicioNum) {
-        const duracionPorDia = hTerminoNum - hInicioNum; // Duración de la reserva en un día
-        const precioNetoHora = getPrecioNetoPorHora(salonSeleccionado, !!socioData);
+        const duracionPorDia = hTerminoNum - hInicioNum;
+        let totalNetoCalculado = 0;
+        let diasHabiles = 0;
 
-        // El neto original es por la duración total de todos los días.
-        const netoOriginalCalculadoParaCupon = duracionPorDia * precioNetoHora * numDias;
+        let diasAProcesar = [];
+        if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
+            diasAProcesar = [rangoSeleccionado.startDate];
+        } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate) {
+            let currentDate = new Date(rangoSeleccionado.startDate);
+            while (currentDate <= rangoSeleccionado.endDate) {
+                diasAProcesar.push(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates) {
+            diasAProcesar = rangoSeleccionado.discreteDates;
+        }
 
+        diasAProcesar.forEach(dia => {
+            const dayOfWeek = dia.getDay();
+            if (dayOfWeek !== 0) { // Excluir Domingos
+                diasHabiles++;
+                const esSabado = dayOfWeek === 6;
+                const precioNetoHora = esSabado
+                    ? getPrecioNetoPorHoraSabado(salonSeleccionado, !!socioData)
+                    : getPrecioNetoPorHora(salonSeleccionado, !!socioData);
+                totalNetoCalculado += duracionPorDia * precioNetoHora;
+            }
+        });
+
+        const netoOriginalCalculadoParaCupon = totalNetoCalculado;
         let netoFinalTrasCupon = netoOriginalCalculadoParaCupon;
         let montoDescuentoCuponActual = 0;
+        const numDias = diasHabiles;
 
         // console.log('[BookingPage] Antes del if cuponAplicado:', { cuponAplicado, netoOriginalCalculadoParaCupon });
 
@@ -183,8 +182,7 @@ function BookingPage() {
       setDuracionCalculada(0);
       setDesglosePrecio({ netoOriginal: 0, montoDescuentoCupon: 0, netoConDescuento: 0, iva: 0, total: 0 });
     }
-  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, numDias, setCuponAplicado, setErrorCupon]);
-  // Añadido numDias a las dependencias
+  }, [salonSeleccionado, horaInicio, horaTermino, socioData, cuponAplicado, rangoSeleccionado, currentSelectionMode, setCuponAplicado, setErrorCupon]);
   
   const handleValidationSuccess = (datosSocio) => {
     setSocioData(datosSocio);
