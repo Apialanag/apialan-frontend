@@ -203,7 +203,7 @@ function Paso4_DatosYResumen(props) {
             locale: 'es-CL',
             payer: {
               email: clienteEmail,
-              entity_type: tipoDocumento === 'factura' ? 'association' : 'individual',
+              entityType: tipoDocumento === 'factura' ? 'association' : 'individual',
             },
           },
           customization: {
@@ -272,7 +272,7 @@ function Paso4_DatosYResumen(props) {
         window.paymentBrick = null; // Limpiar la referencia
       }
     };
-  }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData]);
+  }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData, tipoDocumento]);
 
   // --- Funciones para generar ICS ---
   const toICSDate = (date, timeString = "00:00") => {
