@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import api, { procesarPago } from '../api'; // Importar procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import Spinner from './Spinner'; // Importar el nuevo componente Spinner
+import PaymentBrick from './PaymentBrick'; // Importar el nuevo componente
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen(props) {
@@ -187,92 +188,40 @@ function Paso4_DatosYResumen(props) {
     facturacionGiro, facturacionDireccion, esSocio, rutLocal, cuponAplicado
   ]);
 
-  // --- Efecto para el Payment Brick de Mercado Pago ---
-  React.useEffect(() => {
-    const brickContainerId = "payment-brick_container";
-    // Solo ejecutar si el método de pago es tarjeta y tenemos el total
-    if (metodoPago === 'tarjeta' && desglosePrecio.total > 0) {
-      const publicKey = 'APP_USR-f54c0a87-044e-4d93-9ef2-d3d406d99b00';
-      const mp = new window.MercadoPago(publicKey);
-      const bricksBuilder = mp.bricks();
+  const handlePaymentSubmit = async (mercadoPagoData) => {
+    setIsSubmitting(true);
+    setMensajeReserva({ texto: 'Procesando pago, por favor espera...', tipo: 'info' });
 
-      const renderPaymentBrick = async () => {
-        const settings = {
-          initialization: {
-            amount: Math.round(desglosePrecio.total),
-            locale: 'es-CL',
-            payer: {
-              email: clienteEmail,
-              entityType: tipoDocumento === 'factura' ? 'association' : 'individual',
-            },
-          },
-          customization: {
-            visual: { style: { theme: 'default' } },
-            paymentMethods: {
-              creditCard: "all",
-              debitCard: "all",
-            },
-          },
-          callbacks: {
-            onReady: () => console.log('Payment Brick está listo.'),
-            onError: (error) => {
-              console.error(error);
-              setMensajeReserva({ texto: 'Hubo un error con el formulario de pago. Revisa los datos.', tipo: 'error' });
-            },
-            onSubmit: async (mercadoPagoData) => {
-              setIsSubmitting(true);
-              setMensajeReserva({ texto: 'Procesando pago, por favor espera...', tipo: 'info' });
+    try {
+      // 1. Crear la reserva primero
+      const datosReserva = buildReservationData();
+      const responseReserva = await api.post('/reservas', datosReserva);
+      const reservaPrincipal = responseReserva.data?.reservas?.[0];
 
-              try {
-                // 1. Crear la reserva primero
-                const datosReserva = buildReservationData();
+      if (!reservaPrincipal || !reservaPrincipal.id) {
+        throw new Error('No se pudo crear la reserva antes del pago.');
+      }
 
-                const responseReserva = await api.post('/reservas', datosReserva);
-                const reservaPrincipal = responseReserva.data?.reservas?.[0];
-
-                if (!reservaPrincipal || !reservaPrincipal.id) {
-                  throw new Error('No se pudo crear la reserva antes del pago.');
-                }
-
-                // 2. Procesar el pago con el ID de la reserva
-                const datosParaBackend = {
-                  ...mercadoPagoData.formData,
-                  paymentType: mercadoPagoData.paymentType,
-                  selectedPaymentMethod: mercadoPagoData.selectedPaymentMethod,
-                  reservaId: reservaPrincipal.id,
-                };
-
-                await procesarPago(datosParaBackend);
-
-                // Si llegamos aquí, el pago fue exitoso (o al menos aceptado para procesar)
-                window.location.href = '/pago-exitoso';
-
-              } catch (error) {
-                const errorMessage = error.response?.data?.error || error.message || 'El pago fue rechazado o hubo un error.';
-                console.error('Error al procesar el pago:', error);
-                setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
-                setIsSubmitting(false); // Reactivar el formulario para reintentar
-              }
-            },
-          },
-        };
-
-        // Renderiza el Brick y guarda la instancia
-        window.paymentBrick = await bricksBuilder.create('payment', brickContainerId, settings);
+      // 2. Procesar el pago con el ID de la reserva
+      const datosParaBackend = {
+        ...mercadoPagoData.formData,
+        paymentType: mercadoPagoData.paymentType,
+        selectedPaymentMethod: mercadoPagoData.selectedPaymentMethod,
+        reservaId: reservaPrincipal.id,
       };
 
-      renderPaymentBrick();
-    }
+      await procesarPago(datosParaBackend);
+      window.location.href = '/pago-exitoso';
 
-    // --- Función de limpieza del efecto ---
-    return () => {
-      // Si existe una instancia del brick, la desmontamos para limpiar.
-      if (window.paymentBrick) {
-        window.paymentBrick.unmount();
-        window.paymentBrick = null; // Limpiar la referencia
-      }
-    };
-  }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData, tipoDocumento]);
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || 'El pago fue rechazado o hubo un error.';
+      console.error('Error al procesar el pago:', error);
+      setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
+      setIsSubmitting(false);
+      // Lanzar el error de nuevo para que el brick de pago pueda manejarlo (si es necesario)
+      throw error;
+    }
+  };
 
   // --- Funciones para generar ICS ---
   const toICSDate = (date, timeString = "00:00") => {
@@ -872,7 +821,19 @@ function Paso4_DatosYResumen(props) {
 
           {/* Contenedor para el Payment Brick */}
           {metodoPago === 'tarjeta' && (
-            <div id="payment-brick_container"></div>
+            <PaymentBrick
+              key={desglosePrecio.total}
+              amount={desglosePrecio.total}
+              payer={{
+                email: clienteEmail,
+                entityType: tipoDocumento === 'factura' ? 'association' : 'individual',
+              }}
+              onSubmit={handlePaymentSubmit}
+              onError={(error) => {
+                console.error(error);
+                setMensajeReserva({ texto: 'Hubo un error con el formulario de pago. Revisa los datos.', tipo: 'error' });
+              }}
+            />
           )}
         </div>
       </div>
