@@ -217,7 +217,7 @@ function Paso4_DatosYResumen(props) {
               console.error(error);
               setMensajeReserva({ texto: 'Hubo un error con el formulario de pago. Revisa los datos.', tipo: 'error' });
             },
-            onSubmit: async (formData) => {
+            onSubmit: async (mercadoPagoData) => {
               setIsSubmitting(true);
               setMensajeReserva({ texto: 'Procesando pago, por favor espera...', tipo: 'info' });
 
@@ -235,7 +235,9 @@ function Paso4_DatosYResumen(props) {
 
                 // 2. Procesar el pago con el ID de la reserva
                 const datosParaBackend = {
-                  ...formData,
+                  ...mercadoPagoData.formData,
+                  paymentType: mercadoPagoData.paymentType,
+                  selectedPaymentMethod: mercadoPagoData.selectedPaymentMethod,
                   reservaId: reservaPrincipal.id,
                 };
 
