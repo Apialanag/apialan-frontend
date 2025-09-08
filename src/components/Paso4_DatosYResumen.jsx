@@ -224,7 +224,6 @@ function Paso4_DatosYResumen(props) {
               try {
                 // 1. Crear la reserva primero
                 const datosReserva = buildReservationData();
-                console.log('[DEBUG Frontend] Enviando al backend /api/reservas desde Brick:', JSON.stringify(datosReserva, null, 2));
 
                 const responseReserva = await api.post('/reservas', datosReserva);
                 const reservaPrincipal = responseReserva.data?.reservas?.[0];
@@ -241,7 +240,6 @@ function Paso4_DatosYResumen(props) {
                   reservaId: reservaPrincipal.id,
                 };
 
-                console.log('Enviando a /pagos/procesar-pago:', datosParaBackend);
                 await procesarPago(datosParaBackend);
 
                 // Si llegamos aquí, el pago fue exitoso (o al menos aceptado para procesar)
@@ -270,6 +268,11 @@ function Paso4_DatosYResumen(props) {
       if (window.paymentBrick) {
         window.paymentBrick.unmount();
         window.paymentBrick = null; // Limpiar la referencia
+      }
+      // Adicionalmente, limpiar el contenedor por si quedan residuos
+      const container = document.getElementById('payment-brick_container');
+      if (container) {
+        container.innerHTML = '';
       }
     };
   }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData]);
