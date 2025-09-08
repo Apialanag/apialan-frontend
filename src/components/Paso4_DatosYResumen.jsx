@@ -239,6 +239,7 @@ function Paso4_DatosYResumen(props) {
                   reservaId: reservaPrincipal.id,
                 };
 
+                console.log('Enviando a /pagos/procesar-pago:', datosParaBackend);
                 await procesarPago(datosParaBackend);
 
                 // Si llegamos aquí, el pago fue exitoso (o al menos aceptado para procesar)
