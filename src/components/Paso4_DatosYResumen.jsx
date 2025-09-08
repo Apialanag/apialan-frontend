@@ -269,11 +269,6 @@ function Paso4_DatosYResumen(props) {
         window.paymentBrick.unmount();
         window.paymentBrick = null; // Limpiar la referencia
       }
-      // Adicionalmente, limpiar el contenedor por si quedan residuos
-      const container = document.getElementById('payment-brick_container');
-      if (container) {
-        container.innerHTML = '';
-      }
     };
   }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData]);
 
@@ -875,7 +870,7 @@ function Paso4_DatosYResumen(props) {
 
           {/* Contenedor para el Payment Brick */}
           {metodoPago === 'tarjeta' && (
-            <div id="payment-brick_container"></div>
+            <div id="payment-brick_container" key={desglosePrecio.total}></div>
           )}
         </div>
       </div>
