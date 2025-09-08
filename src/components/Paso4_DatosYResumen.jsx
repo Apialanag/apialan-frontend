@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import api, { procesarPago } from '../api'; // Importar procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import Spinner from './Spinner'; // Importar el nuevo componente Spinner
@@ -130,6 +130,60 @@ function Paso4_DatosYResumen(props) {
     // El backend solo los usará si tipoDocumento es 'factura'.
   }, [esSocio, tipoDocumento, rutEmpresaAutofill, razonSocialAutofill, giroAutofill, direccionComercialAutofill]);
 
+  const formatearFechaParaAPI = (date) => date ? date.toISOString().split('T')[0] : '';
+
+  const buildReservationData = useCallback(() => {
+    const datosReserva = {
+      espacio_id: salonSeleccionado?.id,
+      cliente_nombre: clienteNombre,
+      cliente_email: clienteEmail,
+      cliente_telefono: clienteTelefono,
+      hora_inicio: horaInicio,
+      hora_termino: horaTermino,
+      precio_total_enviado_cliente: desglosePrecio?.total,
+      notas_adicionales: notasAdicionales,
+      tipo_documento: tipoDocumento,
+      metodo_pago: metodoPago === 'tarjeta' ? 'mercadopago' : 'transferencia',
+    };
+
+    if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
+      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
+    } else if (currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate) {
+      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
+      datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.endDate);
+    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates?.length > 0) {
+      datosReserva.dias_discretos = rangoSeleccionado.discreteDates.map(date => formatearFechaParaAPI(date));
+      if (rangoSeleccionado.discreteDates.length > 0) {
+        datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.discreteDates[0]);
+      }
+    }
+
+    if (tipoDocumento === 'factura') {
+      datosReserva.facturacion_rut = facturacionRut;
+      datosReserva.facturacion_razon_social = facturacionRazonSocial;
+      datosReserva.facturacion_giro = facturacionGiro;
+      datosReserva.facturacion_direccion = facturacionDireccion;
+    }
+
+    if (esSocio && rutLocal) {
+      datosReserva.rut_socio = rutLocal;
+    }
+
+    if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
+      datosReserva.codigo_cupon_aplicado = cuponAplicado.codigo;
+      datosReserva.monto_descuento_aplicado = cuponAplicado.montoDescontado;
+      if (cuponAplicado.cuponId) {
+        datosReserva.cupon_id = cuponAplicado.cuponId;
+      }
+    }
+    return datosReserva;
+  }, [
+    salonSeleccionado, clienteNombre, clienteEmail, clienteTelefono, horaInicio,
+    horaTermino, desglosePrecio, notasAdicionales, tipoDocumento, metodoPago,
+    currentSelectionMode, rangoSeleccionado, facturacionRut, facturacionRazonSocial,
+    facturacionGiro, facturacionDireccion, esSocio, rutLocal, cuponAplicado
+  ]);
+
   // --- Efecto para el Payment Brick de Mercado Pago ---
   React.useEffect(() => {
     // Solo ejecutar si el método de pago es tarjeta y tenemos el total
@@ -166,20 +220,8 @@ function Paso4_DatosYResumen(props) {
 
               try {
                 // 1. Crear la reserva primero
-                const datosReserva = {
-                  espacio_id: salonSeleccionado?.id,
-                  cliente_nombre: clienteNombre,
-                  cliente_email: clienteEmail,
-                  cliente_telefono: clienteTelefono,
-                  hora_inicio: horaInicio,
-                  hora_termino: horaTermino,
-                  precio_total_enviado_cliente: desglosePrecio.total,
-                  notas_adicionales: notasAdicionales,
-                  tipo_documento: tipoDocumento,
-                  metodo_pago: 'mercadopago',
-                  // ...otros datos de reserva...
-                };
-                // (Opcional: añadir otros campos como RUT de socio, etc. si son necesarios)
+                const datosReserva = buildReservationData();
+                console.log('[DEBUG Frontend] Enviando al backend /api/reservas desde Brick:', JSON.stringify(datosReserva, null, 2));
 
                 const responseReserva = await api.post('/reservas', datosReserva);
                 const reservaPrincipal = responseReserva.data?.reservas?.[0];
@@ -224,10 +266,7 @@ function Paso4_DatosYResumen(props) {
         window.paymentBrick = null; // Limpiar la referencia
       }
     };
-    // Dependencias del efecto: se volverá a ejecutar si cambia el método de pago o el total.
-    // El email se saca de las dependencias para evitar que el brick se re-renderice en cada tipeo.
-    // El email correcto y actualizado se usa en el callback `onSubmit`.
-  }, [metodoPago, desglosePrecio.total]);
+  }, [metodoPago, desglosePrecio.total, clienteEmail, buildReservationData]);
 
 
   const [notasAdicionales, setNotasAdicionales] = useState('');
@@ -577,50 +616,7 @@ function Paso4_DatosYResumen(props) {
     setIsCalendarMenuOpen(false);
 
     // --- Construcción del objeto base de la reserva ---
-    const datosReserva = {
-      espacio_id: salonSeleccionado?.id,
-      cliente_nombre: clienteNombre,
-      cliente_email: clienteEmail,
-      cliente_telefono: clienteTelefono,
-      hora_inicio: horaInicio,
-      hora_termino: horaTermino,
-      precio_total_enviado_cliente: desglosePrecio?.total,
-      notas_adicionales: notasAdicionales,
-      tipo_documento: tipoDocumento,
-      metodo_pago: metodoPago === 'tarjeta' ? 'mercadopago' : 'transferencia', // Añadir método de pago
-    };
-
-    // Añadir campos opcionales
-    if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
-      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
-    } else if (currentSelectionMode === 'range' && rangoSeleccionado?.startDate && rangoSeleccionado?.endDate) {
-      datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.startDate);
-      datosReserva.fecha_fin_reserva = formatearFechaParaAPI(rangoSeleccionado.endDate);
-    } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado?.discreteDates?.length > 0) {
-      datosReserva.dias_discretos = rangoSeleccionado.discreteDates.map(date => formatearFechaParaAPI(date));
-      if (rangoSeleccionado.discreteDates.length > 0) {
-        datosReserva.fecha_reserva = formatearFechaParaAPI(rangoSeleccionado.discreteDates[0]);
-      }
-    }
-
-    if (tipoDocumento === 'factura') {
-      datosReserva.facturacion_rut = facturacionRut;
-      datosReserva.facturacion_razon_social = facturacionRazonSocial;
-      datosReserva.facturacion_giro = facturacionGiro;
-      datosReserva.facturacion_direccion = facturacionDireccion;
-    }
-
-    if (esSocio && rutLocal) {
-      datosReserva.rut_socio = rutLocal;
-    }
-
-    if (cuponAplicado && cuponAplicado.codigo && cuponAplicado.montoDescontado > 0) {
-      datosReserva.codigo_cupon_aplicado = cuponAplicado.codigo;
-      datosReserva.monto_descuento_aplicado = cuponAplicado.montoDescontado;
-      if (cuponAplicado.cuponId) {
-        datosReserva.cupon_id = cuponAplicado.cuponId;
-      }
-    }
+    const datosReserva = buildReservationData();
 
     console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
 
