@@ -179,6 +179,23 @@ function Paso3_SeleccionHorario({
     // No es necesario añadir nada extra, es como seleccionar un solo día.
   }
 
+  let contieneSabado = false;
+  if (rangoSeleccionado) {
+      const diasAProcesar = [];
+      if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
+          diasAProcesar.push(rangoSeleccionado.startDate);
+      } else if (currentSelectionMode === 'range' && rangoSeleccionado.startDate && rangoSeleccionado.endDate) {
+          let currentDate = new Date(rangoSeleccionado.startDate);
+          while (currentDate <= rangoSeleccionado.endDate) {
+              diasAProcesar.push(new Date(currentDate));
+              currentDate.setDate(currentDate.getDate() + 1);
+          }
+      } else if (currentSelectionMode === 'multiple-discrete' && rangoSeleccionado.discreteDates) {
+          diasAProcesar.push(...rangoSeleccionado.discreteDates);
+      }
+
+      contieneSabado = diasAProcesar.some(dia => dia.getDay() === 6);
+  }
 
   return (
     <div className="paso-container">
@@ -227,6 +244,9 @@ function Paso3_SeleccionHorario({
 
       {horaTermino && desglosePrecio && (
         <div className="resumen-horario">
+          {contieneSabado && (
+            <p className="special-rate-notice">🎉 ¡Atención! Los sábados tienen una tarifa especial.</p>
+          )}
           <p>Duración: <strong>{duracionCalculada} {duracionCalculada === 1 ? 'hora' : 'horas'}</strong></p>
           {/* Mostrar el desglose del precio */}
           <p>Subtotal (Neto): <strong>${(desglosePrecio.netoOriginal || 0).toLocaleString('es-CL')}</strong></p>
