@@ -54,6 +54,17 @@
     font-weight: 600;
 }
 
+.special-rate-notice {
+    background-color: var(--color-yellow-100);
+    color: var(--color-yellow-800);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.95em;
+    font-weight: 500;
+    border: 1px solid var(--color-yellow-200);
+}
+
 /* Estilos para los botones de horario (ya definidos en App.css pero se pueden poner aquí para encapsular) */
 .boton-horario {
     padding: 12px;
