@@ -689,12 +689,12 @@ function Paso4_DatosYResumen(props) {
           <div className="form-group tipo-documento-selector">
             <h3>Tipo de Documento Tributario</h3>
             <div className="radio-group">
-              <label>
-                <input type="radio" value="boleta" checked={tipoDocumento === 'boleta'} onChange={(e) => setTipoDocumento(e.target.value)} />
+              <label htmlFor="tipo-documento-boleta">
+                <input id="tipo-documento-boleta" type="radio" value="boleta" checked={tipoDocumento === 'boleta'} onChange={(e) => setTipoDocumento(e.target.value)} />
                 Boleta
               </label>
-              <label>
-                <input type="radio" value="factura" checked={tipoDocumento === 'factura'} onChange={(e) => setTipoDocumento(e.target.value)} />
+              <label htmlFor="tipo-documento-factura">
+                <input id="tipo-documento-factura" type="radio" value="factura" checked={tipoDocumento === 'factura'} onChange={(e) => setTipoDocumento(e.target.value)} />
                 Factura (Empresa)
               </label>
             </div>
@@ -796,9 +796,10 @@ function Paso4_DatosYResumen(props) {
           <div className="metodo-pago-selector">
             <h3>¿Cómo te gustaría pagar?</h3>
             <div className="radio-group-pago">
-              <label className={metodoPago === 'tarjeta' ? 'selected' : ''}>
+              <label htmlFor="metodo-pago-tarjeta" className={metodoPago === 'tarjeta' ? 'selected' : ''}>
                 <input
                   type="radio"
+                  id="metodo-pago-tarjeta"
                   name="metodoPago"
                   value="tarjeta"
                   checked={metodoPago === 'tarjeta'}
@@ -806,9 +807,10 @@ function Paso4_DatosYResumen(props) {
                 />
                 Pagar con Tarjeta
               </label>
-              <label className={metodoPago === 'transferencia' ? 'selected' : ''}>
+              <label htmlFor="metodo-pago-transferencia" className={metodoPago === 'transferencia' ? 'selected' : ''}>
                 <input
                   type="radio"
+                  id="metodo-pago-transferencia"
                   name="metodoPago"
                   value="transferencia"
                   checked={metodoPago === 'transferencia'}
