@@ -3,6 +3,7 @@ import api, { procesarPago } from '../api'; // Importar procesarPago
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import Spinner from './Spinner'; // Importar el nuevo componente Spinner
 import PaymentBrick from './PaymentBrick'; // Importar el nuevo componente
+import PoliticasModal from './PoliticasModal'; // Importar el modal de políticas
 import './Paso4_DatosYResumen.css';
 
 function Paso4_DatosYResumen(props) {
@@ -89,6 +90,7 @@ function Paso4_DatosYResumen(props) {
   const [notasAdicionales, setNotasAdicionales] = useState('');
   const [mensajeReserva, setMensajeReserva] = useState({ texto: '', tipo: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPoliticasModalOpen, setIsPoliticasModalOpen] = useState(false);
 
 
   // Efecto para autorelleno de socio y limpieza (prioriza datos de socio sobre localStorage)
@@ -602,6 +604,7 @@ function Paso4_DatosYResumen(props) {
 
   return (
     <div className="paso-container">
+      {isPoliticasModalOpen && <PoliticasModal onClose={() => setIsPoliticasModalOpen(false)} />}
       {isSubmitting && metodoPago === 'tarjeta' && <Spinner message="Procesando pago, por favor espera..." />}
       <h2>Paso 4: Completa tu Reserva</h2>
 
@@ -791,6 +794,10 @@ function Paso4_DatosYResumen(props) {
             <strong>${Math.round(desglosePrecio.total || 0).toLocaleString('es-CL')}</strong>
           </div>
           <p className="resumen-notas">Una vez enviada la solicitud, recibirás un correo con los datos bancarios para efectuar el pago y confirmar tu reserva.</p>
+
+          <div className="politicas-link-container">
+            <p>Al hacer clic en "Finalizar Reserva", aceptas nuestras <button onClick={() => setIsPoliticasModalOpen(true)} className="link-button-politicas">Políticas de Uso</button>.</p>
+          </div>
 
           {/* Nueva sección para elegir método de pago */}
           <div className="metodo-pago-selector">
