@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import logo from './assets/logoapialan6.png';
 import PagoExitoso from './pages/PagoExitoso';
 import PagoFallido from './pages/PagoFallido';
+import PoliticasModal from './components/PoliticasModal';
 
 function App() {
   const { authToken, logout } = useAuth();
@@ -17,6 +18,7 @@ function App() {
 
   // 1. Estado para controlar la 'key' del componente de reserva.
   const [bookingKey, setBookingKey] = useState(0);
+  const [isPoliticasModalOpen, setIsPoliticasModalOpen] = useState(false);
 
   // 2. Función para reiniciar el proceso de reserva.
   //    Incrementa la key, lo que fuerza a React a reinstanciar BookingPage.
@@ -27,6 +29,7 @@ function App() {
 
   return (
     <div className="App">
+      {isPoliticasModalOpen && <PoliticasModal onClose={() => setIsPoliticasModalOpen(false)} />}
       <header className="App-header">
         {/* 3. El logo ahora es un div interactivo que llama a la función de reinicio. */}
         <div onClick={handleResetBooking} style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
@@ -71,6 +74,11 @@ function App() {
       <footer className="App-footer">
         <p>APIALAN AG - Galería Colón 454, segundo piso.</p>
         <p>Horario: Lunes a Viernes: 10:00 - 19:00 hrs</p>
+        <p>
+          <button onClick={() => setIsPoliticasModalOpen(true)} className="footer-link">
+            Políticas de Uso
+          </button>
+        </p>
       </footer>
     </div>
   );

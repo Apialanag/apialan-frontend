@@ -275,3 +275,18 @@
     text-align: center; /* Centramos el botón */
   }
 }
+
+.footer-link {
+  background: none;
+  border: none;
+  color: var(--color-gray-300);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.footer-link:hover {
+  color: var(--color-white);
+}
