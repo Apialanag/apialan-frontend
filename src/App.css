@@ -34,8 +34,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap; /* Para un mejor comportamiento en pantallas pequeñas */
 }
+
 .App-footer p { margin: 0; }
+
+.footer-left {
+  text-align: left;
+}
+
+.footer-center {
+  text-align: center;
+}
+
+.footer-right {
+  text-align: right;
+}
+
+/* En pantallas más grandes, distribuimos el espacio */
+@media (min-width: 768px) {
+  .footer-left, .footer-center, .footer-right {
+    flex: 1;
+  }
+}
+
+/* En pantallas pequeñas, apilamos los elementos */
+@media (max-width: 767px) {
+  .App-footer {
+    flex-direction: column;
+    gap: 10px; /* Espacio entre los elementos apilados */
+  }
+
+  .footer-left, .footer-center, .footer-right {
+    text-align: center;
+    width: 100%;
+  }
+}
 
 /* =================================
    Estilos de las Vistas y Pasos

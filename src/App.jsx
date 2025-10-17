@@ -72,13 +72,17 @@ function App() {
       </main>
 
       <footer className="App-footer">
-        <p>APIALAN AG - Galería Colón 454, segundo piso.</p>
-        <p>Horario: Lunes a Viernes: 10:00 - 19:00 hrs</p>
-        <p>
+        <div className="footer-left">
+          <p>APIALAN AG - Galería Colón 454, segundo piso.</p>
+        </div>
+        <div className="footer-center">
           <button onClick={() => setIsPoliticasModalOpen(true)} className="footer-link">
             Políticas de Uso
           </button>
-        </p>
+        </div>
+        <div className="footer-right">
+          <p>Horario: Lunes a Viernes: 10:00 - 19:00 hrs</p>
+        </div>
       </footer>
     </div>
   );
