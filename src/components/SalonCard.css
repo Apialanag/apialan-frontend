@@ -6,7 +6,8 @@
 
 .salon-card {
     position: relative;
-    color: white;
+    color: #1f2937; /* Color de texto oscuro por defecto */
+    background-color: white; /* Fondo blanco para el cuerpo */
     border-radius: 0.75rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -17,23 +18,11 @@
     text-align: left;
     height: 100%;
     border: 2px solid transparent;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    /* Técnica de superposición de fondo:
-       1. La primera capa es un gradiente de color (la superposición).
-       2. La segunda capa es la imagen del salón.
-       El color de fondo sólido actúa como fallback si la imagen no carga. */
-    background-image: linear-gradient(to top, rgba(0,0,0,0.7), var(--header-bg)), var(--salon-image);
-    background-color: var(--header-bg); /* Fallback por si la imagen no carga */
 }
 
-/* El contenido debe estar por encima del fondo, lo cual es el comportamiento por defecto,
-   pero mantener esto por claridad no hace daño. */
 .card-header, .card-body {
     position: relative;
-    z-index: 1; /* Un z-index menor es suficiente, solo para estar por encima del fondo */
+    z-index: 1;
 }
 
 /* Efecto de zoom, solo en la vista inicial */
@@ -62,8 +51,17 @@
     justify-content: center;
     padding: 1rem;
     color: white;
-    background-color: transparent; /* El fondo ahora es transparente */
     position: relative; /* Para posicionar el hint de galería */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    /* Técnica de superposición de fondo:
+       1. La primera capa es un gradiente de color (la superposición).
+       2. La segunda capa es la imagen del salón.
+       El color de fondo sólido actúa como fallback si la imagen no carga. */
+    background-image: linear-gradient(to top, rgba(0,0,0,0.7), var(--header-bg)), var(--salon-image);
+    background-color: var(--header-bg); /* Fallback por si la imagen no carga */
 }
 
 .view-gallery-hint {
