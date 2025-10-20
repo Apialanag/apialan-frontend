@@ -496,7 +496,7 @@ function Paso4_DatosYResumen(props) {
   };
 
   
-  const validateField = (name, value) => {
+  const validateField = useCallback((name, value) => {
     let error = '';
     switch (name) {
       case 'clienteNombre':
@@ -521,7 +521,7 @@ function Paso4_DatosYResumen(props) {
         break;
     }
     return error;
-  };
+  }, [tipoDocumento]);
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
@@ -547,7 +547,7 @@ function Paso4_DatosYResumen(props) {
       setIsFormValidState(isValid);
     };
     validateAllFields();
-  }, [clienteNombre, clienteEmail, tipoDocumento, facturacionRut, facturacionRazonSocial, facturacionGiro, facturacionDireccion]);
+  }, [clienteNombre, clienteEmail, tipoDocumento, facturacionRut, facturacionRazonSocial, facturacionGiro, facturacionDireccion, validateField]);
 
 
   const handleSubmit = async () => {
@@ -592,7 +592,17 @@ function Paso4_DatosYResumen(props) {
         setIsSubmitting(false);
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
-        setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
+
+        // Comprobar si el mensaje de error contiene "Network Error"
+        if (errorMessage.includes('Network Error')) {
+          setMensajeReserva({
+            texto: 'Tuvimos un problema para confirmar tu reserva en pantalla, pero es posible que se haya procesado correctamente. Por favor, revisa tu correo electrónico (incluida la carpeta de spam) para ver si recibiste la confirmación. Si no la recibes en los próximos minutos, contáctanos para verificar el estado de tu reserva antes de intentar nuevamente.',
+            tipo: 'info' // Usar 'info' o 'exito' para que el mensaje sea más tranquilizador
+          });
+        } else {
+          setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
+        }
+
         setIsSubmitting(false);
       }
     } else {
