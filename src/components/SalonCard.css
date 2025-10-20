@@ -4,17 +4,9 @@
    ESTRUCTURA GENERAL DE LA TARJETA
    ================================= */
 
-.card-main-image {
-  width: 100%;
-  height: 180px; /* Altura deseada para la imagen principal */
-  object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
-  border-top-left-radius: 0.75rem; /* Coincide con el radio de la tarjeta */
-  border-top-right-radius: 0.75rem; /* Coincide con el radio de la tarjeta */
-  display: block; /* Elimina espacio extra debajo de la imagen si es inline */
-}
-
 .salon-card {
-    background-color: white;
+    position: relative; /* Clave para el pseudo-elemento */
+    color: white; /* El texto debe ser blanco para contrastar */
     border-radius: 0.75rem;
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     overflow: hidden;
@@ -25,6 +17,30 @@
     text-align: left;
     height: 100%;
     border: 2px solid transparent;
+
+    /* Estilos para la imagen de fondo */
+    background-image: var(--salon-image);
+    background-size: cover;
+    background-position: center;
+}
+
+.salon-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--header-bg); /* Usa el color azul dinámico */
+    opacity: 0.8; /* Opacidad para que se vea la imagen de fondo */
+    z-index: 1; /* Se asegura que esté entre el fondo y el contenido */
+    transition: opacity 0.3s ease;
+}
+
+/* El contenido debe estar por encima de la capa de superposición */
+.card-header, .card-body {
+    position: relative;
+    z-index: 2;
 }
 
 /* Efecto de zoom, solo en la vista inicial */
@@ -53,7 +69,7 @@
     justify-content: center;
     padding: 1rem;
     color: white;
-    background-color: var(--header-bg); /* Variable definida en el JSX */
+    background-color: transparent; /* El fondo ahora es transparente */
     position: relative; /* Para posicionar el hint de galería */
 }
 
