@@ -5,10 +5,10 @@
    ================================= */
 
 .salon-card {
-    position: relative; /* Clave para el pseudo-elemento */
-    color: white; /* El texto debe ser blanco para contrastar */
+    position: relative;
+    color: white;
     border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     cursor: pointer;
@@ -17,30 +17,25 @@
     text-align: left;
     height: 100%;
     border: 2px solid transparent;
-
-    /* Estilos para la imagen de fondo */
-    background-image: var(--salon-image);
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
+
+    /* Técnica de superposición de fondo:
+       1. La primera capa es un gradiente de color (la superposición).
+       2. La segunda capa es la imagen del salón.
+       El color de fondo sólido actúa como fallback si la imagen no carga. */
+    background-image: linear-gradient(to top, rgba(0,0,0,0.7), var(--header-bg)), var(--salon-image);
+    background-color: var(--header-bg); /* Fallback por si la imagen no carga */
 }
 
-.salon-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--header-bg); /* Usa el color azul dinámico */
-    opacity: 0.8; /* Opacidad para que se vea la imagen de fondo */
-    z-index: 1; /* Se asegura que esté entre el fondo y el contenido */
-    transition: opacity 0.3s ease;
-}
+/* Ya no necesitamos el pseudo-elemento para la superposición */
 
-/* El contenido debe estar por encima de la capa de superposición */
+/* El contenido debe estar por encima del fondo, lo cual es el comportamiento por defecto,
+   pero mantener esto por claridad no hace daño. */
 .card-header, .card-body {
     position: relative;
-    z-index: 2;
+    z-index: 1; /* Un z-index menor es suficiente, solo para estar por encima del fondo */
 }
 
 /* Efecto de zoom, solo en la vista inicial */
