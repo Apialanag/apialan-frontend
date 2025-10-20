@@ -42,7 +42,10 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
     }
   };
 
-  const cssVariables = getEspacioColorStyles(salon.nombre);
+  const cssVariables = {
+    ...getEspacioColorStyles(salon.nombre),
+    '--salon-image': salon.fotos && salon.fotos.length > 0 ? `url(${salon.fotos[0].url})` : 'none',
+  };
 
   // Asumiendo que la API ahora devuelve precio_neto_por_hora y precio_neto_socio_por_hora
   // y que el backend ya hizo la conversión de precios totales a netos.
@@ -81,15 +84,6 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
         onClick={handleSelectSalon} // Clic en la tarjeta general selecciona el salón
         style={cssVariables}
       >
-        {/* Mostrar la imagen principal del salón si está disponible */}
-        {salon.fotos && salon.fotos.length > 0 && salon.fotos[0].url && (
-          <img
-            src={salon.fotos[0].url}
-            alt={`Imagen de ${salon.nombre}`}
-            className="card-main-image"
-            loading="lazy"
-          />
-        )}
         {/* El div del header ahora solo es responsable de abrir la galería */}
         <div
           className="card-header"
