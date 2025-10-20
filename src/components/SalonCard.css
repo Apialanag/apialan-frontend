@@ -29,8 +29,6 @@
     background-color: var(--header-bg); /* Fallback por si la imagen no carga */
 }
 
-/* Ya no necesitamos el pseudo-elemento para la superposición */
-
 /* El contenido debe estar por encima del fondo, lo cual es el comportamiento por defecto,
    pero mantener esto por claridad no hace daño. */
 .card-header, .card-body {
