@@ -57,11 +57,13 @@
     background-repeat: no-repeat;
 
     /* Técnica de superposición de fondo:
-       1. La primera capa es un gradiente de color (la superposición).
+       1. La primera capa es un gradiente de color (el tinte).
        2. La segunda capa es la imagen del salón.
        El color de fondo sólido actúa como fallback si la imagen no carga. */
-    background-image: linear-gradient(to top, rgba(0,0,0,0.7), var(--header-bg)), var(--salon-image);
-    background-color: var(--header-bg); /* Fallback por si la imagen no carga */
+    background-image:
+      linear-gradient(var(--header-bg-tint), var(--header-bg-tint)),
+      var(--salon-image);
+    background-color: var(--header-bg-solid); /* Fallback si la imagen no carga */
 }
 
 .view-gallery-hint {
