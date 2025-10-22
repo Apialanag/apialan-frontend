@@ -52,7 +52,7 @@ function SalonList({ onSalonSelect, esSocio }) {
       {loading ? (
         // Mostrar 3 skeletons mientras carga
         Array.from({ length: 3 }).map((_, index) => (
-          <SalonCardSkeleton key[index] />
+          <SalonCardSkeleton key={index} />
         ))
       ) : salones.length > 0 ? (
         salones.map(salon => (
