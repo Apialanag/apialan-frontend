@@ -5,7 +5,13 @@ import SalonCard from './SalonCard';
 import SalonCardSkeleton from './SalonCardSkeleton'; // Importar el skeleton
 import './SalonList.css';
 
-// --- CAMBIO 1: Aceptamos la nueva propiedad 'esSocio' ---
+// This map provides a reliable source for salon images, bypassing the unreliable API endpoint for images.
+const salonImageMap = {
+  1: 'https://raw.githubusercontent.com/af-andres/img/main/alan/salones/salon-eventos.png',
+  2: 'https://github.com/af-andres/img/blob/main/alan/salones/salon-reuniones.png?raw=true',
+  3: 'https://github.com/af-andres/img/blob/main/alan/salones/salon-coworking.png?raw=true',
+};
+
 function SalonList({ onSalonSelect, esSocio }) {
   const [salones, setSalones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +22,16 @@ function SalonList({ onSalonSelect, esSocio }) {
       setLoading(true);
       try {
         const response = await api.get('/espacios');
-        setSalones(response.data);
+        // Transform the API response to include the image URLs in the structure expected by SalonCard.
+        const salonesConImagenes = response.data.map(salon => {
+          const imageUrl = salonImageMap[salon.id];
+          return {
+            ...salon,
+            // SalonCard expects a 'fotos' array with at least one object containing a 'url' property.
+            fotos: imageUrl ? [{ url: imageUrl }] : salon.fotos || [],
+          };
+        });
+        setSalones(salonesConImagenes);
         setError(null);
       } catch (err) {
         console.error("Error al obtener los salones:", err);
@@ -37,7 +52,7 @@ function SalonList({ onSalonSelect, esSocio }) {
       {loading ? (
         // Mostrar 3 skeletons mientras carga
         Array.from({ length: 3 }).map((_, index) => (
-          <SalonCardSkeleton key={index} />
+          <SalonCardSkeleton key[index] />
         ))
       ) : salones.length > 0 ? (
         salones.map(salon => (
