@@ -4,6 +4,14 @@ import React, { useState } from 'react';
 import './SalonCard.css';
 import SalonImageModal from './SalonImageModal'; // Importar el modal
 
+// Helper function to convert hex color to rgba
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 function SalonCard({ salon, onSelect, isSelected, esSocio }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -33,13 +41,20 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
       '--badge-text': '#4338ca',
     };
 
+    let headerBgHex;
     if (nombreEspacio.includes('Grande')) {
-      return { ...corporateColors, '--header-bg': '#3730a3' };
+      headerBgHex = '#3730a3';
     } else if (nombreEspacio.includes('Mediana')) {
-      return { ...corporateColors, '--header-bg': '#2563EB' };
+      headerBgHex = '#2563EB';
     } else {
-      return { ...corporateColors, '--header-bg': '#60A5FA' };
+      headerBgHex = '#60A5FA';
     }
+
+    return {
+      ...corporateColors,
+      '--header-bg-solid': headerBgHex,
+      '--header-bg-tint': hexToRgba(headerBgHex, 0.7), // 70% opacity tint
+    };
   };
 
   const cssVariables = {
