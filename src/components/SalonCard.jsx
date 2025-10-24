@@ -57,9 +57,19 @@ function SalonCard({ salon, onSelect, isSelected, esSocio }) {
     };
   };
 
+  const getImageUrl = (nombreSalon) => {
+    if (nombreSalon.includes('Grande')) {
+      return 'https://apialan.cl/fotossalones/salon-grande.jpg';
+    } else if (nombreSalon.includes('Mediana')) {
+      return 'https://apialan.cl/fotossalones/salamediana.jpg';
+    } else { // Pequeña
+      return 'https://apialan.cl/fotossalones/salachica.jpeg';
+    }
+  };
+
   const cssVariables = {
     ...getEspacioColorStyles(salon.nombre),
-    '--salon-image': salon.fotos && salon.fotos.length > 0 ? `url(${salon.fotos[0].url})` : 'none',
+    '--salon-image': `url('${getImageUrl(salon.nombre)}')`,
   };
 
   // Asumiendo que la API ahora devuelve precio_neto_por_hora y precio_neto_socio_por_hora

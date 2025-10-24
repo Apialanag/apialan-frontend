@@ -12,22 +12,34 @@ function SalonList({ onSalonSelect, esSocio }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchSalones = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get('/espacios');
-        setSalones(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Error al obtener los salones:", err);
-        const errorMessage = `Error al cargar los salones. No se pudo conectar a la API.`;
-        setError(errorMessage);
-        setSalones([]);
-      } finally {
-        setLoading(false);
+    const mockSalones = [
+      {
+        id: 1,
+        nombre: 'Salón Grande',
+        capacidad: 10,
+        precio_neto_por_hora: 4200,
+        comodidades: ['WiFi', 'Proyector'],
+        fotos: []
+      },
+      {
+        id: 2,
+        nombre: 'Sala Mediana',
+        capacidad: 6,
+        precio_neto_por_hora: 3360,
+        comodidades: ['WiFi', 'Pizarra'],
+        fotos: []
+      },
+      {
+        id: 3,
+        nombre: 'Sala Pequeña',
+        capacidad: 4,
+        precio_neto_por_hora: 2520,
+        comodidades: ['WiFi'],
+        fotos: []
       }
-    };
-    fetchSalones();
+    ];
+    setSalones(mockSalones);
+    setLoading(false);
   }, []);
 
   if (error) return <p style={{ color: 'var(--color-red-500)' }}>{error}</p>;
