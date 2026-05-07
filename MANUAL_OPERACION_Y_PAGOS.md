@@ -65,7 +65,16 @@ El sistema utiliza **Mercado Pago Bricks**, una solución modular de integració
 
 ---
 
-## 5. Guía de Migración a otra Pasarela de Pagos
+## 5. Reservas de Larga Duración y Recurrentes
+
+Para arriendos mensuales, anuales o bloques de jornadas programadas conjuntamente, el sistema aplica políticas específicas:
+- **Unidad Única:** Se consideran como una sola unidad de contratación.
+- **Cancelación de Bloque:** El derecho al reembolso del 70% por cancelación total solo aplica si se solicita 24 horas antes del inicio de la **primera jornada** del bloque.
+- **Bloque en Ejecución:** Una vez iniciada la primera sesión, no hay reembolsos globales. Solo se pueden cancelar sesiones individuales bajo la norma general de 24 horas.
+
+---
+
+## 6. Guía de Migración a otra Pasarela de Pagos
 
 Si Apialan decide cambiar de banco o utilizar otra pasarela (ej. Webpay, Flow, Stripe), se deben seguir estos pasos:
 

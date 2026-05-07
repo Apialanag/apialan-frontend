@@ -49,3 +49,9 @@ Para asegurar un ambiente profesional y el cuidado de nuestras instalaciones, el
 *   Cualquier daño causado a las instalaciones, mobiliario o equipamiento durante el período de la reserva será de completa responsabilidad del usuario titular de la misma.
 *   El usuario deberá cubrir el costo total de la reparación o reposición del bien dañado.
 *   En caso de incumplimiento, el Directorio de APIALAN A.G. se reserva el derecho a tomar las medidas administrativas o legales que correspondan.
+
+#### **7. Tratamiento de Reservas Recurrentes o de Larga Duración**
+
+*   **Definición de Unidad de Contratación:** Se considera "Reserva Recurrente" a cualquier bloque de jornadas programadas de manera conjunta (ej. arriendos mensuales o anuales). Para efectos legales y administrativos, este bloque se considera una unidad de contratación única.
+*   **Hito de Inicio y Desistimiento:** La antelación para solicitar la cancelación de un bloque completo con derecho al reembolso del 70% se calculará tomando como referencia exclusiva la fecha y hora de inicio de la primera jornada del calendario contratado.
+*   **Ejecución del Bloque:** Una vez iniciada la primera jornada de uso, el bloque completo se considera "en ejecución". A partir de ese momento, el usuario pierde el derecho a solicitar reembolsos globales por el total de las horas remanentes, pudiendo solo cancelar jornadas individuales bajo la política general de 24 horas (aplicable solo a la sesión inmediata).
