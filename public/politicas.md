@@ -55,3 +55,8 @@ Para asegurar un ambiente profesional y el cuidado de nuestras instalaciones, el
 *   **Definición de Unidad de Contratación:** Se considera "Reserva Recurrente" a cualquier bloque de jornadas programadas de manera conjunta (ej. arriendos mensuales o anuales). Para efectos legales y administrativos, este bloque se considera una unidad de contratación única.
 *   **Hito de Inicio y Desistimiento:** La antelación para solicitar la cancelación de un bloque completo con derecho al reembolso del 70% se calculará tomando como referencia exclusiva la fecha y hora de inicio de la primera jornada del calendario contratado.
 *   **Ejecución del Bloque:** Una vez iniciada la primera jornada de uso, el bloque completo se considera "en ejecución". A partir de ese momento, el usuario pierde el derecho a solicitar reembolsos globales por el total de las horas remanentes, pudiendo solo cancelar jornadas individuales bajo la política general de 24 horas (aplicable solo a la sesión inmediata).
+
+#### **Notas Aclaratorias e Interpretación**
+
+*   **Ámbito de Aplicación:** Las políticas de reembolso del Punto 4 aplican exclusivamente a Reservas Individuales (jornadas únicas aisladas).
+*   **Prevalencia del Bloque:** Para Reservas Recurrentes, el inicio del servicio agota la facultad de retracto económico. El beneficio de aviso de 24 horas en estos casos es una herramienta de gestión de espacios y no una cláusula de devolución.
