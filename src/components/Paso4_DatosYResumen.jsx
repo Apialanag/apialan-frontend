@@ -1,8 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import api, { procesarPago } from '../api'; // Importar procesarPago
+import api from '../api';
 import { isSameDay } from 'date-fns'; // Importar isSameDay
 import Spinner from './Spinner'; // Importar el nuevo componente Spinner
-import PaymentBrick from './PaymentBrick'; // Importar el nuevo componente
 import PoliticasModal from './PoliticasModal'; // Importar el modal de políticas
 import './Paso4_DatosYResumen.css';
 
@@ -81,9 +80,6 @@ function Paso4_DatosYResumen(props) {
   const [facturacionGiro, setFacturacionGiro] = useState('');
   const [facturacionDireccion, setFacturacionDireccion] = useState('');
 
-  // Nuevo estado para el método de pago
-  const [metodoPago, setMetodoPago] = useState('tarjeta'); // 'tarjeta' o 'transferencia'
-
   // Estado para los errores de validación del formulario
   const [formErrors, setFormErrors] = useState({});
   const [isFormValidState, setIsFormValidState] = useState(false);
@@ -149,7 +145,7 @@ function Paso4_DatosYResumen(props) {
       precio_total_enviado_cliente: desglosePrecio?.total,
       notas_adicionales: notasAdicionales,
       tipo_documento: tipoDocumento,
-      metodo_pago: metodoPago === 'tarjeta' ? 'mercadopago' : 'transferencia',
+      metodo_pago: 'transferencia',
     };
 
     if (currentSelectionMode === 'single' && rangoSeleccionado?.startDate) {
@@ -185,45 +181,11 @@ function Paso4_DatosYResumen(props) {
     return datosReserva;
   }, [
     salonSeleccionado, clienteNombre, clienteEmail, clienteTelefono, horaInicio,
-    horaTermino, desglosePrecio, notasAdicionales, tipoDocumento, metodoPago,
+    horaTermino, desglosePrecio, notasAdicionales, tipoDocumento,
     currentSelectionMode, rangoSeleccionado, facturacionRut, facturacionRazonSocial,
     facturacionGiro, facturacionDireccion, esSocio, rutLocal, cuponAplicado
   ]);
 
-  const handlePaymentSubmit = async (mercadoPagoData) => {
-    setIsSubmitting(true);
-    setMensajeReserva({ texto: 'Procesando pago, por favor espera...', tipo: 'info' });
-
-    try {
-      // 1. Crear la reserva primero
-      const datosReserva = buildReservationData();
-      const responseReserva = await api.post('/reservas', datosReserva);
-      const reservaPrincipal = responseReserva.data?.reservas?.[0];
-
-      if (!reservaPrincipal || !reservaPrincipal.id) {
-        throw new Error('No se pudo crear la reserva antes del pago.');
-      }
-
-      // 2. Procesar el pago con el ID de la reserva
-      const datosParaBackend = {
-        ...mercadoPagoData.formData,
-        paymentType: mercadoPagoData.paymentType,
-        selectedPaymentMethod: mercadoPagoData.selectedPaymentMethod,
-        reservaId: reservaPrincipal.id,
-      };
-
-      await procesarPago(datosParaBackend);
-      window.location.href = '/pago-exitoso';
-
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'El pago fue rechazado o hubo un error.';
-      console.error('Error al procesar el pago:', error);
-      setMensajeReserva({ texto: `Error: ${errorMessage}`, tipo: 'error' });
-      setIsSubmitting(false);
-      // Lanzar el error de nuevo para que el brick de pago pueda manejarlo (si es necesario)
-      throw error;
-    }
-  };
 
   // --- Funciones para generar ICS ---
   const toICSDate = (date, timeString = "00:00") => {
@@ -570,34 +532,26 @@ function Paso4_DatosYResumen(props) {
 
     console.log('[DEBUG Frontend] Enviando al backend /api/reservas:', JSON.stringify(datosReserva, null, 2));
 
-    // La lógica de pago con tarjeta fue movida al `onSubmit` del Payment Brick.
-    // Este `handleSubmit` solo se ejecuta para el pago por transferencia.
-    if (metodoPago === 'transferencia') {
-      try {
-        const responseReserva = await api.post('/reservas', datosReserva);
-        const reservaPrincipal = responseReserva.data?.reservas?.[0];
-        if (!reservaPrincipal || !reservaPrincipal.id) {
-          throw new Error('La creación de la reserva no devolvió un ID válido.');
-        }
-
-        if (!esSocio) {
-          localStorage.setItem('lastBookingName', clienteNombre);
-          localStorage.setItem('lastBookingEmail', clienteEmail);
-          localStorage.setItem('lastBookingPhone', clienteTelefono);
-        }
-
-        setReservaConfirmadaId(reservaPrincipal.id);
-        setMensajeReserva({ texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago.', tipo: 'exito' });
-
-        setIsSubmitting(false);
-      } catch (error) {
-        const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
-        setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
-        setIsSubmitting(false);
+    try {
+      const responseReserva = await api.post('/reservas', datosReserva);
+      const reservaPrincipal = responseReserva.data?.reservas?.[0];
+      if (!reservaPrincipal || !reservaPrincipal.id) {
+        throw new Error('La creación de la reserva no devolvió un ID válido.');
       }
-    } else {
-      // No debería llegar aquí si el botón está deshabilitado para 'tarjeta', pero es una salvaguarda.
-      console.warn('handleSubmit fue llamado con un método de pago no esperado:', metodoPago);
+
+      if (!esSocio) {
+        localStorage.setItem('lastBookingName', clienteNombre);
+        localStorage.setItem('lastBookingEmail', clienteEmail);
+        localStorage.setItem('lastBookingPhone', clienteTelefono);
+      }
+
+      setReservaConfirmadaId(reservaPrincipal.id);
+      setMensajeReserva({ texto: '¡Solicitud de reserva recibida con éxito! Revisa tu correo para obtener la información de pago.', tipo: 'exito' });
+
+      setIsSubmitting(false);
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || 'No se pudo procesar la solicitud.';
+      setMensajeReserva({ texto: `Error al crear la reserva: ${errorMessage}`, tipo: 'error' });
       setIsSubmitting(false);
     }
   };
@@ -605,7 +559,6 @@ function Paso4_DatosYResumen(props) {
   return (
     <div className="paso-container">
       {isPoliticasModalOpen && <PoliticasModal onClose={() => setIsPoliticasModalOpen(false)} />}
-      {isSubmitting && metodoPago === 'tarjeta' && <Spinner message="Procesando pago, por favor espera..." />}
       <h2>Paso 4: Completa tu Reserva</h2>
 
       {mensajeSocio && <div className="mensaje-socio-info">{mensajeSocio}</div>}
@@ -798,52 +751,6 @@ function Paso4_DatosYResumen(props) {
           <div className="politicas-link-container">
             <p>Al hacer clic en "Finalizar Reserva", aceptas nuestras <button onClick={() => setIsPoliticasModalOpen(true)} className="link-button-politicas">Políticas de Uso</button>.</p>
           </div>
-
-          {/* Nueva sección para elegir método de pago */}
-          <div className="metodo-pago-selector">
-            <h3>¿Cómo te gustaría pagar?</h3>
-            <div className="radio-group-pago">
-              <label htmlFor="metodo-pago-tarjeta" className={metodoPago === 'tarjeta' ? 'selected' : ''}>
-                <input
-                  type="radio"
-                  id="metodo-pago-tarjeta"
-                  name="metodoPago"
-                  value="tarjeta"
-                  checked={metodoPago === 'tarjeta'}
-                  onChange={(e) => setMetodoPago(e.target.value)}
-                />
-                Pagar con Tarjeta
-              </label>
-              <label htmlFor="metodo-pago-transferencia" className={metodoPago === 'transferencia' ? 'selected' : ''}>
-                <input
-                  type="radio"
-                  id="metodo-pago-transferencia"
-                  name="metodoPago"
-                  value="transferencia"
-                  checked={metodoPago === 'transferencia'}
-                  onChange={(e) => setMetodoPago(e.target.value)}
-                />
-                Pagar por Transferencia
-              </label>
-            </div>
-          </div>
-
-          {/* Contenedor para el Payment Brick */}
-          {metodoPago === 'tarjeta' && (
-            <PaymentBrick
-              key={desglosePrecio.total}
-              amount={desglosePrecio.total}
-              payer={{
-                email: clienteEmail,
-                entityType: tipoDocumento === 'factura' ? 'association' : 'individual',
-              }}
-              onSubmit={handlePaymentSubmit}
-              onError={(error) => {
-                console.error(error);
-                setMensajeReserva({ texto: 'Hubo un error con el formulario de pago. Revisa los datos.', tipo: 'error' });
-              }}
-            />
-          )}
         </div>
       </div>
       
@@ -882,12 +789,10 @@ function Paso4_DatosYResumen(props) {
 
       <div className="navegacion-pasos">
         <button onClick={prevStep} disabled={isSubmitting} className="boton-volver">← Volver</button>
-        {/* El botón principal se deshabilita si se paga con tarjeta, o si ya se confirmó una reserva por transferencia */}
         <button
           onClick={handleSubmit}
-          disabled={!isFormValidState || isSubmitting || metodoPago === 'tarjeta' || !!reservaConfirmadaId}
+          disabled={!isFormValidState || isSubmitting || !!reservaConfirmadaId}
           className="boton-principal"
-          title={metodoPago === 'tarjeta' ? 'Utilice el formulario de pago con tarjeta para continuar' : ''}
         >
           {isSubmitting ? 'Procesando...' : 'Finalizar Reserva'}
         </button>

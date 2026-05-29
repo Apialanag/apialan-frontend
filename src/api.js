@@ -57,11 +57,4 @@ export const deleteBlockedDate = (dateString) => {
   return api.delete(`/blocked-dates/${dateString}`);
 };
 
-// Funciones para la pasarela de pago
-export const procesarPago = (datosPago) => {
-  // Este endpoint SÍ es parte de nuestra API, por lo que usamos la instancia 'api'
-  return api.post('/pagos/procesar-pago', datosPago);
-};
-
-
 export default api;
