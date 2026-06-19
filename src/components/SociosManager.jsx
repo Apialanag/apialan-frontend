@@ -78,7 +78,7 @@ function SociosManager() {
       await api.put(`/admin/socios/${id}`, editForm);
       setEditingId(null); // Salir del modo de edición
       fetchSocios(); // Recargar la lista
-    } catch (err) {
+    } catch {
       setError('Error al actualizar socio.');
     }
   };

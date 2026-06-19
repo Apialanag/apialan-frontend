@@ -23,6 +23,7 @@ function ReservasManager() {
   const debouncedBusqueda = useDebounce(busquedaFiltro, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [selectedReservaIds, setSelectedReservaIds] = useState([]); // Nuevo estado para selección múltiple
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState(null);
   const [modalInitialMode, setModalInitialMode] = useState('view'); // 'view' o 'edit'
@@ -100,6 +101,46 @@ function ReservasManager() {
     setFechaFinFiltro(null);
     setEstadoFiltro('');
     setBusquedaFiltro('');
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allIds = reservas.map(r => r.id);
+      setSelectedReservaIds(allIds);
+    } else {
+      setSelectedReservaIds([]);
+    }
+  };
+
+  const handleSelectReserva = (id) => {
+    setSelectedReservaIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchCancel = async () => {
+    if (selectedReservaIds.length === 0) return;
+
+    const confirmacion = window.confirm(`¿Estás seguro de que deseas cancelar las ${selectedReservaIds.length} reservas seleccionadas?`);
+    if (!confirmacion) return;
+
+    setLoading(true);
+    let exitos = 0;
+    let fallos = 0;
+
+    for (const id of selectedReservaIds) {
+      try {
+        await api.put(`/reservas/${id}`, { estado_reserva: 'cancelada_por_admin' });
+        exitos++;
+      } catch (err) {
+        console.error(`Error al cancelar reserva ${id}:`, err);
+        fallos++;
+      }
+    }
+
+    alert(`Proceso completado. Éxitos: ${exitos}, Fallos: ${fallos}`);
+    setSelectedReservaIds([]);
+    fetchReservas(currentPage);
   };
 
   const escapeCsvCell = (cellData) => {
@@ -301,9 +342,22 @@ function ReservasManager() {
           </div>
       </div>
       <div className="reservas-table-container">
+          {selectedReservaIds.length > 0 && (
+            <div className="batch-actions-bar">
+              <span>{selectedReservaIds.length} seleccionadas</span>
+              <button onClick={handleBatchCancel} className="boton-cancelar-batch">Cancelar Seleccionadas</button>
+            </div>
+          )}
           <table className="reservas-table">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectAll}
+                    checked={reservas.length > 0 && selectedReservaIds.length === reservas.length}
+                  />
+                </th>
                 <th>ID</th>
                 <th>Salón</th>
                 <th>Cliente</th>
@@ -324,6 +378,13 @@ function ReservasManager() {
               {reservas.length > 0 ? (
                 reservas.map(reserva => (
                   <tr key={reserva.id} className={reserva.estado_reserva.includes('cancelada') ? 'fila-cancelada' : ''}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedReservaIds.includes(reserva.id)}
+                        onChange={() => handleSelectReserva(reserva.id)}
+                      />
+                    </td>
                     <td>{reserva.id}</td>
                     <td>{reserva.nombre_espacio}</td>
                     <td>{reserva.cliente_nombre}</td>

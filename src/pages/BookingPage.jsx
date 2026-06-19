@@ -1,6 +1,5 @@
 // src/pages/BookingPage.jsx
 import React, { useState, useEffect } from 'react';
-import { isAfter, isSameDay } from 'date-fns'; // Importar para cálculo de numDias y isSameDay
 import '../App.css';
 import SalonList from '../components/SalonList';
 import IndicadorPasos from '../components/IndicadorPasos';
@@ -122,7 +121,6 @@ function BookingPage() {
       if (hTerminoNum > hInicioNum) {
         const duracionPorDia = hTerminoNum - hInicioNum;
         let totalNetoCalculado = 0;
-        let diasHabiles = 0;
 
         let diasAProcesar = [];
         if (currentSelectionMode === 'single' && rangoSeleccionado.startDate) {
@@ -140,7 +138,6 @@ function BookingPage() {
         diasAProcesar.forEach(dia => {
             const dayOfWeek = dia.getDay();
             if (dayOfWeek !== 0) { // Excluir Domingos
-                diasHabiles++;
                 const esSabado = dayOfWeek === 6;
                 const precioNetoHora = esSabado
                     ? getPrecioNetoPorHoraSabado(salonSeleccionado, !!socioData)
